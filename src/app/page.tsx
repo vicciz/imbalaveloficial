@@ -2,26 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Footer from '@/src/components/Footer';
-import { listarProdutos } from '@/src/services/api';
+import { listarProdutos, type Produto as ServiceProduto } from '@/src/services/produtos';
 import CarrosselCosmeticos from '@/src/components/Carrossel-Cosmeticos';
 import { supabase } from '@/supabaseClient';
 import { encodeProductId } from '@/src/utils/linkMask';
-
-interface Produto {
-  id: number;
-  nome: string;
-  preco: string;
-  originalPreco: string;
-  rating: number | null;
-  reviews: number | null;
-  image: string | null;
-  categoria: string | null;
-  descricao: string;
-  detalhes: string;
-  imagem1: string;
-  imagem2: string;
-  imagem3: string;
-}
 
 interface ProdutoResumo {
   id: number;
@@ -36,7 +20,7 @@ interface ColecaoHome {
 }
 
 export default function Page() {
-  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [produtos, setProdutos] = useState<ServiceProduto[]>([]);
   const [colecoesHome, setColecoesHome] = useState<ColecaoHome[]>([]);
   const [curtidas, setCurtidas] = useState<Set<number>>(new Set());
   const [descurtidas, setDescurtidas] = useState<Set<number>>(new Set());
@@ -81,12 +65,14 @@ export default function Page() {
 
   useEffect(() => {
     async function carregar() {
-      const res = await listarProdutos();
-      if (res.status === 'ok') {
-        setProdutos(res.produtos);
-      } else {
-        console.error('Erro ao carregar produtos:', res.error);
+      const { data, error } = await listarProdutos();
+      if (error) {
+        console.error('Erro ao carregar produtos:', error);
+        setProdutos([]);
+        return;
       }
+
+      setProdutos(data ?? []);
     }
     carregar();
   }, []);

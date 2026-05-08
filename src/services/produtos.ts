@@ -109,6 +109,9 @@ export async function listarProdutos(
 export async function buscarProduto(
   id: number
 ): Promise<{ data: Produto | null; error: any }> {
+  if (!supabase) {
+    return { data: null, error: 'Supabase client not initialized' };
+  }
   const { data, error } = await supabase
     .from('produtos')
     .select('*')

@@ -15,8 +15,32 @@ import { Produto, buscarProduto } from '@/src/services/produtos';
 import { supabase } from '@/supabaseClient';
 import logoImbalavel from '@/src/public/assets/imagens/logo.png';
 
+//enviar requisição para o backend criar a compra e redirecionar para checkout
+  async function comprar(id: number) {
+
+    const response = await fetch("/api/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ id })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Erro ao redirecionar para checkout');
+      }
+    } else {
+      alert('Erro ao processar a compra');
+    }
+  }
+
 
 export default function ProdutoDetalhe() {
+
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const [produto, setProduto] = useState<Produto | null>(null);
@@ -140,6 +164,8 @@ export default function ProdutoDetalhe() {
     (_, open, inner, close) => open + inner.replace(/\n/g, '<br>\n') + close
   );
 
+  
+
   return (
     <div className="min-h-screen bg-[#e3eef9] text-[#1f2f4a]">
       {/* HERO */}
@@ -158,7 +184,7 @@ export default function ProdutoDetalhe() {
             <p className="mt-3 text-lg text-[#4b6386]">
               {produto.descricao}
             </p>
-
+            <p className=''>R$ {produto.preco}</p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <span className="bg-[#cfe2ff] text-[#1f3a5f] px-3 py-1 rounded-full text-sm font-semibold">
                 ⭐ {produto.rating || '5.0'}
@@ -332,11 +358,14 @@ export default function ProdutoDetalhe() {
               <li>✔️ Produtos originais e certificados</li>
               <li>✔️ Atendimento humano e rápido</li>
             </ul>
-            <div className="mt-6 flex">
+            <div className="mt-6 flex gap-4">
+            <button onClick={() => comprar(produto.id)} className="px-6 py-3 bg-[#2f61b9] text-white font-semibold rounded-full shadow-lg hover:bg-[#244e96] transition">
+              Comprar via Checkout
+            </button>
               <ComprarButton
                 productId={produto.id}
                 link={produto.link}
-                className="w-full sm:w-auto px-10 py-3 rounded-full bg-[#2f61b9] text-white font-semibold shadow-lg shadow-blue-600/25 hover:bg-[#244e96] transition"
+                className="px-6 py-3 rounded-full font-semibold shadow-lg hover:brightness-110 transition"
               />
             </div>
           </div>

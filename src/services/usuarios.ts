@@ -1,5 +1,11 @@
 import { supabase } from '@/supabaseClient';
-import { Usuario } from './Usuario';
+
+export interface Usuario {
+  id: number;
+  nome: string;
+  email: string;
+  role: 'admin' | 'user';
+}
 
 type UsuarioCreate = Omit<Usuario, 'id'> & { senha?: string };
 type UsuarioUpdate = Partial<Omit<Usuario, 'id'>> & { senha?: string };
@@ -46,4 +52,15 @@ export async function excluirUsuario(id: number): Promise<{ data: Usuario | null
     .single();
 
   return { data: (data as Usuario) || null, error };
+}
+export default function filtrarUsers(
+  usuarios: Usuario[],
+  campo: "nome" | "email",
+  valor: string
+): Usuario[] {
+  if (!valor) return usuarios;
+
+  return usuarios.filter(u =>
+    u[campo].toLowerCase().includes(valor.toLowerCase())
+  );
 }
