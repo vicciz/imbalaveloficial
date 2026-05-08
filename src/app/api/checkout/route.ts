@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { buscarProduto } from '@/src/services/produtos';
+import { supabase } from '@/supabaseClient';
+
+function getPublicImageUrl(image?: string | null) {
+  if (!image) return null;
+  if (image.startsWith('http')) return image;
+  if (!supabase) return null;
+
+  const { data } = supabase.storage.from('produtos').getPublicUrl(image);
+  return data?.publicUrl ?? null;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,6 +36,10 @@ export async function POST(request: NextRequest) {
       throw new Error('Preço do produto inválido');
     }
 
+    const imageUrl = getPublicImageUrl(
+      produto.image || produto.image1 || produto.image2 || produto.image3 || produto.image4 || produto.image5 || produto.image6 || produto.imagem_detalhe
+    );
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -36,6 +50,7 @@ export async function POST(request: NextRequest) {
             product_data: {
               name: produto.nome || 'Produto Imbalável',
               description: produto.descricao ?? undefined,
+              images: imageUrl ? [imageUrl] : undefined,
             },
           },
           quantity: 1,
