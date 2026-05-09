@@ -21,18 +21,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Log para debug em produção
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('VERCEL_ENV:', process.env.VERCEL_ENV);
     console.log('STRIPE_SECRET_KEY presente:', !!process.env.STRIPE_SECRET_KEY);
     console.log('NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
 
-    if (!process.env.STRIPE_SECRET_KEY) {
-      console.error('STRIPE_SECRET_KEY não configurada no ambiente');
+    const stripeKey = process.env.STRIPE_SECRET_KEY?.trim();
+    if (!stripeKey) {
+      console.error('STRIPE_SECRET_KEY não configurada no ambiente. Verifique se a variável existe em Production no Vercel.');
       return NextResponse.json({
         error: 'Configuração de pagamento não encontrada',
         details: 'STRIPE_SECRET_KEY não configurada'
       }, { status: 500 });
     }
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    const stripe = new Stripe(stripeKey, {
       apiVersion: '2022-11-15',
     });
 
