@@ -20,9 +20,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'ID do produto inválido' }, { status: 400 });
     }
 
+    // Log para debug em produção
+    console.log('STRIPE_SECRET_KEY presente:', !!process.env.STRIPE_SECRET_KEY);
+    console.log('NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
+
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {});
     if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error('STRIPE_SECRET_KEY não configurada');
+      console.error('STRIPE_SECRET_KEY não configurada no ambiente');
+      return NextResponse.json({
+        error: 'Configuração de pagamento não encontrada',
+        details: 'STRIPE_SECRET_KEY não configurada'
+      }, { status: 500 });
     }
 
     const { data: produto, error } = await buscarProduto(id);
@@ -57,8 +65,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/sucesso`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/cancelado`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.imbalavel.com.br'}/sucesso`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.imbalavel.com.br'}/cancelado`,
     });
 
     return NextResponse.json({ url: session.url });
