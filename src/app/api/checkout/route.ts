@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
     console.log('STRIPE_SECRET_KEY presente:', !!process.env.STRIPE_SECRET_KEY);
     console.log('NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {});
     if (!process.env.STRIPE_SECRET_KEY) {
       console.error('STRIPE_SECRET_KEY não configurada no ambiente');
       return NextResponse.json({
@@ -32,6 +31,10 @@ export async function POST(request: NextRequest) {
         details: 'STRIPE_SECRET_KEY não configurada'
       }, { status: 500 });
     }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2022-11-15',
+    });
 
     const { data: produto, error } = await buscarProduto(id);
 

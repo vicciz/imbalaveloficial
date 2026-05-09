@@ -1,14 +1,15 @@
 import Stripe from 'stripe';
 import { buscarProduto } from './produtos';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY não configurada');
+}
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2022-11-15',
 });
 
 export async function criarCheckoutSession(id: number) {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY não configurada');
-  }
 
   const { data: produto, error } = await buscarProduto(id);
 
