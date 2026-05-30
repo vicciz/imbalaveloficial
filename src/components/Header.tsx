@@ -82,7 +82,7 @@ export default function Header() {
 
         {/* Desktop links */}
         <div className="hidden md:flex gap-6">
-          <Link href="/inicio" className="text-lg font-medium hover:underline">
+          <Link href="/" className="text-lg font-medium hover:underline">
             Produtos
           </Link>
           <Link href="/rastrear" className="text-lg font-medium hover:underline">
