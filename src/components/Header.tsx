@@ -133,7 +133,7 @@ export default function Header() {
       {menuOpen && (
         <div className="md:hidden px-4 sm:px-6 pb-4 text-zinc-900 border-t border-black/10">
           <div className="flex flex-col gap-3 pt-3">
-            <Link href="/inicio" className="text-base font-medium hover:underline" onClick={() => setMenuOpen(false)}>
+            <Link href="/" className="text-base font-medium hover:underline" onClick={() => setMenuOpen(false)}>
               Produtos
             </Link>
             <Link href="/rastrear" className="text-base font-medium hover:underline" onClick={() => setMenuOpen(false)}>
