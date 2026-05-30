@@ -184,7 +184,7 @@ export default function ProdutoDetalhe() {
             <p className="mt-3 text-lg text-[#4b6386]">
               {produto.descricao}
             </p>
-            <p className=''>R$ {produto.preco}</p>
+            <p className="font-semibold md:text-5xl">R$ {produto.preco}</p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <span className="bg-[#cfe2ff] text-[#1f3a5f] px-3 py-1 rounded-full text-sm font-semibold">
                 ⭐ {produto.rating || '5.0'}
@@ -196,11 +196,9 @@ export default function ProdutoDetalhe() {
             </div>
 
             <div className="mt-6 flex">
-              <ComprarButton
-                productId={produto.id}
-                link={produto.link}
-                className="w-full sm:w-auto px-10 py-4 text-lg font-semibold bg-[#2f61b9] text-white rounded-full shadow-lg shadow-blue-600/30 hover:bg-[#244e96] hover:shadow-blue-700/40 transition animate-pulseGlowBlue"
-              />
+              <button onClick={() => comprar(produto.id)} className="w-full sm:w-auto px-10 py-4 text-lg font-semibold bg-[#2f61b9] text-white rounded-full shadow-lg shadow-blue-600/30 hover:bg-[#244e96] hover:shadow-blue-700/40 transition animate-pulseGlowBlue">
+              Comprar via Checkout
+            </button>
             </div>
 
             <p className="mt-4 text-sm text-[#56719a]">⚠️ Estoque limitado</p>
@@ -359,14 +357,9 @@ export default function ProdutoDetalhe() {
               <li>✔️ Atendimento humano e rápido</li>
             </ul>
             <div className="mt-6 flex gap-4">
-            <button onClick={() => comprar(produto.id)} className="px-6 py-3 bg-[#2f61b9] text-white font-semibold rounded-full shadow-lg hover:bg-[#244e96] transition">
+              <button onClick={() => comprar(produto.id)} className="w-full sm:w-auto px-10 py-4 text-lg font-semibold bg-[#2f61b9] text-white rounded-full shadow-lg shadow-blue-600/30 hover:bg-[#244e96] hover:shadow-blue-700/40 transition animate-pulseGlowBlue">
               Comprar via Checkout
             </button>
-              <ComprarButton
-                productId={produto.id}
-                link={produto.link}
-                className="px-6 py-3 rounded-full font-semibold shadow-lg hover:brightness-110 transition"
-              />
             </div>
           </div>
         </div>
@@ -444,11 +437,9 @@ export default function ProdutoDetalhe() {
           <h2 className="text-3xl font-semibold">Escolha sua próxima assinatura</h2>
           <p className="text-[#3f5b86] mt-3">Finalize agora e receba em casa com total segurança.</p>
           <div className="mt-6 flex justify-center">
-            <ComprarButton
-              productId={produto.id}
-              link={produto.link}
-              className="px-12 py-3 rounded-full bg-[#2f61b9] text-white font-semibold shadow-lg shadow-blue-700/30 hover:bg-[#244e96] transition animate-pulseGlowBlue"
-            />
+            <button onClick={() => comprar(produto.id)} className="w-full sm:w-auto px-10 py-4 text-lg font-semibold bg-[#2f61b9] text-white rounded-full shadow-lg shadow-blue-600/30 hover:bg-[#244e96] hover:shadow-blue-700/40 transition animate-pulseGlowBlue">
+              Comprar via Checkout
+            </button>
           </div>
         </div>
       </section>
