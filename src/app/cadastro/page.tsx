@@ -6,6 +6,7 @@ import { supabase } from "@/supabaseClient";
 export default function Cadastro() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -27,59 +28,74 @@ export default function Cadastro() {
   };
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!normalizedEmail || !senha || !confirmarSenha) {
-      alert("Preencha email e senha");
-      return;
-    }
-
-    if (senha !== confirmarSenha) {
-      alert("As senhas não conferem");
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email: normalizedEmail,
-      password: senha,
-      options: {
-        data: { nome },
-      },
-    });
-
-    if (error) {
-      console.error(error);
-      alert(error.message || "Erro ao cadastrar");
-      return;
-    }
-
-    if (data?.user) {
-      const hasSession = !!data?.session;
-      if (hasSession) {
-        const { error: insertError } = await supabase
-          .from("clientes")
-          .upsert(
-            {
-              nome,
-              email: normalizedEmail,
-              user_id: data.user.id,
-              role: "user",
-            },
-            { onConflict: "email" }
-          );
-
-        if (insertError) {
-          console.error(insertError);
-          alert(insertError.message || "Erro ao salvar no banco de dados");
-          return;
-        }
-      }
-
-      alert("Cadastro realizado com sucesso! Verifique seu email.");
-      window.location.href = "/login";
-    }
+  if (!nome.trim()) {
+    alert("Preencha seu nome");
+    return;
   }
 
+  if (!normalizedEmail || !senha || !confirmarSenha) {
+    alert("Preencha email e senha");
+    return;
+  }
+
+  if (senha !== confirmarSenha) {
+    alert("As senhas não conferem");
+    return;
+  }
+
+  if (!supabase) {
+    alert(
+      "Configuração do Supabase ausente. Verifique as variáveis de ambiente."
+    );
+    return;
+  }
+
+  const emailRedirectTo = `${window.location.origin}/login`;
+
+  // Cria usuário no Auth
+  const { data, error } = await supabase.auth.signUp({
+    email: normalizedEmail,
+    password: senha,
+    options: {
+      emailRedirectTo,
+      data: {
+        nome: nome.trim(),
+      },
+    },
+  });
+
+  if (error) {
+    console.error(error);
+    alert(error.message || "Erro ao cadastrar");
+    return;
+  }
+
+  if (!data.user) {
+    alert("Erro ao criar usuário");
+    return;
+  }
+
+  // Salva perfil na tabela usuario
+  const { error: insertError } = await supabase
+    .from("usuario")
+    .insert({
+      user_id: data.user.id,
+      nome: nome.trim(),
+      telefone: telefone.trim(),
+      role: "user",
+    });
+
+  if (insertError) {
+    console.error(insertError);
+    alert(insertError.message || "Erro ao salvar perfil");
+    return;
+  }
+
+  alert("Cadastro realizado com sucesso! Verifique seu email.");
+  window.location.href = "/login";
+}
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white/90 backdrop-blur-md border border-black/10 rounded-2xl p-8 text-zinc-900 shadow-xl">
@@ -108,6 +124,21 @@ export default function Cadastro() {
                          focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
+          {/* Telefone */}
+<div>
+  <label className="block text-sm mb-1 text-zinc-600">
+    Telefone
+  </label>
+
+  <input
+    type="tel"
+    value={telefone}
+    onChange={(e) => setTelefone(e.target.value)}
+    placeholder="(13) 99999-9999"
+    className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 
+               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+  />
+</div>
 
           {/* Email */}
           <div>

@@ -42,7 +42,7 @@ export default function CatalogoAdmin() {
 
   async function handleToggleOculto(id: number, ocultoAtual?: boolean | null) {
     const { error } = await supabase
-      .from('produtos')
+      .from('produto')
       .update({ oculto: !ocultoAtual })
       .eq('id', id);
 
@@ -63,7 +63,7 @@ export default function CatalogoAdmin() {
 
   async function handleToggleDestaque(id: number, destaqueAtual?: boolean | null) {
     const { error } = await supabase
-      .from('produtos')
+      .from('produto')
       .update({ destaque: !destaqueAtual })
       .eq('id', id);
 

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Usuario } from '@/src/services/Usuario';
-import SelectUsuarios from '@/src/components/selectUsuarios';
-import EnviarEmailUsuarios from '@/src/components/EnviarEmailUsuarios';
+import SelectUsuarios from '@/src/app/admin/componentes/selectUsuarios';
+import EnviarEmailUsuarios from '@/src/app/admin/componentes/EnviarEmailUsuarios';
 import { listarUsuarios, criarUsuario, atualizarUsuario, excluirUsuario } from '@/src/services/usuarios';
 
 export default function CatalogoAdmin() {

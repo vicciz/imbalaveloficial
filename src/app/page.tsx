@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Footer from '@/src/components/Footer';
+import Footer from '@/src/components/functions/page-inicio/Footer';
 import { listarProdutos, type Produto as ServiceProduto } from '@/src/services/produtos';
-import CarrosselCosmeticos from '@/src/components/Carrossel-Cosmeticos';
+import CarrosselCosmeticos from '@/src/components/functions/page-inicio/catal-cosmetico';
 import { supabase } from '@/supabaseClient';
-import { encodeProductId } from '@/src/utils/linkMask';
 
 interface ProdutoResumo {
   id: number;
@@ -25,6 +24,7 @@ export default function Page() {
   const [curtidas, setCurtidas] = useState<Set<number>>(new Set());
   const [descurtidas, setDescurtidas] = useState<Set<number>>(new Set());
 
+  //curtidas no produto
   useEffect(() => {
     const c = JSON.parse(localStorage.getItem('curtidas') || '[]');
     const d = JSON.parse(localStorage.getItem('descurtidas') || '[]');
@@ -62,7 +62,7 @@ export default function Page() {
     });
   }
 
-
+//carregar produtos
   useEffect(() => {
     async function carregar() {
       const { data, error } = await listarProdutos();
@@ -130,7 +130,7 @@ export default function Page() {
         }
 
         const { data: produtosData, error: produtosError } = await supabase
-          .from('produtos')
+          .from('produto')
           .select('id,nome,image')
           .in('id', produtoIds);
 
@@ -190,7 +190,7 @@ export default function Page() {
       }
 
       const { data: produtosData, error: produtosError } = await supabase
-        .from('produtos')
+        .from('produto')
         .select('id,nome,image')
         .in('id', produtoIds);
 
@@ -334,7 +334,7 @@ export default function Page() {
                         key={p.id}
                         className="bg-white border border-slate-200 rounded-2xl shadow-lg p-4 text-slate-900 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 flex flex-col"
                       >
-                        <a href={`/p?code=${encodeProductId(p.id)}`}>
+                        <a href={`/produto/${p.id}`}>
                           <div className="w-full aspect-square overflow-hidden rounded-xl mb-3">
                             <img
                               src={imageUrl}

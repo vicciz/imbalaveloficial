@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/supabaseClient';
-import { encodeProductId } from '@/src/utils/linkMask';
 
 interface ProdutoResumo {
   id: number;
@@ -57,7 +56,7 @@ export default function ColecaoClient() {
       }
 
       const { data: produtosData, error: produtosError } = await supabase
-        .from('produtos')
+        .from('produto')
         .select('id,nome,image')
         .in('id', produtoIds);
 
@@ -99,7 +98,7 @@ export default function ColecaoClient() {
               return (
                 <Link
                   key={p.id}
-                  href={`/p?code=${encodeProductId(p.id)}`}
+                  href={`/produto/${p.id}`}
                   className="bg-white border border-slate-200 rounded-2xl shadow-lg p-4 text-slate-900 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300"
                 >
                   <div className="w-full aspect-square overflow-hidden rounded-xl mb-3">

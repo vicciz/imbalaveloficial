@@ -1,6 +1,6 @@
 import "./globals.css";
-import Header from "@/src/components/Header";
-import NewsletterPopup from "@/src/components/NewsletterPopup";
+import Header from "@/src/components/functions/page-inicio/Header";
+import NewsletterPopup from "@/src/app/admin/componentes/NewsletterPopup";
 import Script from 'next/script';
 import type { Metadata } from "next";
 import logoTexto from "@/src/public/assets/imagens/logo s texxto.png";

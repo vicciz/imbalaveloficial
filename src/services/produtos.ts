@@ -24,7 +24,14 @@ export interface Produto {
   categorias?: { nome: string } | null;
 }
 
-function normalizeProduto<T extends Record<string, any>>(produto: T): Produto {
+function ensureSupabase() {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+  return supabase;
+}
+
+function normalizeProduto(produto: Record<string, any>): Produto {
   return {
     ...produto,
     image1: produto.image1 ?? produto.imagem1 ?? null,
@@ -34,6 +41,23 @@ function normalizeProduto<T extends Record<string, any>>(produto: T): Produto {
     image5: produto.image5 ?? produto.imagem5 ?? null,
     image6: produto.image6 ?? produto.imagem6 ?? null,
   } as Produto;
+}
+
+function normalizeError(error: any) {
+  if (!error) return null;
+  let message = error.message ?? error.code ?? null;
+  if (!message) {
+    if (typeof error.toString === 'function' && error.toString() !== '[object Object]') {
+      message = error.toString();
+    } else {
+      message = String(error);
+    }
+  }
+
+  return {
+    ...error,
+    message,
+  };
 }
 
 function toLegacyImageKeys(produto: Partial<Produto>): Record<string, any> {
@@ -85,7 +109,8 @@ export async function listarProdutos(
   tipo?: string,
   incluirOcultos: boolean = false
 ): Promise<{ data: Produto[] | null; error: any }> {
-  let query = supabase.from('produtos').select('*, categorias(nome)');
+  const client = ensureSupabase();
+  let query = client.from('produto').select('*, categorias(nome)');
 
   if (categoria && categoria !== 'Todos') {
     query = query.eq('categorias.nome', categoria);
@@ -109,15 +134,16 @@ export async function listarProdutos(
 export async function buscarProduto(
   id: number
 ): Promise<{ data: Produto | null; error: any }> {
-  if (!supabase) {
-    return { data: null, error: 'Supabase client not initialized' };
-  }
-  const { data, error } = await supabase
-    .from('produtos')
+  const client = ensureSupabase();
+  const { data, error } = await client
+    .from('produto')
     .select('*')
     .eq('id', id)
-    .single();
-  return { data: data ? normalizeProduto(data as any) : null, error };
+    .maybeSingle();
+  return {
+    data: data ? normalizeProduto(data as any) : null,
+    error: normalizeError(error),
+  };
 }
 
 /**
@@ -127,8 +153,9 @@ export async function buscarProduto(
 export async function cadastrarProduto(
   produto: Partial<Produto>
 ): Promise<{ data: Produto | null; error: any }> {
-  const { data, error } = await supabase
-    .from('produtos')
+  const client = ensureSupabase();
+  const { data, error } = await client
+    .from('produto')
     .insert(produto)
     .select()
     .single();
@@ -139,8 +166,8 @@ export async function cadastrarProduto(
 
   if (hasImageColumnError(error)) {
     const fallbackPayload = toLegacyImageKeys(produto);
-    const { data: fallbackData, error: fallbackError } = await supabase
-      .from('produtos')
+    const { data: fallbackData, error: fallbackError } = await client
+      .from('produto')
       .insert(fallbackPayload)
       .select()
       .single();
@@ -158,8 +185,9 @@ export async function editarProduto(
   id: number,
   produto: Partial<Produto>
 ): Promise<{ data: Produto | null; error: any }> {
-  const { data, error } = await supabase
-    .from('produtos')
+  const client = ensureSupabase();
+  const { data, error } = await client
+    .from('produto')
     .update(produto)
     .eq('id', id)
     .select()
@@ -171,8 +199,8 @@ export async function editarProduto(
 
   if (hasImageColumnError(error)) {
     const fallbackPayload = toLegacyImageKeys(produto);
-    const { data: fallbackData, error: fallbackError } = await supabase
-      .from('produtos')
+    const { data: fallbackData, error: fallbackError } = await client
+      .from('produto')
       .update(fallbackPayload)
       .eq('id', id)
       .select()
@@ -190,8 +218,9 @@ export async function editarProduto(
 export async function excluirProduto(
   id: number
 ): Promise<{ data: Produto | null; error: any }> {
-  const { data, error } = await supabase
-    .from('produtos')
+  const client = ensureSupabase();
+  const { data, error } = await client
+    .from('produto')
     .delete()
     .eq('id', id)
     .single();

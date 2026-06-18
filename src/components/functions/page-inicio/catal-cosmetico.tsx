@@ -1,9 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Produto, listarProdutos } from '../services/produtos';
-import { encodeProductId } from '../utils/linkMask';
-import { supabase } from '../../supabaseClient';
+import { Produto, listarProdutos } from '../../../services/produtos';
+import { supabase } from '../../../../supabaseClient';
 
 
 export default function CarrosselCosmeticos() {
@@ -14,7 +13,7 @@ export default function CarrosselCosmeticos() {
   useEffect(() => {
     async function load(categoria?: string, tipo?: string) {
       const { data: destaques, error: destaquesError } = await supabase
-        .from('produtos')
+        .from('produto')
         .select('*')
         .eq('destaque', true);
 
@@ -57,7 +56,7 @@ export default function CarrosselCosmeticos() {
             return (
               <Link
                 key={p.id}
-                href={`/p?code=${encodeProductId(p.id)}`}
+                href={`/produto/${p.id}`}
                 className="w-[260px] bg-white border border-slate-200
                            rounded-2xl shadow-lg p-4 text-slate-900
                            hover:-translate-y-1 hover:shadow-2xl transition-all duration-300"
@@ -94,7 +93,7 @@ export default function CarrosselCosmeticos() {
             return (
               <Link
                 key={p.id}
-                href={`/p?code=${encodeProductId(p.id)}`}
+                href={`/produto/${p.id}`}
                 className="min-w-[260px] bg-white border border-slate-200
                            rounded-2xl shadow-lg p-4 text-slate-900"
               >

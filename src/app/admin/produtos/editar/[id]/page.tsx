@@ -18,7 +18,7 @@ export const dynamicParams = false;
 
 export async function generateStaticParams() {
   try {
-    const { data, error } = await supabase.from('produtos').select('id');
+    const { data, error } = await supabase.from('produto').select('id');
     if (error || !data) return [];
     return data.map((p) => ({ id: String(p.id) }));
   } catch {

@@ -1,5 +1,6 @@
 'use client';
 
+import CarrinhoP from "@/src/app/carrinho/page";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -92,7 +93,11 @@ export default function Header() {
             <Link href="/admin" className="text-lg font-medium text-indigo-400 hover:underline">
               Administração
             </Link>
+            
           )}
+          <Link href="/carrinho" className="text-lg font-medium hover:underline">
+            Minhas Compras
+          </Link>
         </div>
 
         {/* Desktop actions */}

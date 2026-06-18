@@ -19,7 +19,7 @@ export default function PRedirectClient() {
       router.replace('/');
       return;
     }
-    router.replace(`/produto?id=${id}`);
+    router.replace(`/produto/${id}`);
   }, [searchParams, router]);
 
   return null;

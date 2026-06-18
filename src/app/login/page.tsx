@@ -6,19 +6,8 @@ import { supabase } from "@/supabaseClient";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [nome, setNome] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "").split(",").map((value) => value.trim().toLowerCase()).filter(Boolean);
-
-const handleNomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === "") {
-      setNome("");
-      return;
-    }
-    const capitalized = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-    setNome(capitalized);
-  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,6 +27,11 @@ const handleNomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       return;
     }
 
+    if (!supabase) {
+      alert("Configuração do Supabase ausente. Verifique as variáveis de ambiente.");
+      return;
+    }
+
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password: senha,
@@ -49,7 +43,7 @@ const handleNomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     }
 
     const { data: profile, error: profileError } = await supabase
-      .from("clientes")
+      .from("usuario")
       .select("id,nome,email,role")
       .ilike("email", normalizedEmail)
       .single();
@@ -59,7 +53,7 @@ const handleNomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (profileError || !profile) {
       const fallbackNome = authData.user.user_metadata?.nome || "";
       const { data: createdProfile, error: createError } = await supabase
-        .from("clientes")
+        .from("usuario")
         .upsert(
           {
             nome: fallbackNome,
@@ -77,7 +71,7 @@ const handleNomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       }
     }
 
-    const rawRole = resolvedProfile?.role?.toString().toLowerCase() || authData.user.user_metadata?.role?.toString().toLowerCase();
+    const rawRole = resolvedProfile?.role?.toString().toLowerCase();
     const normalizedRole = rawRole === "admin" || rawRole === "sim" || adminEmails.includes(normalizedEmail) ? "admin" : "user";
 
     localStorage.setItem("user", JSON.stringify({
@@ -160,4 +154,4 @@ const handleNomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       </div>
     </div>
   );
-}   
+}

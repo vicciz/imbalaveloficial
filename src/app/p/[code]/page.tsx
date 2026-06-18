@@ -11,7 +11,7 @@ export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const { data, error } = await supabase
-    .from('produtos')
+    .from('produto')
     .select('id');
 
   if (error || !data) {
@@ -28,5 +28,5 @@ export default function Page({ params }: PageProps) {
   if (!id) {
     notFound();
   }
-  redirect(`/produto?id=${id}`);
+  redirect(`/produto/${id}`);
 }

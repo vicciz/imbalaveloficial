@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { encodeProductId } from '../utils/linkMask';
+import { AddCart } from './addCart';
 
 interface ProdutoProps {
   id: number;
@@ -42,8 +42,6 @@ const imageUrl = image
   ? `http://localhost/api/uploads/${encodeURIComponent(image)}`
   : `http://localhost/api/uploads/placeholder.png`;
 
-<img src={imageUrl} alt={nome} />
-
   return (
     <div className="w-1/3 bg-gray-50 rounded-xl p-4 flex flex-col items-center">
       
@@ -62,14 +60,15 @@ const imageUrl = image
 
       <div className="flex gap-2 mt-2">
         {/* Botão Comprar redireciona para página do produto */}
-        <Link href={`/p?code=${encodeProductId(id)}`}>
+        <Link href={`/produto/${id}`}>
           <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
             Comprar
           </button>
         </Link>
 
         {/* Botão adicionar ao carrinho */}
-      
+        
+      <button></button>
       </div>
     </div>
   );
