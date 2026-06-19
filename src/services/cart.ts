@@ -78,3 +78,17 @@ export async function removerDoCarrinho(id: number) {
 
   return true;
 }
+
+export async function limparCarrinho(userId: string) {
+  const { error } = await supabase
+    .from("carrinho")
+    .delete()
+    .eq("id_user", userId);
+
+  if (error) {
+    console.error(error);
+    return false;
+  }
+
+  return true;
+}

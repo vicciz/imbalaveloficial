@@ -1,78 +1,31 @@
 import Stripe from "stripe";
-import { buscarProduto } from "./produtos";
 import { supabase } from "../../supabaseClient";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY não configurada");
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2022-11-15",
-});
+const stripe = new Stripe(
+  process.env.STRIPE_SECRET_KEY,
+  {
+    apiVersion: "2026-04-22.dahlia",
+  }
+);
 
-type ItemCarrinho = {
-  quantidade: number;
-  produto: {
-    nome: string;
-    preco: number;
-    image?: string;
-  };
+type Produto = {
+  nome: string;
+  preco: string | number;
+  image?: string;
 };
 
-// ======================================
-// CHECKOUT DE UM PRODUTO
-// ======================================
-export async function criarCheckoutSession(id: number) {
-  const { data: produto, error } = await buscarProduto(id);
+type ItemCarrinho = {
+  quantidade: number | string;
+  produto: Produto;
+};
 
-  if (error || !produto) {
-    throw new Error("Produto não encontrado");
-  }
-
-  const preco = Number(produto.preco);
-
-  if (Number.isNaN(preco) || preco <= 0) {
-    throw new Error("Preço do produto inválido");
-  }
-
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
-
-    line_items: [
-      {
-        price_data: {
-          currency: "brl",
-
-          unit_amount: Math.round(preco * 100),
-
-          product_data: {
-            name: produto.nome || "Produto Imbalável",
-            description: produto.descricao ?? undefined,
-          },
-        },
-
-        quantity: 1,
-      },
-    ],
-
-    mode: "payment",
-
-    success_url: `${
-      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-    }/sucesso`,
-
-    cancel_url: `${
-      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-    }/cancelado`,
-  });
-
-  return session;
-}
-
-// ======================================
-// CHECKOUT DO CARRINHO
-// ======================================
-export async function criarCheckoutCarrinho(userId: string) {
+export async function criarCheckoutCarrinho(
+  userId: string
+) {
   const { data, error } = await supabase
     .from("carrinho")
     .select(`
@@ -87,53 +40,81 @@ export async function criarCheckoutCarrinho(userId: string) {
 
   if (error) {
     console.error(error);
-    throw new Error("Erro ao buscar carrinho");
+
+    throw new Error(
+      "Erro ao buscar carrinho"
+    );
   }
 
-  const itens = data as ItemCarrinho[];
+  const itens =
+    data as unknown as ItemCarrinho[];
 
-  if (!itens || itens.length === 0) {
+  console.log("ITENS CARRINHO:");
+  console.log(
+    JSON.stringify(itens, null, 2)
+  );
+
+  if (!itens?.length) {
     throw new Error("Carrinho vazio");
   }
 
   const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
-    itens.map((item) => ({
-      quantity: item.quantidade,
+    itens.map((item) => {
+      const produto = item.produto;
 
-      price_data: {
-        currency: "brl",
-
-        unit_amount: Math.round(
-          Number(item.produto.preco) * 100
+      return {
+        quantity: Number(
+          item.quantidade
         ),
 
-        product_data: {
-          name: item.produto.nome,
+        price_data: {
+          currency: "brl",
 
-          ...(item.produto.image
-            ? {
-                images: [item.produto.image],
-              }
-            : {}),
+          unit_amount: Math.round(
+            Number(produto.preco) * 100
+          ),
+
+          product_data: {
+            name: produto.nome,
+
+            ...(produto.image
+              ? {
+                  images: [
+                    produto.image,
+                  ],
+                }
+              : {}),
+          },
         },
+      };
+    });
+
+  const session =
+    await stripe.checkout.sessions.create({
+      payment_method_types: [
+        "card",
+      ],
+
+      mode: "payment",
+
+      metadata: {
+        userId,
       },
-    }));
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
+      line_items,
 
-    mode: "payment",
+      success_url: `${
+        process.env
+          .NEXT_PUBLIC_APP_URL ??
+        "http://localhost:3000"
+      }/sucesso`,
 
-    line_items,
-
-    success_url: `${
-      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-    }/sucesso`,
-
-    cancel_url: `${
-      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-    }/cancelado`,
-  });
+      cancel_url: `${
+        process.env
+          .NEXT_PUBLIC_APP_URL ??
+        "http://localhost:3000"
+      }/cancelado`,
+    });
 
   return session;
 }
