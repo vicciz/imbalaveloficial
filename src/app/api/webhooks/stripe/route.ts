@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import {
+  buscarCarrinho,
+  calcularTotal,
+  limparCarrinho,
+} from "@/src/services/cart";
+
+import {
+  criarPedido,
+  adicionarItemPedido,
+} from "@/src/services/pedido";
+
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY!,
   {
@@ -8,53 +19,161 @@ const stripe = new Stripe(
   }
 );
 
-export async function POST(req: NextRequest) {
+export async function POST(
+  req: NextRequest
+) {
+  console.log("WEBHOOK RECEBIDO");
+
   const body = await req.text();
 
   const signature =
-    req.headers.get("stripe-signature");
+    req.headers.get(
+      "stripe-signature"
+    );
 
   try {
-    const event = stripe.webhooks.constructEvent(
-      body,
-      signature!,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    const event =
+      stripe.webhooks.constructEvent(
+        body,
+        signature!,
+        process.env
+          .STRIPE_WEBHOOK_SECRET!
+      );
 
     switch (event.type) {
       case "checkout.session.completed": {
         const session =
-          event.data.object as Stripe.Checkout.Session;
+          event.data
+            .object as Stripe.Checkout.Session;
 
         const userId =
           session.metadata?.userId;
 
+        if (!userId) {
+          console.error(
+            "UserId não encontrado"
+          );
+          break;
+        }
+
         console.log(
-          "Pagamento aprovado do usuário:",
+          "Pagamento aprovado:",
           userId
         );
 
-        // TODO:
-        // criar pedido
-        // criar pedidoItem
-        // atualizar estoque
-        // limpar carrinho
+        // =====================
+        // BUSCAR CARRINHO
+        // =====================
+
+        const {
+          data: itens,
+          error,
+        } = await buscarCarrinho(
+          userId
+        );
+
+        if (error) {
+          console.error(
+            "Erro ao buscar carrinho:",
+            error
+          );
+          break;
+        }
+
+        if (!itens?.length) {
+          console.error(
+            "Carrinho vazio"
+          );
+          break;
+        }
+
+        console.log(
+          "Itens:",
+          itens
+        );
+
+        // =====================
+        // CALCULAR TOTAL
+        // =====================
+
+        const valorTotal =
+          calcularTotal(itens);
+
+        console.log(
+          "Valor Total:",
+          valorTotal
+        );
+
+        // =====================
+        // CRIAR PEDIDO
+        // =====================
+
+        const {
+          data: pedido,
+          error: erroPedido,
+        } = await criarPedido(
+          userId,
+          valorTotal
+        );
+
+        console.log(
+          "Pedido:",
+          pedido
+        );
+
+        console.log(
+          "Erro Pedido:",
+          erroPedido
+        );
+
+        if (!pedido) {
+          console.error(
+            "Pedido não criado"
+          );
+          break;
+        }
+
+        // =====================
+        // CRIAR ITENS DO PEDIDO
+        // =====================
+
+        for (const item of itens) {
+          await adicionarItemPedido(
+            pedido.id,
+            item.id_produto,
+            Number(
+              item.quantidade
+            )
+          );
+        }
+
+        console.log(
+          "Itens do pedido criados"
+        );
+
+        // =====================
+        // LIMPAR CARRINHO
+        // =====================
+
+        await limparCarrinho(
+          userId
+        );
+
+        console.log(
+          "Carrinho limpo"
+        );
+
+        console.log(
+          "Pedido criado com sucesso"
+        );
 
         break;
       }
 
       case "payment_intent.payment_failed": {
-        console.log("Pagamento recusado");
-        break;
-      }
-
-      case "payment_intent.succeeded": {
-        console.log("Pagamento processado");
-        break;
-      }
-
-      case "charge.succeeded": {
-        console.log("Cobrança concluída");
+        console.log(
+          "Pagamento recusado"
+        );
         break;
       }
 
@@ -77,7 +196,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: "Webhook inválido",
+        error:
+          "Webhook inválido",
       },
       {
         status: 400,

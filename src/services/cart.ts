@@ -36,34 +36,19 @@ if (existente) {
       quantidade: Math.min(qtd, 30),
     });
 }
+
+
 //buscar cart
-export async function buscarCarrinho() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return [];
-
-  const { data, error } = await supabase
+export async function buscarCarrinho(
+  userId: string
+) {
+  return await supabase
     .from("carrinho")
     .select(`
-      id,
-      quantidade,
-      produto (
-        id,
-        nome,
-        preco,
-        image
-      )
+      *,
+      produto (*)
     `)
-    .eq("id_user", user.id);
-
-  if (error) {
-    console.error(error);
-    return [];
-  }
-
-  return data;
+    .eq("id_user", userId);
 }
 export async function removerDoCarrinho(id: number) {
   const { error } = await supabase
@@ -77,6 +62,16 @@ export async function removerDoCarrinho(id: number) {
   }
 
   return true;
+}
+
+export function calcularTotal(itens: any[]) {
+  return itens.reduce(
+    (acc, item) =>
+      acc +
+      Number(item.produto.preco) *
+        Number(item.quantidade),
+    0
+  );
 }
 
 export async function limparCarrinho(userId: string) {

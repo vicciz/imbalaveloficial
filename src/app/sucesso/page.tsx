@@ -88,7 +88,7 @@ export default function CanceladoPage() {
           }}
           className="text-white text-5xl font-light mt-14 tracking-wide"
         >
-          Pagamento Realizado
+          Pagamento Cancelado
         </motion.h1>
         <motion.button
   initial={{ opacity: 0, y: 20 }}

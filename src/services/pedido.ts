@@ -9,7 +9,7 @@ export async function criarPedido(
     .insert({
       id_usuario: idUsuario,
       valorTotal,
-      status: "pago",
+      status: "paid",
     })
     .select()
     .single();
@@ -48,7 +48,9 @@ export async function atualizarStatusPedido(
     .eq("id", idPedido);
 }
 
-export async function excluirPedido(id: number) {
+export async function excluirPedido(
+  id: number
+) {
   const { error } = await supabase
     .from("pedido")
     .delete()

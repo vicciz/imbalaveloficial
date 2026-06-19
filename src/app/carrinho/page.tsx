@@ -16,18 +16,33 @@ const formatCurrency = (value: number) =>
 export default function CarrinhoP() {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+useEffect(() => {
+  async function carregar() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  useEffect(() => {
-    async function carregar() {
-      const itens = await buscarCarrinho();
-
-      setCartItems(itens || []);
+    if (!user) {
       setLoading(false);
+      return;
     }
 
-    carregar();
-  }, []);
+    const { data, error } =
+    await buscarCarrinho(user.id);
 
+setCartItems(data || []);
+    if (error) {
+      console.error(error);
+      setLoading(false);
+      return;
+    }
+
+    setCartItems(data || []);
+    setLoading(false);
+  }
+
+  carregar();
+}, []);
   const finalizarCompra = async () => {
     try {
       const {
