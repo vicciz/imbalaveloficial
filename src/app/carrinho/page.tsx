@@ -6,6 +6,7 @@ import {
   removerDoCarrinho,
 } from "@/src/services/cart";
 import { supabase } from "@/supabaseClient";
+import { useRouter } from "next/navigation";
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", {
@@ -14,6 +15,7 @@ const formatCurrency = (value: number) =>
   });
 
 export default function CarrinhoP() {
+   const router = useRouter();
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 useEffect(() => {
@@ -117,6 +119,16 @@ setCartItems(data || []);
         minHeight: "100vh",
       }}
     >
+      <div>
+        <button
+      type="button"
+      onClick={() =>
+        router.push("/pedidos")
+      }
+    >
+      Ver Pedidos
+    </button>
+      </div>
       <section
         style={{
           maxWidth: 1100,

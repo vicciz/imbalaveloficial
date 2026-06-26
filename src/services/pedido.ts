@@ -29,15 +29,57 @@ export async function adicionarItemPedido(
     });
 }
 
-export async function buscarPedidosUsuario(
-  userId: string
-) {
-  return await supabase
+export async function buscarPedidosUsuario(userId: string) {
+  const { data, error } = await supabase
     .from("pedido")
-    .select("*")
+    .select(`
+      *,
+      pedidoItem (
+        quantidade,
+        produto (
+          id,
+          nome,
+          preco,
+          produto_imagem (
+            caminho,
+            principal,
+            ordem
+          )
+        )
+      )
+    `)
     .eq("id_usuario", userId);
-}
 
+  const pedidos = data?.map((pedido) => ({
+    ...pedido,
+    pedidoItem: pedido.pedidoItem.map((item: any) => {
+      const imagens =
+        item.produto.produto_imagem?.sort(
+          (a: any, b: any) => a.ordem - b.ordem
+        ) ?? [];
+
+      const principal =
+        imagens.find((img: any) => img.principal) ?? imagens[0];
+
+      return {
+        ...item,
+        produto: {
+          ...item.produto,
+          image: principal
+            ? supabase.storage
+                .from("produtos")
+                .getPublicUrl(principal.caminho).data.publicUrl
+            : "",
+        },
+      };
+    }),
+  }));
+
+  return {
+    data: pedidos,
+    error,
+  };
+}
 export async function atualizarStatusPedido(
   idPedido: number,
   status: string

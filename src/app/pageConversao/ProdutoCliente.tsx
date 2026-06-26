@@ -159,32 +159,6 @@ export default function ProdutoDetalhe({ produtoId }: ProdutoDetalheProps) {
     }
   })();
 
-  const imagens = [
-    produto.image,
-    produto.image1,
-    produto.image2,
-    produto.image3,
-    produto.image4,
-    produto.image5,
-    produto.image6,
-    produto.imagem_detalhe,
-  ].filter(Boolean) as string[];
-
-  const detalheFallback = ([
-    produto.image1,
-    produto.image2,
-    produto.image3,
-    produto.image4,
-    produto.image5,
-    produto.image6,
-  ].filter(Boolean) as string[])[0];
-
-  const imagemDetalheUrl = produto.imagem_detalhe
-    ? publicUrl(produto.imagem_detalhe, 'produto')
-    : detalheFallback
-      ? publicUrl(detalheFallback, 'produto')
-      : null;
-
   const detalhesRender = (produto.detalhes || produto.descricao || '').replace(
     /<div\s+style="([^"]*)">\s*!\[([^\]]*)\]\(([^)]+)\)\s*<\/div>/gi,
     (_m, styleString: string, alt: string, src: string) => {
@@ -212,13 +186,12 @@ export default function ProdutoDetalhe({ produtoId }: ProdutoDetalheProps) {
       setModalOpen={setModalOpen}
       comprar={comprar}
       maskedLink={maskedLink}
-      imagens={imagens}
     />
     <ProvasSociais/>
     <Outros/>
     <Categorias />
     <Descricao detalhesRender={detalhesRender} />
-    <BrandBenefits imagemDetalheUrl={imagemDetalheUrl} produtoNome={produto.nome} comprar={comprar} produtoId={produto.id} />
+    <BrandBenefits imagemDetalheUrl={null} produtoNome={produto.nome} comprar={comprar} produtoId={produto.id} />
     <QuemComprou />
     <SobreMarca produtoLink={produto.link} logo={logoImbalavel} />
     <Faq />

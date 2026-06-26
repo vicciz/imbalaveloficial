@@ -5,6 +5,7 @@ export async function adicionarAoCarrinho(
   userId: string,
   qtd: number
 ) {
+  
 const { data: existente } = await supabase
   .from("carrinho")
   .select("*")
@@ -14,10 +15,10 @@ const { data: existente } = await supabase
 
 if (existente) {
   const novaQuantidade = Math.min(
-    existente.quantidade + qtd,
-    30
-  );
-
+  Number(existente.quantidade) + Number(qtd),
+  30
+);
+  
   await supabase
     .from("carrinho")
     .update({

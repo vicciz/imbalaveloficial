@@ -3,13 +3,19 @@
 import { useEffect, useState } from 'react';
 import Footer from '@/src/components/functions/page-inicio/Footer';
 import { listarProdutos, type Produto as ServiceProduto } from '@/src/services/produtos';
-import CarrosselCosmeticos from '@/src/components/functions/page-inicio/catal-cosmetico';
+import CarrosselProdutos from '../components/functions/page-inicio/carrossel';
 import { supabase } from '@/supabaseClient';
+
+interface ProdutoImagem {
+  caminho: string;
+  principal: boolean;
+  ordem: number;
+}
 
 interface ProdutoResumo {
   id: number;
   nome: string;
-  image: string | null;
+  produto_imagem: ProdutoImagem[];
 }
 
 interface ColecaoHome {
@@ -23,44 +29,6 @@ export default function Page() {
   const [colecoesHome, setColecoesHome] = useState<ColecaoHome[]>([]);
   const [curtidas, setCurtidas] = useState<Set<number>>(new Set());
   const [descurtidas, setDescurtidas] = useState<Set<number>>(new Set());
-
-  //curtidas no produto
-  useEffect(() => {
-    const c = JSON.parse(localStorage.getItem('curtidas') || '[]');
-    const d = JSON.parse(localStorage.getItem('descurtidas') || '[]');
-    setCurtidas(new Set(c));
-    setDescurtidas(new Set(d));
-  }, []);
-
-  function toggleCurtir(e: React.MouseEvent, id: number) {
-    e.preventDefault();
-    setCurtidas((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-        setDescurtidas((pd) => { const nd = new Set(pd); nd.delete(id); localStorage.setItem('descurtidas', JSON.stringify([...nd])); return nd; });
-      }
-      localStorage.setItem('curtidas', JSON.stringify([...next]));
-      return next;
-    });
-  }
-
-  function toggleDescurtir(e: React.MouseEvent, id: number) {
-    e.preventDefault();
-    setDescurtidas((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-        setCurtidas((pc) => { const nc = new Set(pc); nc.delete(id); localStorage.setItem('curtidas', JSON.stringify([...nc])); return nc; });
-      }
-      localStorage.setItem('descurtidas', JSON.stringify([...next]));
-      return next;
-    });
-  }
 
 //carregar produtos
   useEffect(() => {
@@ -77,153 +45,7 @@ export default function Page() {
     carregar();
   }, []);
 
-  useEffect(() => {
-    async function carregarColecoesHome() {
-      const { data: colecoes, error: colecoesError } = await supabase
-        .from('colecao')
-        .select('id,nome,mostrar_home')
-        .eq('mostrar_home', true)
-        .order('created_at', { ascending: false });
-
-      if (colecoesError) {
-        const { data: fallbackColecoes, error: fallbackError } = await supabase
-          .from('colecao')
-          .select('id,nome')
-          .order('created_at', { ascending: false });
-
-        if (fallbackError) {
-          console.error('Erro ao carregar coleções da home (fallback):', fallbackError);
-          return;
-        }
-
-        if (!fallbackColecoes?.length) {
-          setColecoesHome([]);
-          return;
-        }
-
-        const colecaoIds = fallbackColecoes.map((c: any) => c.id);
-        const { data: relacoes, error: relacoesError } = await supabase
-          .from('colecao_produto')
-          .select('colecao_id, produto_id')
-          .in('colecao_id', colecaoIds);
-
-        if (relacoesError) {
-          console.error('Erro ao carregar relações de coleções:', relacoesError);
-          const normalized = fallbackColecoes.map((c: any) => ({
-            id: c.id,
-            nome: c.nome,
-            produtos: [],
-          }));
-          setColecoesHome(normalized);
-          return;
-        }
-
-        const produtoIds = Array.from(
-          new Set((relacoes || []).map((r: any) => r.produto_id))
-        );
-
-        if (!produtoIds.length) {
-          setColecoesHome(
-            fallbackColecoes.map((c: any) => ({ id: c.id, nome: c.nome, produtos: [] }))
-          );
-          return;
-        }
-
-        const { data: produtosData, error: produtosError } = await supabase
-          .from('produto')
-          .select('id,nome,image')
-          .in('id', produtoIds);
-
-        if (produtosError) {
-          console.error('Erro ao carregar produtos das coleções:', produtosError);
-          return;
-        }
-
-        const produtosMap = new Map<number, ProdutoResumo>();
-        (produtosData || []).forEach((p: any) => {
-          produtosMap.set(p.id, { id: p.id, nome: p.nome, image: p.image || null });
-        });
-
-        const produtosPorColecao = new Map<number, ProdutoResumo[]>();
-        (relacoes || []).forEach((r: any) => {
-          const list = produtosPorColecao.get(r.colecao_id) || [];
-          const produto = produtosMap.get(r.produto_id);
-          if (produto) list.push(produto);
-          produtosPorColecao.set(r.colecao_id, list);
-        });
-
-        const normalized = fallbackColecoes.map((c: any) => ({
-          id: c.id,
-          nome: c.nome,
-          produtos: (produtosPorColecao.get(c.id) || []).slice(0, 3),
-        }));
-
-        setColecoesHome(normalized);
-        return;
-      }
-
-      if (!colecoes?.length) {
-        setColecoesHome([]);
-        return;
-      }
-
-      const colecaoIds = colecoes.map((c: any) => c.id);
-      const { data: relacoes, error: relacoesError } = await supabase
-        .from('colecao_produto')
-        .select('colecao_id, produto_id')
-        .in('colecao_id', colecaoIds);
-
-      if (relacoesError) {
-        console.error('Erro ao carregar relações de coleções:', relacoesError);
-        return;
-      }
-
-      const produtoIds = Array.from(
-        new Set((relacoes || []).map((r: any) => r.produto_id))
-      );
-
-      if (!produtoIds.length) {
-        setColecoesHome(
-          colecoes.map((c: any) => ({ id: c.id, nome: c.nome, produtos: [] }))
-        );
-        return;
-      }
-
-      const { data: produtosData, error: produtosError } = await supabase
-        .from('produto')
-        .select('id,nome,image')
-        .in('id', produtoIds);
-
-      if (produtosError) {
-        console.error('Erro ao carregar produtos das coleções:', produtosError);
-        return;
-      }
-
-      const produtosMap = new Map<number, ProdutoResumo>();
-      (produtosData || []).forEach((p: any) => {
-        produtosMap.set(p.id, { id: p.id, nome: p.nome, image: p.image || null });
-      });
-
-      const produtosPorColecao = new Map<number, ProdutoResumo[]>();
-      (relacoes || []).forEach((r: any) => {
-        const list = produtosPorColecao.get(r.colecao_id) || [];
-        const produto = produtosMap.get(r.produto_id);
-        if (produto) list.push(produto);
-        produtosPorColecao.set(r.colecao_id, list);
-      });
-
-      const normalized = colecoes.map((c: any) => ({
-        id: c.id,
-        nome: c.nome,
-        produtos: (produtosPorColecao.get(c.id) || []).slice(0, 3),
-      }));
-
-      setColecoesHome(normalized);
-    }
-
-    carregarColecoesHome();
-  }, []);
-
+ 
   return (
     <main className="min-h-screen bg-slate-50 text-zinc-900 relative">
       {/* Fundo Mesh Gradient Animado */}
@@ -263,12 +85,6 @@ export default function Page() {
           </p>
 
           <div className="mt-10 flex justify-center gap-4 flex-wrap">
-            <a
-              href="#destaques"
-              className="px-8 py-3 rounded-full bg-pink-600 hover:bg-pink-500 text-white transition font-semibold"
-            >
-              Ver Destaques
-            </a>
 
             <a
               href="#categorias"
@@ -280,25 +96,6 @@ export default function Page() {
         </div>
       </section>
 
-      {/* CATEGORIAS */}
-      <section
-        id="categorias"
-        className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 md:grid-cols-3 gap-8"
-      >
-        {[
-          { title: 'Perfumes Masculinos', desc: 'Fragrâncias intensas, sofisticadas e marcantes' },
-          { title: 'Skincare Premium', desc: 'Cuidado diário para homens exigentes' },
-          { title: 'Moda Fitnes', desc: 'Presença, identidade e confiança' },
-        ].map((c, i) => (
-          <div
-            key={i}
-            className="bg-white/80 border border-black/5 backdrop-blur rounded-2xl p-10 text-center hover:scale-[1.03] transition"
-          >
-            <h3 className="text-2xl font-semibold mb-4">{c.title}</h3>
-            <p className="text-zinc-600">{c.desc}</p>
-          </div>
-        ))}
-      </section>
 
       {colecoesHome.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 pb-24">
@@ -322,52 +119,16 @@ export default function Page() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {colecao.produtos.map((p) => {
-                    const imageUrl = p.image
-                      ? supabase.storage.from('produtos').getPublicUrl(p.image).data.publicUrl
-                      : '/placeholder.png';
+                    const principal =
+                      p.produto_imagem?.find(img => img.principal) ??
+                      p.produto_imagem?.[0];
 
-                    const curtido = curtidas.has(p.id);
-                    const descurtido = descurtidas.has(p.id);
-
+                    
                     return (
                       <div
                         key={p.id}
                         className="bg-white border border-slate-200 rounded-2xl shadow-lg p-4 text-slate-900 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 flex flex-col"
                       >
-                        <a href={`/produto/${p.id}`}>
-                          <div className="w-full aspect-square overflow-hidden rounded-xl mb-3">
-                            <img
-                              src={imageUrl}
-                              alt={p.nome}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <h4 className="font-semibold text-sm mb-3 line-clamp-2">{p.nome}</h4>
-                        </a>
-                        <div className="flex gap-2 mt-auto">
-                          <button
-                            onClick={(e) => toggleCurtir(e, p.id)}
-                            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                              curtido
-                                ? 'bg-pink-500 text-white shadow-md shadow-pink-200'
-                                : 'bg-slate-100 text-slate-500 hover:bg-pink-50 hover:text-pink-500'
-                            }`}
-                          >
-                            <span className="text-base">{curtido ? '❤️' : '🤍'}</span>
-                            Curtir
-                          </button>
-                          <button
-                            onClick={(e) => toggleDescurtir(e, p.id)}
-                            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                              descurtido
-                                ? 'bg-slate-600 text-white shadow-md shadow-slate-200'
-                                : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
-                            }`}
-                          >
-                            <span className="text-base">👎</span>
-                            Não curtir
-                          </button>
-                        </div>
                       </div>
                     );
                   })}
@@ -395,7 +156,10 @@ export default function Page() {
 
         <div className="flex justify-center">
           <div className="w-full">
-            <CarrosselCosmeticos />
+            <CarrosselProdutos
+              titulo="Todos os produtos"
+              produtos={produtos}
+            />
           </div>
         </div>
         

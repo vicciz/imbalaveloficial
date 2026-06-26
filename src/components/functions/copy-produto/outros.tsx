@@ -1,4 +1,4 @@
-import CarrosselCosmeticos from '../page-inicio/catal-cosmetico';
+import CarrosselCosmeticos from '../page-inicio/carrossel';
 
 export default function Outros() {
   return (

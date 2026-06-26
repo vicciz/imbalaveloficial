@@ -42,44 +42,26 @@ export default function Login() {
       return;
     }
 
-    const { data: profile, error: profileError } = await supabase
+    const {
+      data: usuario,
+      error: usuarioError,
+    } = await supabase
       .from("usuario")
-      .select("id,nome,email,role")
-      .ilike("email", normalizedEmail)
+      .select("*")
+      .eq("user_id", authData.user.id)
       .single();
 
-    let resolvedProfile = profile;
-
-    if (profileError || !profile) {
-      const fallbackNome = authData.user.user_metadata?.nome || "";
-      const { data: createdProfile, error: createError } = await supabase
-        .from("usuario")
-        .upsert(
-          {
-            nome: fallbackNome,
-            email: normalizedEmail,
-            user_id: authData.user.id,
-            role: "user",
-          },
-          { onConflict: "email" }
-        )
-        .select("id,nome,email,role")
-        .single();
-
-      if (!createError && createdProfile) {
-        resolvedProfile = createdProfile;
-      }
+    if (usuarioError) {
+      alert("Usuário não encontrado.");
+      console.error(usuarioError);
+      return;
     }
 
-    const rawRole = resolvedProfile?.role?.toString().toLowerCase();
-    const normalizedRole = rawRole === "admin" || rawRole === "sim" || adminEmails.includes(normalizedEmail) ? "admin" : "user";
+    localStorage.setItem(
+      "user",
+      JSON.stringify(usuario)
+    );
 
-    localStorage.setItem("user", JSON.stringify({
-      id: resolvedProfile?.id || authData.user.id,
-      nome: resolvedProfile?.nome || "",
-      email: resolvedProfile?.email || normalizedEmail,
-      role: normalizedRole,
-    }));
     alert("Login realizado!");
     window.location.href = "/";
   }

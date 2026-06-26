@@ -1,27 +1,32 @@
 // services/produtos.ts – wrapper around Supabase table `produtos`
 import { supabase } from '../../supabaseClient';
 
+export interface ProdutoImagem {
+  id: number;
+  caminho: string;
+  ordem: number;
+  principal: boolean;
+}
+
 export interface Produto {
   id: number;
   nome: string;
   preco: string | number;
+
   link?: string | null;
   rating?: number | null;
   reviews?: number | null;
-  image?: string | null;
-  image1?: string | null;
-  image2?: string | null;
-  image3?: string | null;
-  image4?: string | null;
-  image5?: string | null;
-  image6?: string | null;
-  imagem_detalhe?: string | null;
-  oculto?: boolean | null;
+
   descricao?: string | null;
   detalhes?: string | null;
+
   fornecedor?: string | null;
+  oculto?: boolean | null;
+
   categoria_id?: number | null;
   categorias?: { nome: string } | null;
+
+  produto_imagem?: ProdutoImagem[];
 }
 
 function ensureSupabase() {
@@ -31,16 +36,26 @@ function ensureSupabase() {
   return supabase;
 }
 
-function normalizeProduto(produto: Record<string, any>): Produto {
+function normalizeProduto(produto: any): Produto {
+  const imagens =
+    produto.produto_imagem?.sort(
+      (a: any, b: any) => a.ordem - b.ordem
+    ) ?? [];
+
+  const imagemPrincipal =
+    imagens.find((img: any) => img.principal) ?? imagens[0];
+
   return {
     ...produto,
-    image1: produto.image1 ?? produto.imagem1 ?? null,
-    image2: produto.image2 ?? produto.imagem2 ?? null,
-    image3: produto.image3 ?? produto.imagem3 ?? null,
-    image4: produto.image4 ?? produto.imagem4 ?? null,
-    image5: produto.image5 ?? produto.imagem5 ?? null,
-    image6: produto.image6 ?? produto.imagem6 ?? null,
-  } as Produto;
+
+    image: imagemPrincipal
+      ? supabase.storage
+          .from("produtos")
+          .getPublicUrl(imagemPrincipal.caminho).data.publicUrl
+      : "",
+
+    produto_imagem: imagens,
+  };
 }
 
 function normalizeError(error: any) {
@@ -60,46 +75,6 @@ function normalizeError(error: any) {
   };
 }
 
-function toLegacyImageKeys(produto: Partial<Produto>): Record<string, any> {
-  const payload: Record<string, any> = { ...produto };
-
-  if (payload.image1 !== undefined) {
-    payload.imagem1 = payload.image1;
-    delete payload.image1;
-  }
-
-  if (payload.image2 !== undefined) {
-    payload.imagem2 = payload.image2;
-    delete payload.image2;
-  }
-
-  if (payload.image3 !== undefined) {
-    payload.imagem3 = payload.image3;
-    delete payload.image3;
-  }
-
-  if (payload.image4 !== undefined) {
-    payload.imagem4 = payload.image4;
-    delete payload.image4;
-  }
-
-  if (payload.image5 !== undefined) {
-    payload.imagem5 = payload.image5;
-    delete payload.image5;
-  }
-
-  if (payload.image6 !== undefined) {
-    payload.imagem6 = payload.image6;
-    delete payload.image6;
-  }
-
-  return payload;
-}
-
-function hasImageColumnError(error: any): boolean {
-  const message = String(error?.message || '');
-  return /Could not find the 'image[1-6]' column/i.test(message);
-}
 
 /**
  * List all products, optionally filtering by categoria and/or tipo_cosmetico
@@ -110,7 +85,17 @@ export async function listarProdutos(
   incluirOcultos: boolean = false
 ): Promise<{ data: Produto[] | null; error: any }> {
   const client = ensureSupabase();
-  let query = client.from('produto').select('*, categorias(nome)');
+  let query = client.from('produto')
+  .select(`
+    *,
+    categorias(nome),
+    produto_imagem(
+        id,
+        caminho,
+        ordem,
+        principal
+    )
+`)
 
   if (categoria && categoria !== 'Todos') {
     query = query.eq('categorias.nome', categoria);
@@ -128,24 +113,32 @@ export async function listarProdutos(
   };
 }
 
-/**
- * Fetch a single product by id
- */
-export async function buscarProduto(
-  id: number
-): Promise<{ data: Produto | null; error: any }> {
+export async function buscarProduto(id: number) {
   const client = ensureSupabase();
-  const { data, error } = await client
-    .from('produto')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
+
+  const { data: produto, error } = await client
+    .from("produto")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  const { data: imagens, error: erroImagem } = await client
+    .from("produto_imagem")
+    .select("*")
+    .eq("id_produto", id);
+
+  console.log(produto);
+  console.log(imagens);
+  console.log(erroImagem);
+
   return {
-    data: data ? normalizeProduto(data as any) : null,
-    error: normalizeError(error),
+    data: {
+      ...produto,
+      produto_imagem: imagens ?? [],
+    },
+    error,
   };
 }
-
 /**
  * Create or update product record. Images should already be uploaded to
  * Supabase Storage; pass the public path in the object.
@@ -154,31 +147,17 @@ export async function cadastrarProduto(
   produto: Partial<Produto>
 ): Promise<{ data: Produto | null; error: any }> {
   const client = ensureSupabase();
+
   const { data, error } = await client
-    .from('produto')
+    .from("produto")
     .insert(produto)
     .select()
     .single();
 
-  if (!error) {
-    return { data: data ? normalizeProduto(data as any) : null, error: null };
-  }
-
-  if (hasImageColumnError(error)) {
-    const fallbackPayload = toLegacyImageKeys(produto);
-    const { data: fallbackData, error: fallbackError } = await client
-      .from('produto')
-      .insert(fallbackPayload)
-      .select()
-      .single();
-
-    return {
-      data: fallbackData ? normalizeProduto(fallbackData as any) : null,
-      error: fallbackError,
-    };
-  }
-
-  return { data, error };
+  return {
+    data: data ? normalizeProduto(data) : null,
+    error: normalizeError(error),
+  };
 }
 
 export async function editarProduto(
@@ -186,33 +165,18 @@ export async function editarProduto(
   produto: Partial<Produto>
 ): Promise<{ data: Produto | null; error: any }> {
   const client = ensureSupabase();
+
   const { data, error } = await client
-    .from('produto')
+    .from("produto")
     .update(produto)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
-  if (!error) {
-    return { data: data ? normalizeProduto(data as any) : null, error: null };
-  }
-
-  if (hasImageColumnError(error)) {
-    const fallbackPayload = toLegacyImageKeys(produto);
-    const { data: fallbackData, error: fallbackError } = await client
-      .from('produto')
-      .update(fallbackPayload)
-      .eq('id', id)
-      .select()
-      .single();
-
-    return {
-      data: fallbackData ? normalizeProduto(fallbackData as any) : null,
-      error: fallbackError,
-    };
-  }
-
-  return { data: null, error };
+  return {
+    data: data ? normalizeProduto(data) : null,
+    error: normalizeError(error),
+  };
 }
 
 export async function excluirProduto(

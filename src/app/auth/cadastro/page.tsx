@@ -55,27 +55,39 @@ export default function Cadastro() {
   const emailRedirectTo = `${window.location.origin}/login`;
 
   // Cria usuário no Auth
-  const { data, error } = await supabase.auth.signUp({
-    email: normalizedEmail,
-    password: senha,
-    options: {
-      emailRedirectTo,
-      data: {
-        nome: nome.trim(),
-      },
+// Cria usuário no Auth
+const { data, error } = await supabase.auth.signUp({
+  email: normalizedEmail,
+  password: senha,
+  options: {
+    emailRedirectTo,
+    data: {
+      nome: nome.trim(),
     },
+  },
+});
+
+if (error) {
+  console.error(error);
+  return;
+}
+
+if (!data.user) {
+  throw new Error("Usuário não foi criado.");
+}
+
+// Cria registro na tabela usuario
+const { error: usuarioError } = await supabase
+  .from("usuario")
+  .insert({
+    user_id: data.user.id,
+    nome: nome.trim(),
+    role: "user",
   });
 
-  if (error) {
-    console.error(error);
-    alert(error.message || "Erro ao cadastrar");
-    return;
-  }
-
-  if (!data.user) {
-    alert("Erro ao criar usuário");
-    return;
-  }
+if (usuarioError) {
+  console.error(usuarioError);
+}
 
   // Salva perfil na tabela usuario
   const { error: insertError } = await supabase

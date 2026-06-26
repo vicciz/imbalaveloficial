@@ -1,75 +1,77 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { AddCart } from './addCart';
+import Link from "next/link";
+import { Produto } from "@/src/services/produtos";
+import { supabase } from "@/supabaseClient";
 
-interface ProdutoProps {
-  id: number;
-  nome: string;
-  preco: string;
-  link: string;
-  rating: string;
-  reviews: number;
-  image: string;
-  image1: string;
-  image2: string;
-  image3: string;
-  category: string;
-  descricao: string;
-  details: string;
-  fornecedor?: string;
+interface ProdutoCardProps {
+  produto: Produto;
 }
 
-export default function Produtos({
-  id,
-  nome,
-  preco,
-  link,
-  rating,
-  reviews,
-  image,
-  image1,
-  image2,
-  image3,
-  category,
-  descricao,
-  details,
-  fornecedor
-  
-}: ProdutoProps) {
+export default function ProdutoCard({
+  produto,
+}: ProdutoCardProps) {
+  const principal =
+    produto.produto_imagem?.find(
+      (img) => img.principal
+    ) ?? produto.produto_imagem?.[0];
 
-const imageUrl = image
-  ? `http://localhost/api/uploads/${encodeURIComponent(image)}`
-  : `http://localhost/api/uploads/placeholder.png`;
+  const imagem = principal
+    ? supabase.storage
+        .from("produtos")
+        .getPublicUrl(principal.caminho)
+        .data.publicUrl
+    : "/placeholder.png";
 
   return (
-    <div className="w-1/3 bg-gray-50 rounded-xl p-4 flex flex-col items-center">
-      
+    <Link
+      href={`/produto/${produto.id}`}
+      className="
+        block
+        bg-white
+        rounded-2xl
+        overflow-hidden
+        shadow-lg
+        hover:shadow-2xl
+        hover:-translate-y-1
+        transition-all
+        duration-300
+      "
+    >
       <img
-          src={imageUrl}
-          alt={nome}
-          className="w-full h-40 object-cover rounded mb-2"
+        src={imagem}
+        alt={produto.nome}
+        className="w-full aspect-square object-cover"
       />
 
-      <h3 className="text-md font-bold">{nome}</h3>
-      <p className="text-sm text-gray-600 mb-1">{descricao}</p>
-      <div className="flex items-center gap-2 mb-1">
-        
-      </div>
-      <p className="text-sm text-gray-500">⭐ {rating} ({reviews})</p>
+      <div className="p-4">
 
-      <div className="flex gap-2 mt-2">
-        {/* Botão Comprar redireciona para página do produto */}
-        <Link href={`/produto/${id}`}>
-          <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-            Comprar
-          </button>
-        </Link>
+        <h2 className="font-semibold line-clamp-2">
+          {produto.nome}
+        </h2>
 
-        {/* Botão adicionar ao carrinho */}
-        
-      <button></button>
+        {produto.descricao && (
+          <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+            {produto.descricao}
+          </p>
+        )}
+
+        <div className="mt-4 flex items-center justify-between">
+
+          <span className="text-2xl font-bold text-indigo-600">
+            {Number(produto.preco).toLocaleString("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            })}
+          </span>
+
+          <span className="text-yellow-500">
+            ⭐ {produto.rating ?? 5}
+          </span>
+
+        </div>
+
       </div>
-    </div>
+    </Link>
   );
 }

@@ -4,6 +4,9 @@ import NewsletterPopup from "@/src/app/admin/componentes/NewsletterPopup";
 import Script from 'next/script';
 import type { Metadata } from "next";
 import logoTexto from "@/src/public/assets/imagens/logo s texxto.png";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),

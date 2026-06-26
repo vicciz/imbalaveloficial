@@ -95,33 +95,22 @@ export default function AdminHome() {
         <div className="grid grid-cols-3 gap-6">
 
           <div className="bg-white p-6 rounded border border-black/10 shadow-sm">
-            <h3 className="text-lg mb-2">Produtos</h3>
-            
-            <Link href="/admin/produtos/catalogo">
+            <h3 className="text-lg mb-2">Gerenciar coleção</h3>
+
+            <Link href="/admin/produtos/colecao">
               <p className="text-sm text-zinc-600 hover:text-indigo-600 cursor-pointer">
-                Gerenciar catálogo
-              </p>
-            </Link>
-
-          </div>
-
-          <div className="bg-white p-6 rounded border border-black/10 shadow-sm">
-            <h3 className="text-lg mb-2">Criar coleção</h3>
-
-            <Link href="/admin/catalogo">
-              <p className="text-sm text-zinc-600 hover:text-indigo-600 cursor-pointer">
-                Montar nova coleção
+                Gerenciar novas coleções
               </p>
             </Link>
           </div>
-
           <div className="bg-white p-6 rounded border border-black/10 shadow-sm">
-            <h3 className="text-lg mb-2">Pedidos</h3>
-            <p className="text-sm text-zinc-600">
-              Ver compras
-            </p>
+            <h3 className="text-lg mb-2">Gerenciar coleção</h3>
+          <Link href="/pedidos">
+              <p className="text-sm text-zinc-600 hover:text-indigo-600 cursor-pointer">
+                Pedidos
+              </p>
+            </Link>
           </div>
-
           <div className="bg-white p-6 rounded border border-black/10 shadow-sm">
             <h3 className="text-lg mb-2">Usuários</h3>
             <Link href="/admin/usuarios/gerenciar-usuarios">

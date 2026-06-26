@@ -89,10 +89,14 @@ export default function Header() {
           <Link href="/rastrear" className="text-lg font-medium hover:underline">
             Rastrear
           </Link>
-          {user?.role === 'admin' && (
-            <Link href="/admin" className="text-lg font-medium text-indigo-400 hover:underline">
-              Administração
-            </Link>
+          {user?.role === "admin" && (
+          <Link
+            href="/admin"
+            className="text-lg font-medium text-indigo-400 hover:underline"
+          >
+            Administração
+          </Link>
+
             
           )}
           <Link href="/carrinho" className="text-lg font-medium hover:underline">

@@ -2,11 +2,11 @@ import { supabase } from '@/supabaseClient';
 
 
 export interface Usuario {
-  id: number;
-  user_id: string;
+  id: string;
   nome: string;
-  telefone?: string;
-  role: string;
+  email: string;
+
+  role: "admin" | "user";
 }
 
 type UsuarioCreate = Omit<Usuario, 'id'> & { senha?: string };

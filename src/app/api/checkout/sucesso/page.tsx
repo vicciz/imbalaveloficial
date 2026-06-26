@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-export default function CanceladoPage() {
+export default function SucessoPage() {
   return (
     <div className="w-full h-screen bg-[#8b7bbd] overflow-hidden flex items-center justify-center relative">
       {/* LINHAS ANIMADAS */}
@@ -48,9 +48,9 @@ export default function CanceladoPage() {
             type: "spring",
             stiffness: 120,
           }}
-          className="w-[300px] h-[300px] bg-[#ff5f5f] rounded-full flex items-center justify-center shadow-2xl border-[6px] border-white"
+          className="w-[300px] h-[300px] bg-[#62f062] rounded-full flex items-center justify-center shadow-2xl border-[6px] border-white"
         >
-          {/* X */}
+          {/* CHECK */}
           <motion.svg
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
@@ -58,17 +58,16 @@ export default function CanceladoPage() {
               delay: 0.5,
               duration: 0.7,
             }}
-            width="180"
-            height="180"
+            width="220"
+            height="220"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="white"
+            stroke="black"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <motion.path d="M18 6L6 18" />
-            <motion.path d="M6 6L18 18" />
+            <motion.path d="M20 6L9 17L4 12" />
           </motion.svg>
         </motion.div>
 
@@ -88,7 +87,7 @@ export default function CanceladoPage() {
           }}
           className="text-white text-5xl font-light mt-14 tracking-wide"
         >
-          Pagamento Cancelado
+          Pagamento Aprovado
         </motion.h1>
         <motion.button
   initial={{ opacity: 0, y: 20 }}

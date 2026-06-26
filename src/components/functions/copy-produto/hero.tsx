@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { Produto } from "@/src/services/produtos";
 import { Usuario } from "@/src/services/usuarios";
 import { supabase } from "@/supabaseClient";
 import logoImbalavel from "@/src/public/assets/imagens/logo.png";
 import { AddCart } from "./addCart";
 import QuantidadeSelector from "./qtdSelect";
-import { useState } from "react";
-
 
 type HeroProps = {
   produto: Produto;
@@ -18,7 +17,6 @@ type HeroProps = {
   setModalOpen: (open: boolean) => void;
   comprar: (id: number) => void;
   maskedLink: string;
-  imagens: string[];
 };
 
 export default function Hero({
@@ -29,17 +27,30 @@ export default function Hero({
   setModalOpen,
   comprar,
   maskedLink,
-  imagens,
-}: HeroProps){
-
+}: HeroProps) {
   const [quantidade, setQuantidade] = useState(1);
+
+  const imagens =
+    produto.produto_imagem?.map((img) =>
+      supabase.storage
+        .from("produtos")
+        .getPublicUrl(img.caminho).data.publicUrl
+    ) ?? [];
+
+  useEffect(() => {
+    if (imagens.length > 0 && !imagemAtiva) {
+      setImagemAtiva(imagens[0]);
+    }
+  }, [imagens, imagemAtiva, setImagemAtiva]);
+
   return (
     <section
       id="produto-hero"
       className="max-w-6xl mx-auto px-6 pt-24 pb-14 animate-fadeUp"
     >
       <div className="grid lg:grid-cols-2 gap-12 items-center">
-        {/* INFO */}
+
+        {/* INFORMAÇÕES */}
         <div className="bg-white/70 border border-[#c9d9f2] rounded-3xl p-8 shadow-xl">
           <Image
             src={logoImbalavel}
@@ -75,20 +86,23 @@ export default function Hero({
               ({produto.reviews || 128} avaliações)
             </span>
 
-            <span className="bg-white border border-[#c9d9f2] text-[#2f61b9] px-3 py-1 rounded-full text-xs font-semibold shadow-sm inline-flex items-center gap-1">
+            <span className="bg-white border border-[#c9d9f2] text-[#2f61b9] px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
               🛡️ Selo de Garantia
             </span>
           </div>
-            <QuantidadeSelector
-              onChange={setQuantidade}
-            />
+
+          <QuantidadeSelector
+            onChange={(qtd) => setQuantidade(qtd)}
+          />
+
           <div className="mt-6 flex">
             <button
               onClick={() => comprar(produto.id)}
-              className="w-full sm:w-auto px-10 py-4 text-lg font-semibold bg-[#2f61b9] text-white rounded-full shadow-lg shadow-blue-600/30 hover:bg-[#244e96] hover:shadow-blue-700/40 transition animate-pulseGlowBlue"
+              className="w-full sm:w-auto px-10 py-4 text-lg font-semibold bg-[#2f61b9] text-white rounded-full shadow-lg hover:bg-[#244e96] transition"
             >
               Comprar via Checkout
             </button>
+
             {usuario && (
               <AddCart
                 productId={produto.id}
@@ -98,7 +112,6 @@ export default function Hero({
               />
             )}
           </div>
-          
 
           <p className="mt-4 text-sm text-[#56719a]">
             ⚠️ Estoque limitado
@@ -111,51 +124,40 @@ export default function Hero({
 
         {/* GALERIA */}
         <div className="bg-[#a9c3e6] rounded-3xl p-8 shadow-2xl">
+
+          {/* Imagem Principal */}
           <div className="overflow-hidden rounded-2xl">
             {imagemAtiva && (
               <img
                 src={imagemAtiva}
                 alt={produto.nome}
-                className="w-full h-[520px] object-cover cursor-zoom-in scale-[1.08] origin-center"
+                className="w-full h-[520px] object-cover cursor-zoom-in"
                 onClick={() => setModalOpen(true)}
               />
             )}
           </div>
 
+          {/* Miniaturas */}
           <div className="mt-6 flex justify-center gap-3 flex-wrap">
-            {imagens.map((img, i) => {
-              let url = img;
-
-              if (!img.startsWith("http")) {
-                if (!supabase) {
-                  console.error("Supabase não inicializado");
-                  return null;
-                }
-
-                url = supabase.storage
-                  .from("produto") // altere para "produtos" se esse for o bucket correto
-                  .getPublicUrl(img).data.publicUrl;
-              }
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => setImagemAtiva(url)}
-                  className={`w-16 h-16 rounded-xl overflow-hidden border bg-white/80 hover:scale-105 transition ${
-                    imagemAtiva === url
-                      ? "border-[#2f61b9] ring-2 ring-[#2f61b9]/20"
-                      : "border-[#c9d9f2]"
-                  }`}
-                >
-                  <img
-                    src={url}
-                    alt={`${produto.nome} ${i + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              );
-            })}
+            {imagens.map((url, i) => (
+              <button
+                key={i}
+                onClick={() => setImagemAtiva(url)}
+                className={`w-16 h-16 rounded-xl overflow-hidden border transition ${
+                  imagemAtiva === url
+                    ? "border-[#2f61b9] ring-2 ring-[#2f61b9]/20"
+                    : "border-[#c9d9f2]"
+                }`}
+              >
+                <img
+                  src={url}
+                  alt={`${produto.nome} ${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
           </div>
+
         </div>
       </div>
     </section>
