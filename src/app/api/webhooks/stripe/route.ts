@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+//Rode no terminal stripe listen --forward-to localhost:3000/api/webhooks/stripe/
 import {
   buscarCarrinho,
   calcularTotal,

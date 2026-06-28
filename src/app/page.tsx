@@ -68,34 +68,6 @@ export default function Page() {
       `}</style>
 
       {/* HERO */}
-      <section className="relative z-10 w-full h-[75vh] flex items-center justify-center text-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-white/80 backdrop-blur-sm" />
-
-        <div className="relative z-10 px-6 max-w-4xl">
-          <span className="inline-block mb-6 px-4 py-1 rounded-full border border-black/20 text-sm tracking-widest text-zinc-700">
-            IMBALÁVEL
-          </span>
-
-          <h1 className="text-5xl md:text-7xl font-bold tracking-wide leading-tight bg-gradient-to-r from-zinc-900 via-zinc-700 to-amber-700 bg-clip-text text-transparent">
-            Beleza não se explica.<br />Se impõe.
-          </h1>
-
-          <p className="mt-6 text-lg md:text-xl text-zinc-600">
-            Os melhores perfumes masculinos, cosméticos premium e fragrâncias marcantes disponíveis na web.
-          </p>
-
-          <div className="mt-10 flex justify-center gap-4 flex-wrap">
-
-            <a
-              href="#categorias"
-              className="px-8 py-3 rounded-full border border-black/20 hover:bg-black/5 transition"
-            >
-              Explorar Coleção
-            </a>
-          </div>
-        </div>
-      </section>
-
 
       {colecoesHome.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 pb-24">
@@ -163,40 +135,6 @@ export default function Page() {
           </div>
         </div>
         
-      </section>
-
-      {/* SEO CONTENT */}
-      <section className="max-w-5xl mx-auto px-6 pb-24 text-zinc-700 leading-relaxed">
-        <h2 className="text-3xl font-bold text-zinc-900 mb-6">
-          Os Melhores Perfumes Masculinos Disponíveis Online
-        </h2>
-
-        <p className="mb-6">
-          A IMBALÁVEL é uma plataforma especializada em reunir os <strong>melhores perfumes masculinos disponíveis na web</strong>,
-          conectando você às fragrâncias mais desejadas, bem avaliadas e com excelente custo-benefício.
-        </p>
-
-        <p className="mb-6">
-          Nossa curadoria inclui <strong>perfumes masculinos importados</strong>, fragrâncias intensas para a noite,
-          aromas frescos para o dia a dia e perfumes com alta fixação e projeção.
-          Cada produto é selecionado para homens que buscam presença, elegância e identidade.
-        </p>
-
-        <h3 className="text-2xl font-semibold text-zinc-900 mb-4">
-          Por que escolher perfumes através da IMBALÁVEL?
-        </h3>
-
-        <ul className="list-disc pl-6 space-y-3">
-          <li>Seleção dos perfumes masculinos mais vendidos</li>
-          <li>Links diretos para compra online segura</li>
-          <li>Produtos com avaliações reais e alto rating</li>
-          <li>Curadoria focada em performance, estilo e impacto</li>
-        </ul>
-
-        <p className="mt-6">
-          Se você procura o <strong>melhor perfume masculino para marcar presença</strong>,
-          elevar sua confiança e deixar sua assinatura por onde passar, você está no lugar certo.
-        </p>
       </section>
 
       {/* BENEFÍCIOS */}

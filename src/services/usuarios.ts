@@ -4,8 +4,6 @@ import { supabase } from '@/supabaseClient';
 export interface Usuario {
   id: string;
   nome: string;
-  email: string;
-
   role: "admin" | "user";
 }
 
@@ -13,7 +11,7 @@ type UsuarioCreate = Omit<Usuario, 'id'> & { senha?: string };
 type UsuarioUpdate = Partial<Omit<Usuario, 'id'>> & { senha?: string };
 
 export async function listarUsuarios(termo?: string): Promise<{ data: Usuario[] | null; error: any }> {
-  let query = supabase.from('usuario').select('id,nome,email,role');
+  let query = supabase.from('usuario').select('id,nome,role');
 
   if (termo) {
     const safeTermo = termo.replace(/[%_]/g, '');

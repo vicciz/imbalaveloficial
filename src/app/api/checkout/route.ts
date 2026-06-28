@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     const stripe = new Stripe(stripeKey, {
-      apiVersion: '2022-11-15',
+      apiVersion: "2026-04-22.dahlia",
     });
 
     const { data: produto, error } = await buscarProduto(id);

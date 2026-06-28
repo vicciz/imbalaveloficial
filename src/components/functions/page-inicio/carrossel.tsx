@@ -12,15 +12,13 @@ import { Produto } from "@/src/services/produtos";
 
 type Props = {
   titulo: string;
-  produtos: Produto[];
+  produtos?: Produto[];
 };
 
 export default function CarrosselProdutos({
   titulo,
-  produtos,
+  produtos = [],
 }: Props) {
-  if (!produtos.length) return null;
-
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-5">
