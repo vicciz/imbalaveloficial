@@ -1,12 +1,17 @@
 import "./globals.css";
 import Header from "@/src/components/functions/page-inicio/Header";
-import NewsletterPopup from "@/src/app/admin/componentes/NewsletterPopup";
+import NewsletterPopup from "@/src/components/admin/common/NewsletterPopup";
+import SitePageLayout from "@/src/components/layout/SitePageLayout";
 import Script from 'next/script';
 import type { Metadata } from "next";
 import logoTexto from "@/src/public/assets/imagens/logo s texxto.png";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import { Inter, Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
@@ -63,7 +68,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={cn("font-sans", geist.variable)}>
       <body>
         <script
           type="application/ld+json"
@@ -91,7 +96,9 @@ fbq('track', 'PageView');`}
 
         <NewsletterPopup />
         <Header />
-        <main className="pt-20">{children}</main>
+        <main className="pt-20">
+          <SitePageLayout>{children}</SitePageLayout>
+        </main>
       </body>
     </html>
   );

@@ -1,262 +1,412 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Usuario } from '@/src/services/usuarios';
-import SelectUsuarios from '@/src/app/admin/componentes/selectUsuarios';
-import EnviarEmailUsuarios from '@/src/app/admin/componentes/EnviarEmailUsuarios';
-import { listarUsuarios, criarUsuario, atualizarUsuario, excluirUsuario } from '@/src/services/usuarios';
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { AdminLayout } from "@/src/components/admin/layout";
 
-export default function CatalogoAdmin() {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [termo, setTermo] = useState('');
-  const [selecionados, setSelecionados] = useState<number[]>([]);
-  const [form, setForm] = useState({ nome: '', email: '', senha: '', role: 'user' });
-  const [editingId, setEditingId] = useState<number | null>(null);
+import {
+  Usuario,
+  listarUsuarios,
+  excluirUsuario,
+} from "@/src/services/usuarios";
+
+export default function GerenciarUsuarios() {
+  const [usuarios, setUsuarios] =
+    useState<Usuario[]>([]);
+
+  const [carregando, setCarregando] =
+    useState(true);
+
+  const [busca, setBusca] =
+    useState("");
+
+  const [pagina, setPagina] =
+    useState(1);
+
+  const itensPorPagina = 10;
 
   useEffect(() => {
-    async function buscar() {
-      const { data, error } = await listarUsuarios(termo);
-      if (error) {
-        console.error(error);
-        setUsuarios([]);
-        return;
-      }
-      setUsuarios(data || []);
-    }
+    carregarUsuarios();
+  }, []);
 
-    buscar();
-  }, [termo]);
+  async function carregarUsuarios() {
+    setCarregando(true);
 
-  async function salvarUsuario() {
-    if (!form.nome || !form.email) {
-      alert('Preencha nome e email');
-      return;
-    }
+    const { data, error } =
+      await listarUsuarios();
 
-    const payload = {
-      nome: form.nome,
-      email: form.email,
-      role: form.role,
-      ...(form.senha ? { senha: form.senha } : {}),
-    };
-
-    if (editingId) {
-      const { error } = await atualizarUsuario(editingId, payload);
-      if (error) {
-        alert('Erro ao atualizar usuário');
-        return;
-      }
-    } else {
-      const { error } = await criarUsuario(payload);
-      if (error) {
-        alert('Erro ao cadastrar usuário');
-        return;
-      }
-    }
-
-    setForm({ nome: '', email: '', senha: '', role: 'user' });
-    setEditingId(null);
-    const { data } = await listarUsuarios(termo);
-    setUsuarios(data || []);
-  }
-
-  function editarUsuario(usuario: Usuario) {
-    setEditingId(usuario.id);
-    setForm({ nome: usuario.nome, email: usuario.email, senha: '', role: usuario.role });
-  }
-
-  async function removerUsuario(id: number) {
-    if (!confirm('Deseja realmente excluir este usuário?')) return;
-    const { error } = await excluirUsuario(id);
     if (error) {
-      alert('Erro ao excluir usuário');
+      console.error(error);
+      alert(error.message);
+
+      setCarregando(false);
       return;
     }
-    setSelecionados(prev => prev.filter(i => i !== id));
-    const { data } = await listarUsuarios(termo);
-    setUsuarios(data || []);
+
+    setUsuarios(data ?? []);
+
+    setCarregando(false);
   }
 
-  async function removerSelecionados() {
-    if (!selecionados.length) return;
-    if (!confirm('Deseja realmente excluir os usuários selecionados?')) return;
-
-    const results = await Promise.all(
-      selecionados.map((id) => excluirUsuario(id))
-    );
-
-    const hasError = results.some(r => r.error);
-    if (hasError) {
-      alert('Erro ao excluir um ou mais usuários');
+  async function handleExcluir(
+    id: number
+  ) {
+    if (
+      !confirm(
+        "Deseja realmente excluir este usuário?"
+      )
+    ) {
       return;
     }
 
-    setSelecionados([]);
-    const { data } = await listarUsuarios(termo);
-    setUsuarios(data || []);
+    const { error } =
+      await excluirUsuario(id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setUsuarios((prev) =>
+      prev.filter(
+        (u) => u.id !== id
+      )
+    );
   }
 
-  async function atualizarRoleSelecionados(role: 'user' | 'admin') {
-    if (!selecionados.length) return;
+  const usuariosFiltrados =
+    useMemo(() => {
+      return usuarios.filter(
+        (usuario) =>
+          usuario.nome
+            .toLowerCase()
+            .includes(
+              busca.toLowerCase()
+            ) ||
+          (usuario.telefone ?? "")
+            .toLowerCase()
+            .includes(
+              busca.toLowerCase()
+            )
+      );
+    }, [usuarios, busca]);
 
-    const results = await Promise.all(
-      selecionados.map((id) => atualizarUsuario(id, { role }))
+  const totalPaginas =
+    Math.max(
+      1,
+      Math.ceil(
+        usuariosFiltrados.length /
+          itensPorPagina
+      )
     );
 
-    const hasError = results.some(r => r.error);
-    if (hasError) {
-      alert('Erro ao atualizar permissões');
-      return;
-    }
+  const usuariosPagina =
+    usuariosFiltrados.slice(
+      (pagina - 1) *
+        itensPorPagina,
+      pagina *
+        itensPorPagina
+    );
 
-    const { data } = await listarUsuarios(termo);
-    setUsuarios(data || []);
+  if (carregando) {
+    return (
+      <AdminLayout>
+        <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm text-slate-600">
+          Carregando usuários...
+        </div>
+      </AdminLayout>
+    );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 text-zinc-900 px-6 py-10">
-      <div className="max-w-7xl mx-auto">
+    <AdminLayout>
+      <div className="space-y-6">
 
-        {/* Título */}
-        <header className="mb-10">
-          <h1 className="text-3xl font-bold">Gerenciar Usuários</h1>
-          <p className="text-zinc-600 mt-1">
-            Busque, selecione e envie comunicações
-          </p>
-        </header>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Usuários</h1>
+          <p className="mt-2 text-sm text-slate-600">Dados completos dos usuários cadastrados no sistema.</p>
+        </div>
 
-        {/* Conteúdo lado a lado */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Link href="/admin/usuarios/cadastrar" className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500">
+          + Novo Usuário
+        </Link>
+      </div>
 
-          {/* Coluna esquerda */}
-          <aside className="bg-white rounded-2xl p-6 space-y-6 border border-black/10 shadow-sm">
-            
-            <div>
-              <label className="text-sm text-zinc-600">
-                Buscar usuários
-              </label>
-              <input
-                value={termo}
-                onChange={(e) => setTermo(e.target.value)}
-                placeholder="Digite o nome ou letra..."
-                className="mt-2 w-full bg-slate-50 border border-black/10
-                           rounded-xl px-4 py-3 text-sm
-                           placeholder:text-zinc-500
-                           focus:outline-none focus:ring-2 focus:ring-pink-600"
-              />
-              <button
-                type="button"
-                onClick={() => setTermo('')}
-                className="mt-2 text-xs text-indigo-600 hover:underline"
+      {/* Busca */}
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <input
+          value={busca}
+          onChange={(e) => {
+            setBusca(e.target.value);
+            setPagina(1);
+          }}
+          placeholder="Buscar por nome, e-mail ou telefone..."
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-indigo-500"
+        />
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+        <table className="w-full">
+
+          <thead className="bg-slate-100">
+
+            <tr>
+
+              <th className="p-4 text-left">
+                Usuário
+              </th>
+
+              <th className="text-left">
+                E-mail
+              </th>
+
+              <th className="text-left">
+                Telefone
+              </th>
+
+              <th className="text-left">
+                Cargo
+              </th>
+
+              <th className="text-center">
+                Ações
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            {usuariosPagina.length === 0 && (
+
+              <tr>
+
+                <td
+                  colSpan={4}
+                  className="text-center py-12 text-zinc-500"
+                >
+                  Nenhum usuário encontrado.
+                </td>
+
+              </tr>
+
+            )}
+
+            {usuariosPagina.map((usuario) => (
+
+              <tr
+                key={usuario.id}
+                className="border-t hover:bg-slate-50 transition"
               >
-                Listar todos
-              </button>
-            </div>
 
-            <div>
-              <p className="text-sm text-zinc-600 mb-2">
-                Ações em massa
-              </p>
+                <td className="p-4">
 
-              <EnviarEmailUsuarios
-                usuarios={usuarios.filter(u => selecionados.includes(u.id))}
-              />
+                  <div className="flex items-center gap-4">
 
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  onClick={() => atualizarRoleSelecionados('admin')}
-                  className="bg-indigo-600 text-white px-3 py-2 rounded text-xs"
-                >
-                  Tornar admin
-                </button>
-                <button
-                  onClick={() => atualizarRoleSelecionados('user')}
-                  className="bg-slate-200 text-zinc-900 px-3 py-2 rounded text-xs"
-                >
-                  Tornar user
-                </button>
-                <button
-                  onClick={removerSelecionados}
-                  className="bg-rose-600 text-white px-3 py-2 rounded text-xs"
-                >
-                  Excluir selecionados
-                </button>
-              </div>
-            </div>
+                    <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700">
 
-            <div className="text-sm text-zinc-600">
-              Selecionados:{" "}
-              <span className="text-zinc-900 font-semibold">
-                {selecionados.length}
-              </span>
-            </div>
+                      {usuario.nome
+                        .charAt(0)
+                        .toUpperCase()}
 
-            <div className="pt-4 border-t border-black/10 space-y-3">
-              <p className="text-sm text-zinc-600">
-                {editingId ? 'Editar usuário' : 'Cadastrar usuário'}
-              </p>
-              <input
-                value={form.nome}
-                onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                placeholder="Nome"
-                className="w-full bg-slate-50 border border-black/10 rounded-xl px-4 py-2 text-sm"
-              />
-              <input
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="Email"
-                className="w-full bg-slate-50 border border-black/10 rounded-xl px-4 py-2 text-sm"
-              />
-              <input
-                type="password"
-                value={form.senha}
-                onChange={(e) => setForm({ ...form, senha: e.target.value })}
-                placeholder="Senha"
-                className="w-full bg-slate-50 border border-black/10 rounded-xl px-4 py-2 text-sm"
-              />
-              <select
-                value={form.role}
-                onChange={(e) => setForm({ ...form, role: e.target.value })}
-                className="w-full bg-slate-50 border border-black/10 rounded-xl px-4 py-2 text-sm"
-              >
-                <option value="user">user</option>
-                <option value="admin">admin</option>
-              </select>
-              <div className="flex gap-2">
-                <button
-                  onClick={salvarUsuario}
-                  className="bg-pink-600 text-white px-4 py-2 rounded text-sm"
-                >
-                  {editingId ? 'Salvar' : 'Cadastrar'}
-                </button>
-                {editingId && (
-                  <button
-                    onClick={() => {
-                      setEditingId(null);
-                      setForm({ nome: '', email: '', senha: '', role: 'user' });
-                    }}
-                    className="bg-slate-200 text-zinc-900 px-4 py-2 rounded text-sm"
+                    </div>
+
+                    <div>
+
+                      <p className="font-semibold">
+
+                        {usuario.nome}
+
+                      </p>
+
+                      <p className="text-xs text-zinc-500">
+                        ID #{usuario.id}
+                      </p>
+                      <p className="text-xs text-zinc-500">
+                        {usuario.user_id ? `Auth: ${usuario.user_id}` : "Sem identificação de auth"}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+                <td>
+                  {usuario.email || "-"}
+                </td>
+
+                <td>
+                  {usuario.telefone || "-"}
+                </td>
+
+                <td>
+
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      usuario.role === "admin"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-green-100 text-green-700"
+                    }`}
                   >
-                    Cancelar
-                  </button>
-                )}
-              </div>
-            </div>
-          </aside>
+                    {usuario.role}
+                  </span>
 
-          {/* Coluna direita */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-black/10 shadow-sm">
-            <SelectUsuarios
-              usuarios={usuarios}
-              selecionados={selecionados}
-              onChange={setSelecionados}
-              onEdit={editarUsuario}
-              onDelete={removerUsuario}
-            />
+                </td>
+
+                <td>
+
+                  <div className="flex justify-center gap-2">
+
+                    <Link
+                      href={`/admin/usuarios/editar?id=${usuario.id}`}
+                      className="w-10 h-10 rounded-lg bg-yellow-100 hover:bg-yellow-200 flex items-center justify-center"
+                      title="Editar"
+                    >
+                      ✏️
+                    </Link>
+
+                    <button
+                      onClick={() =>
+                        handleExcluir(usuario.id)
+                      }
+                      className="w-10 h-10 rounded-lg bg-red-100 hover:bg-red-200"
+                      title="Excluir"
+                    >
+                      🗑
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            ))}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+            {/* Rodapé */}
+
+      <div className="mt-8 flex flex-col lg:flex-row items-center justify-between gap-6">
+
+        <div className="flex gap-4">
+
+          <div className="bg-white rounded-xl border border-black/10 px-5 py-3 shadow-sm">
+
+            <p className="text-sm text-zinc-500">
+              Total de usuários
+            </p>
+
+            <p className="text-2xl font-bold">
+              {usuarios.length}
+            </p>
+
           </div>
 
-        </section>
+          <div className="bg-white rounded-xl border border-black/10 px-5 py-3 shadow-sm">
+
+            <p className="text-sm text-zinc-500">
+              Administradores
+            </p>
+
+            <p className="text-2xl font-bold text-red-600">
+              {
+                usuarios.filter(
+                  (u) => u.role === "admin"
+                ).length
+              }
+            </p>
+
+          </div>
+
+          <div className="bg-white rounded-xl border border-black/10 px-5 py-3 shadow-sm">
+
+            <p className="text-sm text-zinc-500">
+              Usuários
+            </p>
+
+            <p className="text-2xl font-bold text-emerald-600">
+              {
+                usuarios.filter(
+                  (u) => u.role === "user"
+                ).length
+              }
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* Paginação */}
+
+        <div className="flex items-center gap-3">
+
+          <button
+            disabled={pagina === 1}
+            onClick={() =>
+              setPagina((p) => p - 1)
+            }
+            className="px-4 py-2 rounded-lg border bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            ←
+          </button>
+
+          {Array.from(
+            {
+              length: totalPaginas,
+            },
+            (_, index) => {
+
+              const numero =
+                index + 1;
+
+              return (
+
+                <button
+                  key={numero}
+                  onClick={() =>
+                    setPagina(numero)
+                  }
+                  className={`w-10 h-10 rounded-lg transition ${
+                    pagina === numero
+                      ? "bg-indigo-600 text-white"
+                      : "bg-white border hover:bg-slate-100"
+                  }`}
+                >
+                  {numero}
+                </button>
+
+              );
+
+            }
+          )}
+
+          <button
+            disabled={
+              pagina === totalPaginas
+            }
+            onClick={() =>
+              setPagina((p) => p + 1)
+            }
+            className="px-4 py-2 rounded-lg border bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            →
+          </button>
+
+        </div>
+
       </div>
-    </main>
+
+      </div>
+    </AdminLayout>
   );
 }

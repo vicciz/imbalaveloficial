@@ -1,4 +1,4 @@
-import Rastrear from '@/src/app/admin/componentes/rastreio';
+import Rastrear from '@/src/components/admin/common/rastreio';
 
 
 export default function RastrearPage() {

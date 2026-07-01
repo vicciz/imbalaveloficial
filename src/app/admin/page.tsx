@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AdminLayout } from "@/src/components/admin/layout";
 
 interface User {
   id: number;
@@ -42,87 +43,44 @@ export default function AdminHome() {
   } // FIM DO BLOQUEIO
 
   return (
-    <div className="min-h-screen bg-slate-50 text-zinc-900 flex">
+    <AdminLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">
+            Bem-vindo, {user?.nome}
+          </h1>
 
-      {/* MENU LATERAL */}
-      <aside className="w-64 bg-white p-6 border-r border-black/10">
-
-        <h2 className="text-xl font-bold mb-6">
-          Painel Admin
-        </h2>
-
-        <nav className="flex flex-col gap-4">
-
-          <Link href="/admin/produtos/cadastrar"
-            className="hover:text-indigo-600">
-            ➕ Cadastrar Produto
-          </Link>
-
-          <Link href="/admin/produtos"
-            className="hover:text-indigo-600">
-            📦 Produtos
-          </Link>
-
-          <Link href="/admin/catalogo"
-            className="hover:text-indigo-600">
-            🗂️ Catálogos
-          </Link>
-
-          <Link href="/admin/pedidos"
-            className="hover:text-indigo-600">
-            🧾 Pedidos
-          </Link>
-
-          <Link href="/admin/usuarios"
-            className="hover:text-indigo-600">
-            👤 Usuários
-          </Link>
-
-        </nav>
-      </aside>
-
-      {/* CONTEÚDO */}
-      <main className="flex-1 p-10">
-
-        <h1 className="text-3xl font-bold mb-2">
-          Bem-vindo, {user?.nome}
-        </h1>
-
-        <p className="text-zinc-600 mb-8">
-          Área administrativa do sistema
-        </p>
-
-        <div className="grid grid-cols-3 gap-6">
-
-          <div className="bg-white p-6 rounded border border-black/10 shadow-sm">
-            <h3 className="text-lg mb-2">Gerenciar coleção</h3>
-
-            <Link href="/admin/produtos/colecao">
-              <p className="text-sm text-zinc-600 hover:text-indigo-600 cursor-pointer">
-                Gerenciar novas coleções
-              </p>
-            </Link>
-          </div>
-          <div className="bg-white p-6 rounded border border-black/10 shadow-sm">
-            <h3 className="text-lg mb-2">Gerenciar coleção</h3>
-          <Link href="/pedidos">
-              <p className="text-sm text-zinc-600 hover:text-indigo-600 cursor-pointer">
-                Pedidos
-              </p>
-            </Link>
-          </div>
-          <div className="bg-white p-6 rounded border border-black/10 shadow-sm">
-            <h3 className="text-lg mb-2">Usuários</h3>
-            <Link href="/admin/usuarios/gerenciar-usuarios">
-              <p className="text-sm text-zinc-600 hover:text-indigo-600 cursor-pointer">
-                Controle de contas
-              </p>
-            </Link>
-          </div>
-
+          <p className="text-zinc-600">
+            Área administrativa do sistema
+          </p>
         </div>
 
-      </main>
-    </div>
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">Produtos</h2>
+            <p className="mt-2 text-sm text-zinc-600">Gerencie catálogo, visibilidade e destaques.</p>
+            <Link href="/admin/produtos" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
+              Acessar produtos
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">Coleções</h2>
+            <p className="mt-2 text-sm text-zinc-600">Organize grupos e destaque produtos em campanhas.</p>
+            <Link href="/admin/produtos/colecao" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
+              Ver coleções
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">Usuários</h2>
+            <p className="mt-2 text-sm text-zinc-600">Gerencie acessos e permissões da equipe.</p>
+            <Link href="/admin/usuarios/gerenciar-usuarios" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
+              Gerenciar usuários
+            </Link>
+          </div>
+        </div>
+      </div>
+    </AdminLayout>
   );
 }

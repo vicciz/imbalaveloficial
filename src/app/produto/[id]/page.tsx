@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import ProdutoCliente from '@/src/app/pageConversao/ProdutoCliente';
+import ProdutoCliente from '@/src/app/pageConversao/page';
 
 interface PageProps {
   params: { id: string };

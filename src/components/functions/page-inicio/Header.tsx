@@ -19,7 +19,8 @@ export default function Header() {
   const pathname = usePathname();
   const isProdutoPage = pathname?.startsWith('/produto');
   const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "").split(",").map((value) => value.trim().toLowerCase()).filter(Boolean);
-
+  const login = "./app/auth/login"
+  
   const handleLogout = () => {
     localStorage.removeItem('user');
     setUser(null);
@@ -108,10 +109,10 @@ export default function Header() {
         <nav className="hidden md:flex gap-3 text-sm">
           {!user ? (
             <>
-              <Link href="/login" className="px-4 py-2 rounded-full bg-[#2f61b9] text-white shadow-lg shadow-blue-600/25 hover:bg-[#244e96] transition">
+              <Link href="/auth/login" className="px-4 py-2 rounded-full bg-[#2f61b9] text-white shadow-lg shadow-blue-600/25 hover:bg-[#244e96] transition">
                 Entrar
               </Link>
-              <Link href="/cadastro" className="px-4 py-2 rounded-full border border-blue-200 text-[#23446d] bg-white/80 hover:bg-[#f3f7ff] transition">
+              <Link href="/auth/cadastro" className="px-4 py-2 rounded-full border border-blue-200 text-[#23446d] bg-white/80 hover:bg-[#f3f7ff] transition">
                 Criar conta
               </Link>
             </>

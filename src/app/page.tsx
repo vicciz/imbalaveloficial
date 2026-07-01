@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Footer from '@/src/components/functions/page-inicio/Footer';
 import { listarProdutos, type Produto as ServiceProduto } from '@/src/services/produtos';
 import CarrosselProdutos from '../components/functions/page-inicio/carrossel';
-import { supabase } from '@/supabaseClient';
+import BannerCarousel from '@/src/components/functions/page-inicio/BannerCarousel';
 
 interface ProdutoImagem {
   caminho: string;
@@ -68,6 +68,7 @@ export default function Page() {
       `}</style>
 
       {/* HERO */}
+      <BannerCarousel />
 
       {colecoesHome.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 pb-24">

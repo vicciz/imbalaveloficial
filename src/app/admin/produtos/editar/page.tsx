@@ -1,10 +1,24 @@
-import React, { Suspense } from 'react';
-import EditarProdutoClientSearchParams from './EditarProdutoClientSearchParams';
+"use client";
 
-export default function Page() {
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+
+import { AdminLayout } from "@/src/components/admin/layout";
+import FormProduto from "@/src/components/forms/gerenciamentoProduto";
+
+function EditarProdutoContent() {
+  const params = useSearchParams();
+  const id = Number(params.get("id"));
+
+  return <FormProduto modo="editar" produtoId={id} />;
+}
+
+export default function EditarProdutoPage() {
   return (
-    <Suspense fallback={<div className="text-zinc-900 p-10">Carregando...</div>}>
-      <EditarProdutoClientSearchParams />
-    </Suspense>
+    <AdminLayout>
+      <Suspense fallback={null}>
+        <EditarProdutoContent />
+      </Suspense>
+    </AdminLayout>
   );
 }

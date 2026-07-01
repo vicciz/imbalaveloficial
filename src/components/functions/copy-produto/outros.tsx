@@ -1,6 +1,9 @@
-import CarrosselCosmeticos from '../page-inicio/carrossel';
+import CarrosselProdutos from '../page-inicio/carrossel';
+
 
 export default function Outros() {
+
+
   return (
     <section className="py-14 animate-fadeUp">
       <div className="max-w-6xl mx-auto px-6">
@@ -8,7 +11,10 @@ export default function Outros() {
         <p className="text-center text-[#56719a] mt-2">Top escolhas da curadoria</p>
         <div className="mt-8 flex justify-center">
           <div className="w-full">
-            <CarrosselCosmeticos />
+            <CarrosselProdutos
+                          titulo="Todos os produtos"
+                          
+                        />
           </div>
         </div>
       </div>

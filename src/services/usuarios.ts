@@ -1,66 +1,82 @@
 import { supabase } from '@/supabaseClient';
-
-
 export interface Usuario {
-  id: string;
+  id: number;
+  user_id: string;
+
   nome: string;
+  email?: string;
+  telefone?: string;
+
   role: "admin" | "user";
+
+  createdAt?: string;
+  created_at?: string;
 }
+type UsuarioCreate = Omit<Usuario, "id">;
 
-type UsuarioCreate = Omit<Usuario, 'id'> & { senha?: string };
-type UsuarioUpdate = Partial<Omit<Usuario, 'id'>> & { senha?: string };
+type UsuarioUpdate = Partial<Omit<Usuario, "id">>;
 
-export async function listarUsuarios(termo?: string): Promise<{ data: Usuario[] | null; error: any }> {
-  let query = supabase.from('usuario').select('id,nome,role');
+export async function listarUsuarios(termo?: string) {
+  let query = supabase
+    .from("usuario")
+    .select("*");
 
   if (termo) {
-    const safeTermo = termo.replace(/[%_]/g, '');
-    query = query.or(`nome.ilike.%${safeTermo}%,email.ilike.%${safeTermo}%`);
+    query = query.ilike("nome", `%${termo}%`);
   }
 
-  const { data, error } = await query;
-  return { data: (data as Usuario[]) || null, error };
+  const { data, error } = await query.order("id", {
+    ascending: true,
+  });
+
+  console.log("USUARIOS:", data);
+  console.log("ERRO:", error);
+
+  return {
+    data,
+    error,
+  };
 }
 
-export async function criarUsuario(usuario: UsuarioCreate): Promise<{ data: Usuario | null; error: any }> {
-  const { data, error } = await supabase
-    .from('usuario')
+export async function criarUsuario(usuario: UsuarioCreate) {
+  return await supabase
+    .from("usuario")
     .insert(usuario)
-    .select('id,nome,email,role')
+    .select()
     .single();
-
-  return { data: (data as Usuario) || null, error };
 }
 
-export async function atualizarUsuario(id: number, usuario: UsuarioUpdate): Promise<{ data: Usuario | null; error: any }> {
-  const { data, error } = await supabase
-    .from('usuario')
+export async function atualizarUsuario(
+  id: number,
+  usuario: UsuarioUpdate
+) {
+  return await supabase
+    .from("usuario")
     .update(usuario)
-    .eq('id', id)
-    .select('id,nome,email,role')
+    .eq("id", id)
+    .select()
     .single();
-
-  return { data: (data as Usuario) || null, error };
 }
 
-export async function excluirUsuario(id: number): Promise<{ data: Usuario | null; error: any }> {
-  const { data, error } = await supabase
-    .from('usuario')
+export async function excluirUsuario(
+  id: number
+) {
+  return await supabase
+    .from("usuario")
     .delete()
-    .eq('id', id)
-    .select('id,nome,role')
-    .single();
-
-  return { data: (data as Usuario) || null, error };
+    .eq("id", id);
 }
-export default function filtrarUsers(
+
+export function filtrarUsers(
   usuarios: Usuario[],
-  campo: "nome",
   valor: string
-): Usuario[] {
+) {
   if (!valor) return usuarios;
 
-  return usuarios.filter(u =>
-    u[campo].toLowerCase().includes(valor.toLowerCase())
+  return usuarios.filter((u) =>
+    u.nome
+      .toLowerCase()
+      .includes(valor.toLowerCase())
   );
 }
+

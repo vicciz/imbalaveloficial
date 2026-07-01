@@ -62,11 +62,11 @@ export async function listarProdutosColecao(idColecao: number) {
 }
 
 //excluir coleção
-export async function delColecao() {
-    const {data, error} = await supabase
+export async function delColecao(idColecao: number) {
+    const { data, error } = await supabase
     .from('colecao')
     .delete()
-    .single()
+    .eq('id', idColecao)
 
     return {
     data,

@@ -95,13 +95,12 @@ setCartItems(data || []);
     }
   }
 
-  const total = cartItems.reduce(
-    (acc, item) =>
-      acc +
-      Number(item.produto.preco) *
-        Number(item.quantidade),
-    0
-  );
+  const total = cartItems.reduce((acc, item) => {
+    const preco = Number(item.produto?.preco ?? 0);
+    const quantidade = Number(item.quantidade ?? 0);
+
+    return acc + preco * quantidade;
+  }, 0);
   if (loading) {
     return (
       <main className="p-8">
@@ -188,7 +187,7 @@ setCartItems(data || []);
                           fontSize: "1.1rem",
                         }}
                       >
-                        {item.produto.nome}
+                        {item.produto?.nome || "Produto indisponível"}
                       </strong>
 
                       <div
@@ -209,7 +208,7 @@ setCartItems(data || []);
                       >
                         Valor unitário:{" "}
                         {formatCurrency(
-                          Number(item.produto.preco)
+                          Number(item.produto?.preco ?? 0)
                         )}
                       </div>
                     </div>
@@ -226,8 +225,8 @@ setCartItems(data || []);
                         }}
                       >
                         {formatCurrency(
-                          Number(item.produto.preco) *
-                            Number(item.quantidade)
+                          Number(item.produto?.preco ?? 0) *
+                            Number(item.quantidade ?? 0)
                         )}
                       </div>
 

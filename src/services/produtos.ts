@@ -2,10 +2,12 @@
 import { supabase } from '../../supabaseClient';
 
 export interface ProdutoImagem {
-  id: number;
-  caminho: string;
+  id?: number;
+  caminho?: string;
   ordem: number;
   principal: boolean;
+  preview?: string;
+  file?: File;
 }
 
 export interface Produto {
@@ -22,11 +24,13 @@ export interface Produto {
 
   fornecedor?: string | null;
   oculto?: boolean | null;
+  destaque?: boolean | null;
 
   categoria_id?: number | null;
   categorias?: { nome: string } | null;
 
   produto_imagem?: ProdutoImagem[];
+  image?: string;
 }
 
 function ensureSupabase() {
@@ -113,30 +117,33 @@ export async function listarProdutos(
   };
 }
 
-export async function buscarProduto(id: number) {
+export async function buscarProduto(
+  texto: string | number
+): Promise<{ data: Produto | null; error: any }> {
   const client = ensureSupabase();
 
-  const { data: produto, error } = await client
+  if (typeof texto === "number" || /^\d+$/.test(String(texto))) {
+    return buscarProdutoPorId(Number(texto));
+  }
+
+  const { data, error } = await client
     .from("produto")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  const { data: imagens, error: erroImagem } = await client
-    .from("produto_imagem")
-    .select("*")
-    .eq("id_produto", id);
-
-  console.log(produto);
-  console.log(imagens);
-  console.log(erroImagem);
+    .select(`
+      *,
+      categorias(nome),
+      produto_imagem(
+        id,
+        caminho,
+        ordem,
+        principal
+      )
+    `)
+    .ilike("nome", `%${String(texto)}%`)
+    .maybeSingle();
 
   return {
-    data: {
-      ...produto,
-      produto_imagem: imagens ?? [],
-    },
-    error,
+    data: data ? normalizeProduto(data) : null,
+    error: normalizeError(error),
   };
 }
 /**
@@ -179,14 +186,132 @@ export async function editarProduto(
   };
 }
 
-export async function excluirProduto(
-  id: number
-): Promise<{ data: Produto | null; error: any }> {
+export async function excluirProduto(id: number) {
   const client = ensureSupabase();
-  const { data, error } = await client
-    .from('produto')
+
+  const { error } = await client
+    .from("produto")
     .delete()
-    .eq('id', id)
-    .single();
-  return { data, error };
+    .eq("id", id);
+
+  return { error };
+}
+
+export async function alterarDestaque(
+  id: number,
+  destaque: boolean
+) {
+  const client = ensureSupabase();
+
+  return await client
+    .from("produto")
+    .update({
+      destaque,
+    })
+    .eq("id", id);
+}
+
+export async function alterarVisibilidade(
+  id: number,
+  oculto: boolean
+) {
+  const client = ensureSupabase();
+
+  return await client
+    .from("produto")
+    .update({
+      oculto,
+    })
+    .eq("id", id);
+}
+
+export async function duplicarProduto(
+  id: number
+) {
+  const { data: produto } =
+    await buscarProdutoPorId(id);
+
+  if (!produto) return;
+
+  delete (produto as any).id;
+
+  return cadastrarProduto({
+    ...produto,
+    nome: `${produto.nome} (Cópia)`,
+  });
+}
+
+export async function listarProdutosOcultos() {
+  const client = ensureSupabase();
+
+  return await client
+    .from("produto")
+    .select(`
+      *,
+      categorias(nome),
+      produto_imagem(
+        id,
+        caminho,
+        ordem,
+        principal
+      )
+    `)
+    .eq("oculto", true);
+}
+
+export async function listarProdutosOrdenados(
+  campo: string,
+  asc = true
+) {
+  const client = ensureSupabase();
+
+  return await client
+    .from("produto")
+    .select(`
+      *,
+      categorias(nome),
+      produto_imagem(
+        id,
+        caminho,
+        ordem,
+        principal
+      )
+    `)
+    .order(campo, {
+      ascending: asc,
+    });
+}
+
+export async function buscarProdutoPorId(
+  id: number
+): Promise<{
+  data: Produto | null;
+  error: any;
+}> {
+
+  const client = ensureSupabase();
+
+  const { data, error } =
+    await client
+      .from("produto")
+      .select(`
+        *,
+        categorias(nome),
+        produto_imagem(
+          id,
+          caminho,
+          ordem,
+          principal
+        )
+      `)
+      .eq("id", id)
+      .single();
+
+  return {
+    data: data
+      ? normalizeProduto(data)
+      : null,
+    error: normalizeError(error),
+  };
+
 }

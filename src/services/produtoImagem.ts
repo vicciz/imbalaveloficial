@@ -51,3 +51,83 @@ export async function definirImagemPrincipal(
     .update({ principal: true })
     .eq("id", idImagem);
 }
+
+export async function uploadImagem(
+    file: File
+) {
+
+    const extensao =
+        file.name.split(".").pop();
+
+    const nome =
+        `${Date.now()}-${crypto.randomUUID()}.${extensao}`;
+
+    const caminho =
+        `produtos/${nome}`;
+
+    const {
+        error
+    } =
+    await supabase.storage
+        .from("produtos")
+        .upload(
+            caminho,
+            file
+        );
+
+    if(error){
+
+        return {
+            data:null,
+            error
+        };
+
+    }
+
+    return {
+
+        data:caminho,
+
+        error:null
+
+    };
+
+}
+
+export async function excluirArquivoStorage(
+    caminho:string
+){
+
+    return await supabase.storage
+        .from("produtos")
+        .remove([
+            caminho
+        ]);
+
+}
+
+export async function atualizarOrdem(
+    imagens:{
+        id:number;
+        ordem:number;
+    }[]
+){
+
+    for(const imagem of imagens){
+
+        await supabase
+        .from("produto_imagem")
+        .update({
+
+            ordem:
+            imagem.ordem
+
+        })
+        .eq(
+            "id",
+            imagem.id
+        );
+
+    }
+
+}
