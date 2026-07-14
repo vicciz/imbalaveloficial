@@ -6,7 +6,7 @@ import {
   definirImagemPrincipal,
 } from "./produtoImagem";
 
-import { ImagemFormulario } from "@/src/components/admin/common/types";
+import { ImagemFormulario } from "@/src/components/Admin/common/types";
 
 interface SalvarGaleriaProps {
   idProduto: number;
@@ -66,11 +66,12 @@ export async function salvarGaleriaProduto({
           caminho
         );
 
-    await adicionarImagem(
-      idProduto,
-      caminho,
-      index,
-      imagem.principal
-    );
+   await adicionarImagem(
+    idProduto,
+    caminho,
+    index,
+    imagem.principal,
+    imagem.idValor ?? null
+);
   }
 }

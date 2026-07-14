@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Client from '@/src/components/admin/common/Perfil';
+import Client from '@/src/components/Admin/common/Perfil';
 
 interface User {
   id: number;

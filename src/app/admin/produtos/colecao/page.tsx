@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AdminLayout } from "@/src/components/admin/layout";
+import { AdminLayout } from "@/src/layout/Admin";
 import { createColecao, listarColecoes, adicionarProdutoColecao,listarProdutosColecao, removerProdutoColecao, delColecao } from "@/src/services/colecao";
 import { listarProdutos, Produto } from "@/src/services/produtos";
 

@@ -5,6 +5,8 @@ import {
   ShoppingCart,
   Users,
   Settings,
+  Tags,
+  Building2,
 } from "lucide-react";
 
 export const adminMenu = [
@@ -17,6 +19,16 @@ export const adminMenu = [
     titulo: "Produtos",
     href: "/admin/produtos",
     icon: Package,
+  },
+  {
+    titulo: "Categorias",
+    href: "/admin/produtos/categoria",
+    icon: Tags,
+  },
+  {
+    titulo: "Fornecedores",
+    href: "/admin/produtos/fornecedores",
+    icon: Building2,
   },
   {
     titulo: "Coleções",
@@ -42,3 +54,8 @@ export const adminMenuBottom = [
     icon: Settings,
   },
 ];
+
+export const optionsProduto =[{
+  titulo:"editar",
+  href:"/admin/produtos/editar"
+}];

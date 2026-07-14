@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { buscarEndereco } from "@/src/services/enderecos";
 
 //Rode no terminal stripe listen --forward-to localhost:3000/api/webhooks/stripe/
 import {
@@ -12,6 +13,7 @@ import {
   criarPedido,
   adicionarItemPedido,
 } from "@/src/services/pedido";
+import { metadata } from "@/src/app/layout";
 
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY!,
@@ -49,6 +51,18 @@ export async function POST(
 
         const userId =
           session.metadata?.userId;
+          const enderecoId = Number(
+            session.metadata?.enderecoId
+          );
+          const {
+            data: endereco,
+            error: erroEndereco,
+          } = await buscarEndereco(enderecoId);
+
+          if (!endereco) {
+            console.error("Endereço não encontrado");
+            break;
+          }
 
         if (!userId) {
           console.error(
@@ -114,9 +128,9 @@ export async function POST(
           error: erroPedido,
         } = await criarPedido(
           userId,
+          endereco.id,
           valorTotal
         );
-
         console.log(
           "Pedido:",
           pedido

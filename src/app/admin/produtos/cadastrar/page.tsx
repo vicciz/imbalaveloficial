@@ -1,6 +1,6 @@
 "use client";
 
-import { AdminLayout } from "@/src/components/admin/layout";
+import { AdminLayout } from "@/src/layout/Admin";
 import FormProduto from "@/src/components/forms/gerenciamentoProduto";
 
 export default function CadastrarProdutoPage() {

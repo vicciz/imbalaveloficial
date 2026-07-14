@@ -2,12 +2,14 @@ import { supabase } from "../../supabaseClient";
 
 export async function criarPedido(
   idUsuario: string,
+  idEndereco: number,
   valorTotal: number
 ) {
   return await supabase
     .from("pedido")
     .insert({
       id_usuario: idUsuario,
+      id_endereco: idEndereco,
       valorTotal,
       status: "paid",
     })

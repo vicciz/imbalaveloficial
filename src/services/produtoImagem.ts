@@ -14,7 +14,8 @@ export async function adicionarImagem(
   idProduto: number,
   caminho: string,
   ordem: number,
-  principal = false
+  principal = false,
+  idValor: number | null = null
 ) {
   return await supabase
     .from("produto_imagem")
@@ -23,6 +24,7 @@ export async function adicionarImagem(
       caminho,
       ordem,
       principal,
+      id_valor: idValor,
     });
 }
 //removerImagem(...)

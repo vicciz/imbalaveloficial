@@ -1,10 +1,10 @@
 import "./globals.css";
-import Header from "@/src/components/functions/page-inicio/Header";
-import NewsletterPopup from "@/src/components/admin/common/NewsletterPopup";
-import SitePageLayout from "@/src/components/layout/SitePageLayout";
+import Header from "@/src/layout/Home/Header";
+import NewsletterPopup from "@/src/components/Admin/common/NewsletterPopup";
+import SitePageLayout from "@/src/layout/Admin/SitePageLayout";
 import Script from 'next/script';
 import type { Metadata } from "next";
-import logoTexto from "@/src/public/assets/imagens/logo s texxto.png";
+import logoTexto from "@/public/imagens/logoTexto.png";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";

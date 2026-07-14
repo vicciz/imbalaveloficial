@@ -3,11 +3,12 @@ import { supabase } from '../../supabaseClient';
 
 export interface ProdutoImagem {
   id?: number;
-  caminho?: string;
+  id_produto: number
+  id_variacao: number | null;
+  caminho: string;
   ordem: number;
   principal: boolean;
-  preview?: string;
-  file?: File;
+  id_valor: number | null;
 }
 
 export interface Produto {
@@ -25,6 +26,7 @@ export interface Produto {
   fornecedor?: string | null;
   oculto?: boolean | null;
   destaque?: boolean | null;
+  estoque?: number | null;
 
   categoria_id?: number | null;
   categorias?: { nome: string } | null;
@@ -42,9 +44,11 @@ function ensureSupabase() {
 
 function normalizeProduto(produto: any): Produto {
   const imagens =
-    produto.produto_imagem?.sort(
-      (a: any, b: any) => a.ordem - b.ordem
-    ) ?? [];
+  (produto.produto_imagem ?? [])
+    .sort(
+      (a: ProdutoImagem, b: ProdutoImagem) =>
+        a.ordem - b.ordem
+    );
 
   const imagemPrincipal =
     imagens.find((img: any) => img.principal) ?? imagens[0];
@@ -90,15 +94,18 @@ export async function listarProdutos(
 ): Promise<{ data: Produto[] | null; error: any }> {
   const client = ensureSupabase();
   let query = client.from('produto')
-  .select(`
-    *,
-    categorias(nome),
-    produto_imagem(
-        id,
-        caminho,
-        ordem,
-        principal
-    )
+.select(`
+  *,
+  categorias(nome),
+  produto_imagem(
+    id,
+    id_produto,
+    id_variacao,
+    id_valor,
+    caminho,
+    ordem,
+    principal
+)
 `)
 
   if (categoria && categoria !== 'Todos') {
@@ -127,19 +134,22 @@ export async function buscarProduto(
   }
 
   const { data, error } = await client
-    .from("produto")
-    .select(`
-      *,
-      categorias(nome),
-      produto_imagem(
-        id,
-        caminho,
-        ordem,
-        principal
-      )
-    `)
-    .ilike("nome", `%${String(texto)}%`)
-    .maybeSingle();
+  .from("produto")
+  .select(`
+    *,
+    categorias(nome),
+    produto_imagem(
+    id,
+    id_produto,
+    id_variacao,
+    id_valor,
+    caminho,
+    ordem,
+    principal
+)
+  `)
+  .ilike("nome", `%${String(texto)}%`)
+  .maybeSingle();
 
   return {
     data: data ? normalizeProduto(data) : null,
@@ -245,18 +255,21 @@ export async function listarProdutosOcultos() {
   const client = ensureSupabase();
 
   return await client
-    .from("produto")
-    .select(`
-      *,
-      categorias(nome),
-      produto_imagem(
-        id,
-        caminho,
-        ordem,
-        principal
-      )
-    `)
-    .eq("oculto", true);
+  .from("produto")
+  .select(`
+    *,
+    categorias(nome),
+    produto_imagem(
+    id,
+    id_produto,
+    id_variacao,
+    id_valor,
+    caminho,
+    ordem,
+    principal
+)
+  `)
+  .eq("oculto", true);
 }
 
 export async function listarProdutosOrdenados(
@@ -266,20 +279,23 @@ export async function listarProdutosOrdenados(
   const client = ensureSupabase();
 
   return await client
-    .from("produto")
-    .select(`
-      *,
-      categorias(nome),
-      produto_imagem(
-        id,
-        caminho,
-        ordem,
-        principal
-      )
-    `)
-    .order(campo, {
-      ascending: asc,
-    });
+  .from("produto")
+  .select(`
+    *,
+    categorias(nome),
+    produto_imagem(
+    id,
+    id_produto,
+    id_variacao,
+    id_valor,
+    caminho,
+    ordem,
+    principal
+)
+  `)
+  .order(campo, {
+    ascending: asc,
+  });
 }
 
 export async function buscarProdutoPorId(
@@ -292,20 +308,23 @@ export async function buscarProdutoPorId(
   const client = ensureSupabase();
 
   const { data, error } =
-    await client
-      .from("produto")
-      .select(`
-        *,
-        categorias(nome),
-        produto_imagem(
-          id,
-          caminho,
-          ordem,
-          principal
-        )
-      `)
-      .eq("id", id)
-      .single();
+  await client
+    .from("produto")
+    .select(`
+      *,
+      categorias(nome),
+      produto_imagem(
+    id,
+    id_produto,
+    id_variacao,
+    id_valor,
+    caminho,
+    ordem,
+    principal
+)
+    `)
+    .eq("id", id)
+    .single();
 
   return {
     data: data

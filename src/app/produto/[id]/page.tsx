@@ -1,16 +1,23 @@
-import React, { Suspense } from 'react';
-import ProdutoCliente from '@/src/app/pageConversao/page';
+import ProductHero from "@/src/app/produto/componentes/produto/ProductHero";
+import { buscarProdutoPorId } from "@/src/services/produtos";
 
-interface PageProps {
-  params: { id: string };
-}
+type Props = {
+  params: Promise<{
+    id: string;
+  }>;
+};
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({
+  params,
+}: Props) {
   const { id } = await params;
 
-  return (
-    <Suspense fallback={<div className="text-zinc-900 p-10">Carregando...</div>}>
-      <ProdutoCliente produtoId={id} />
-    </Suspense>
-  );
+  const { data: produto, error } =
+    await buscarProdutoPorId(Number(id));
+
+  if (error || !produto) {
+    return <div>Produto não encontrado.</div>;
+  }
+
+  return <ProductHero produto={produto} />;
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AdminLayout } from "@/src/components/admin/layout";
+import { AdminLayout } from "@/src/layout/Admin";
 
 interface User {
   id: number;
@@ -61,6 +61,22 @@ export default function AdminHome() {
             <p className="mt-2 text-sm text-zinc-600">Gerencie catálogo, visibilidade e destaques.</p>
             <Link href="/admin/produtos" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
               Acessar produtos
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">Categorias</h2>
+            <p className="mt-2 text-sm text-zinc-600">Organize produtos por grupos e categorias da loja.</p>
+            <Link href="/admin/produtos/categoria" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
+              Gerenciar categorias
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">Fornecedores</h2>
+            <p className="mt-2 text-sm text-zinc-600">Cadastre e mantenha os parceiros da loja atualizados.</p>
+            <Link href="/admin/produtos/fornecedores" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
+              Gerenciar fornecedores
             </Link>
           </div>
 

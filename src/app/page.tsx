@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Footer from '@/src/components/functions/page-inicio/Footer';
+import Footer from '@/src/layout/Home/Footer';
 import { listarProdutos, type Produto as ServiceProduto } from '@/src/services/produtos';
-import CarrosselProdutos from '../components/functions/page-inicio/carrossel';
-import BannerCarousel from '@/src/components/functions/page-inicio/BannerCarousel';
+import CarrosselProdutos from '../layout/Home/carrossel';
+import BannerCarousel from '@/src/layout/Home/BannerCarousel';
 
 interface ProdutoImagem {
   caminho: string;

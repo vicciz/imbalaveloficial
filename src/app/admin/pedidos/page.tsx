@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AdminLayout } from "@/src/components/admin/layout";
+import { AdminLayout } from "@/src/layout/Admin";
 import { supabase } from "@/supabaseClient";
 import { buscarPedidosUsuario } from "@/src/services/pedido";
 

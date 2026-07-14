@@ -2,16 +2,25 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import { listarProdutos, Produto } from "@/src/services/produtos";
+import {
+  alterarDestaque,
+  alterarVisibilidade,
+  duplicarProduto,
+  excluirProduto,
+  listarProdutos,
+  Produto,
+} from "@/src/services/produtos";
 
-import { AdminLayout } from "@/src/components/admin/layout";
-import PageHeader from "@/src/components/admin/common/PageHeader";
-import PageCard from "@/src/components/admin/common/PageCard";
-import SearchBar from "@/src/components/admin/common/SearchBar";
-import Pagination from "@/src/components/admin/common/Pagination";
-import TableActions from "@/src/components/admin/table/TableActions";
-import StatusBadge from "@/src/components/admin/table/StatusBadge";
+import { AdminLayout } from "@/src/layout/Admin";
+import PageHeader from "@/src/components/Admin/common/PageHeader";
+import PageCard from "@/src/components/Admin/common/PageCard";
+import SearchBar from "@/src/components/Admin/common/SearchBar";
+import Pagination from "@/src/components/Admin/common/Pagination";
+import TableActions from "@/src/components/Admin/table/TableActions";
+import StatusBadge from "@/src/components/Admin/table/StatusBadge";
+import ModalVariacoes from "@/src/app/admin/ModalVariacoes/ModalVariacoes";
 
 import {
   Table,
@@ -25,9 +34,14 @@ import {
 import { Button } from "@/src/components/ui/button";
 
 export default function ProdutosPage() {
+  const router = useRouter();
+
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [busca, setBusca] = useState("");
   const [pagina, setPagina] = useState(1);
+
+  const [produtoSelecionadoVariacao, setProdutoSelecionadoVariacao] =
+    useState<Produto | null>(null);
 
   const itensPorPagina = 10;
 
@@ -36,7 +50,11 @@ export default function ProdutosPage() {
   }, []);
 
   async function carregarProdutos() {
-    const { data } = await listarProdutos();
+    const { data } = await listarProdutos(
+      undefined,
+      undefined,
+      true
+    );
 
     if (data) {
       setProdutos(data);
@@ -45,19 +63,24 @@ export default function ProdutosPage() {
 
   const produtosFiltrados = useMemo(() => {
     return produtos.filter((produto) =>
-      produto.nome.toLowerCase().includes(busca.toLowerCase())
+      produto.nome
+        .toLowerCase()
+        .includes(busca.toLowerCase())
     );
   }, [produtos, busca]);
 
   const totalPaginas = Math.max(
     1,
-    Math.ceil(produtosFiltrados.length / itensPorPagina)
+    Math.ceil(
+      produtosFiltrados.length / itensPorPagina
+    )
   );
 
-  const produtosPagina = produtosFiltrados.slice(
-    (pagina - 1) * itensPorPagina,
-    pagina * itensPorPagina
-  );
+  const produtosPagina =
+    produtosFiltrados.slice(
+      (pagina - 1) * itensPorPagina,
+      pagina * itensPorPagina
+    );
 
   return (
     <AdminLayout>
@@ -65,7 +88,7 @@ export default function ProdutosPage() {
         titulo="Produtos"
         descricao="Gerencie os produtos da loja."
       >
-        <Link href="/admin/produtos/novo">
+        <Link href="/admin/produtos/cadastrar">
           <Button>Novo Produto</Button>
         </Link>
       </PageHeader>
@@ -97,9 +120,13 @@ export default function ProdutosPage() {
               <TableRow key={produto.id}>
                 <TableCell>
                   <img
-                    src={produto.image || "/placeholder.png"}
+                    src={
+                      produto.image && produto.image.trim() !== ""
+                        ? produto.image
+                        : "/placeholder.png"
+                    }
                     alt={produto.nome}
-                    className="h-14 w-14 rounded-lg object-cover border"
+                    className="h-14 w-14 rounded-lg border object-cover"
                   />
                 </TableCell>
 
@@ -108,15 +135,19 @@ export default function ProdutosPage() {
                 </TableCell>
 
                 <TableCell>
-                  {produto.categorias?.nome ?? "-"}
+                  {produto.categorias?.nome ??
+                    "-"}
                 </TableCell>
 
                 <TableCell>
-                  {produto.fornecedor ?? "-"}
+                  {produto.fornecedor ??
+                    "-"}
                 </TableCell>
 
                 <TableCell>
-                  {Number(produto.preco).toLocaleString("pt-BR", {
+                  {Number(
+                    produto.preco
+                  ).toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
                   })}
@@ -124,19 +155,60 @@ export default function ProdutosPage() {
 
                 <TableCell>
                   <StatusBadge
-                    status={produto.oculto ? "oculto" : "ativo"}
+                    status={
+                      produto.oculto
+                        ? "oculto"
+                        : "ativo"
+                    }
                   />
                 </TableCell>
 
                 <TableCell>
                   <TableActions
-                    oculto={produto.oculto ?? false}
-                    destaque={false}
-                    onEdit={() => {}}
-                    onDelete={() => {}}
-                    onDuplicate={() => {}}
-                    onToggleVisibility={() => {}}
-                    onToggleHighlight={() => {}}
+                    oculto={
+                      produto.oculto ?? false
+                    }
+                    destaque={
+                      produto.destaque ?? false
+                    }
+                    onEdit={() =>
+                      router.push(
+                        `/admin/produtos/editar/${produto.id}`
+                      )
+                    }
+                    onVariacoes={() =>
+                      setProdutoSelecionadoVariacao(
+                        produto
+                      )
+                    }
+                    onDelete={async () => {
+                      await excluirProduto(
+                        produto.id
+                      );
+                      carregarProdutos();
+                    }}
+                    onDuplicate={async () => {
+                      await duplicarProduto(
+                        produto.id
+                      );
+                      carregarProdutos();
+                    }}
+                    onToggleVisibility={async () => {
+                      await alterarVisibilidade(
+                        produto.id,
+                        !produto.oculto
+                      );
+
+                      carregarProdutos();
+                    }}
+                    onToggleHighlight={async () => {
+                      await alterarDestaque(
+                        produto.id,
+                        !produto.destaque
+                      );
+
+                      carregarProdutos();
+                    }}
                   />
                 </TableCell>
               </TableRow>
@@ -150,6 +222,19 @@ export default function ProdutosPage() {
         totalPaginas={totalPaginas}
         onPageChange={setPagina}
       />
+
+      {produtoSelecionadoVariacao && (
+        <ModalVariacoes
+            produtoId={produtoSelecionadoVariacao.id}
+            produtoNome={produtoSelecionadoVariacao.nome}
+            produtoImagem={produtoSelecionadoVariacao.image}
+            isOpen={!!produtoSelecionadoVariacao}
+            onClose={() => {
+              setProdutoSelecionadoVariacao(null);
+              carregarProdutos();
+            }}
+          />
+      )}
     </AdminLayout>
   );
 }

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 
-import { TableColumn } from "@/src/components/admin/table/types";
-import TableActions from "@/src/components/admin/table/TableActions";
-import StatusBadge from "@/src/components/admin/table/StatusBadge";
+import { TableColumn } from "@/src/components/Admin/table/types";
+import TableActions from "@/src/components/Admin/table/TableActions";
+import StatusBadge from "@/src/components/Admin/table/StatusBadge";
 
 import { Produto, ProdutoImagem } from "@/src/services/produtos";
 

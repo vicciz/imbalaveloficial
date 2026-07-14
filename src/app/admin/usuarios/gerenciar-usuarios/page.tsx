@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AdminLayout } from "@/src/components/admin/layout";
+import { AdminLayout } from "@/src/layout/Admin";
 
 import {
   Usuario,
