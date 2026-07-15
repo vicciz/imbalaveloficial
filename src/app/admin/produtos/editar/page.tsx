@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { AdminLayout } from "@/src/layout/Admin";
+import { AdminLayout } from "@/src/components/layout/Admin";
 import FormProduto from "@/src/components/forms/gerenciamentoProduto";
 
 function EditarProdutoContent() {

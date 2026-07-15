@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useNavigation } from "@/src/navigation";
 
 import {
   alterarDestaque,
@@ -11,9 +11,9 @@ import {
   excluirProduto,
   listarProdutos,
   Produto,
-} from "@/src/services/produtos";
+} from "@/src/services/produto/produtos";
 
-import { AdminLayout } from "@/src/layout/Admin";
+import { AdminLayout } from "@/src/components/layout/Admin";
 import PageHeader from "@/src/components/Admin/common/PageHeader";
 import PageCard from "@/src/components/Admin/common/PageCard";
 import SearchBar from "@/src/components/Admin/common/SearchBar";
@@ -34,7 +34,7 @@ import {
 import { Button } from "@/src/components/ui/button";
 
 export default function ProdutosPage() {
-  const router = useRouter();
+  const { goTo } = useNavigation();
 
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [busca, setBusca] = useState("");
@@ -172,7 +172,7 @@ export default function ProdutosPage() {
                       produto.destaque ?? false
                     }
                     onEdit={() =>
-                      router.push(
+                      goTo(
                         `/admin/produtos/editar/${produto.id}`
                       )
                     }

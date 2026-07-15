@@ -54,12 +54,12 @@ async function buscarDadosUsuario(idUsuario: string): Promise<{ nome: string; em
   try {
     const { data } = await client
       .from('usuario')
-      .select('nome, email')
+      .select('nome')
       .eq('user_id', idUsuario)
       .single();
 
     if (data) {
-      return { nome: data.nome, email: data.email };
+      return { nome: data.nome, email: undefined };
     }
   } catch (err) {
     // Silenciosamente falha se não encontrar

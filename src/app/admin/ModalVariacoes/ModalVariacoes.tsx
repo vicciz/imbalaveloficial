@@ -21,7 +21,7 @@ import FooterVariacoes from "@/src/app/admin/ModalVariacoes/componentes/FooterVa
 import AtributosTab from "./AtributosTab";
 import CombinacoesTab from "./CombinacoesTab";
 
-import { useVariacoes } from "@/src/hooks/useVariacoes";
+import { useVariacoes } from "@/src/hooks/produto/useVariacoes";
 
 interface ModalVariacoesProps {
   isOpen: boolean;

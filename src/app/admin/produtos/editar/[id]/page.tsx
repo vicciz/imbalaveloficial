@@ -1,4 +1,4 @@
-import { AdminLayout } from "@/src/layout/Admin";
+import { AdminLayout } from "@/src/components/layout/Admin";
 import FormProduto from "@/src/components/forms/gerenciamentoProduto";
 
 type Props = {

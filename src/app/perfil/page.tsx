@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Client from '@/src/components/Admin/common/Perfil';
+import { BackButton } from '@/src/navigation';
 
 interface User {
   id: number;
@@ -28,6 +29,12 @@ export default function Perfil() {
 
   return (
     <div className="p-6">
+      <BackButton
+        label="Minha conta"
+        destination="/pedidos"
+        className="mb-4"
+      />
+
       <h1 className="text-2xl font-bold mb-4">Perfil do Usuário</h1>
 
       <Client

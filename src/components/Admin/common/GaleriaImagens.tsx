@@ -13,7 +13,7 @@ import {
 import {
   excluirImagem,
   excluirArquivoStorage,
-} from "@/src/services/produtoImagem";
+} from "@/src/services/produto/produtoImagem";
 import { Button } from "@/src/components/ui/button";
 
 import {

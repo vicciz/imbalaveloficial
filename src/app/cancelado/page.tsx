@@ -1,10 +1,21 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useNavigation } from "@/src/navigation";
+import { BackButton } from "@/src/navigation";
 
 export default function CanceladoPage() {
+  const { goHome } = useNavigation();
+
   return (
     <div className="w-full h-screen bg-[#8b7bbd] overflow-hidden flex items-center justify-center relative">
+      <div className="absolute left-4 top-4 sm:left-6 sm:top-6">
+        <BackButton
+          label="Voltar ao carrinho"
+          destination="/carrinho"
+        />
+      </div>
+
       {/* LINHAS ANIMADAS */}
       {[0, 1, 2, 3].map((item) => (
         <motion.div
@@ -96,9 +107,7 @@ export default function CanceladoPage() {
   transition={{ delay: 1.3, duration: 0.5 }}
   whileHover={{ scale: 1.05 }}
   whileTap={{ scale: 0.95 }}
-  onClick={() => {
-    window.location.href = "/";
-  }}
+  onClick={goHome}
   className="mt-10 px-8 py-4 bg-white text-[#8b7bbd] text-xl font-semibold rounded-2xl shadow-2xl transition-all"
 >
   Fazer Nova Compra

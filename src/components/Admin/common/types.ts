@@ -1,5 +1,5 @@
 import { Area } from "react-easy-crop";
-import { Produto, ProdutoImagem } from "@/src/services/produtos";
+import { Produto, ProdutoImagem } from "@/src/services/produto/produtos";
 
 export interface Categoria {
     id: number;

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { supabase } from "@/supabaseClient";
+import { BackButton, useNavigation } from "@/src/navigation";
 
 export default function Cadastro() {
+  const { goLogin } = useNavigation();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -106,10 +108,14 @@ if (usuarioError) {
   }
 
   alert("Cadastro realizado com sucesso! Verifique seu email.");
-  window.location.href = "/login";
+  goLogin();
 }
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-4">
+      <div className="absolute left-4 top-4 sm:left-6 sm:top-6">
+        <BackButton label="Voltar" />
+      </div>
+
       <div className="w-full max-w-md bg-white/90 backdrop-blur-md border border-black/10 rounded-2xl p-8 text-zinc-900 shadow-xl">
 
         <h1 className="text-3xl font-bold text-center mb-2">
@@ -241,9 +247,13 @@ if (usuarioError) {
 
         <p className="text-center text-sm text-zinc-600 mt-6">
           Já tem uma conta?{" "}
-          <a href="/login" className="text-indigo-600 hover:underline">
+          <button
+            type="button"
+            onClick={goLogin}
+            className="text-indigo-600 hover:underline"
+          >
             Entrar
-          </a>
+          </button>
         </p>
 
       </div>

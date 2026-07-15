@@ -18,7 +18,7 @@ import {
   type ProdutoVariacao,
   type VariacaoTipo,
   type VariacaoValor,
-} from "@/src/services/variacoes";
+} from "@/src/services/produto/variacoes";
 
 interface VariacoesProdutoProps {
   produtoId?: number;

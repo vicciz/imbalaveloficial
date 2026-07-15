@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AdminLayout } from "@/src/layout/Admin";
+import { AdminLayout } from "@/src/components/layout/Admin";
 import {
   adicionarProdutoCategoria,
   criarCategoria,
@@ -9,8 +9,8 @@ import {
   listarCategorias,
   listarProdutosCategoria,
   removerProdutoCategoria,
-} from "@/src/services/categorias";
-import { listarProdutos, Produto } from "@/src/services/produtos";
+} from "@/src/services/categoria/categorias";
+import { listarProdutos, Produto } from "@/src/services/produto/produtos";
 
 export default function Categoria() {
   const [nome, setNome] = useState("");

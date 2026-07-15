@@ -13,7 +13,7 @@ interface Props {
   produtoImagem?: string | null;
 
   variacoesHook: ReturnType<
-    typeof import("@/src/hooks/useVariacoes").useVariacoes
+    typeof import("@/src/hooks/produto/useVariacoes").useVariacoes
   >;
 }
 

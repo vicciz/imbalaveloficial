@@ -6,7 +6,7 @@ import { TableColumn } from "@/src/components/Admin/table/types";
 import TableActions from "@/src/components/Admin/table/TableActions";
 import StatusBadge from "@/src/components/Admin/table/StatusBadge";
 
-import { Produto, ProdutoImagem } from "@/src/services/produtos";
+import { Produto, ProdutoImagem } from "@/src/services/produto/produtos";
 
 interface ProdutoColumnsProps {
   onDelete: (produto: Produto) => void;

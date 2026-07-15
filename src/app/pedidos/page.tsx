@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/supabaseClient";
-import { buscarPedidosUsuario } from "@/src/services/pedido";
+import { buscarPedidosUsuario } from "@/src/services/pedido/pedido";
+import { BackButton } from "@/src/navigation";
 
 export default function Pedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -32,6 +33,12 @@ useEffect(() => {
 
   return (
   <div>
+    <BackButton
+      label="Minha conta"
+      destination="/perfil"
+      className="mb-4"
+    />
+
     {pedidos.map((pedido) => (
       <div key={pedido.id}>
         <h3>Pedido #{pedido.id}</h3>

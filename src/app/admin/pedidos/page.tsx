@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AdminLayout } from "@/src/layout/Admin";
+import { AdminLayout } from "@/src/components/layout/Admin";
 import { supabase } from "@/supabaseClient";
-import { buscarPedidosUsuario } from "@/src/services/pedido";
+import { buscarPedidosUsuario } from "@/src/services/pedido/pedido";
 
 export default function Pedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);

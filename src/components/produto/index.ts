@@ -1,0 +1,12 @@
+export { default as ProductCard } from "./ProductCard";
+export { default as ProductGallery } from "./ProductGallery";
+export { default as ProductInfo } from "./ProductInfo";
+export { default as ProductPurchase } from "./ProductPurchase";
+export { default as ProductPayments } from "./ProductPayments";
+export { default as ProductList } from "./ProductList";
+export { default as ProductHero } from "./ProductHero";
+export { default as ProductRviews } from "./ProductRviews";
+export { default as ProductApresentation } from "./ProductApresentation";
+export { default as ProductDescribe } from "./ProductDescribe";
+export { default as ProductSpecification } from "./productEspecification";
+export { default as SeletorVariacoes } from "./SeletorVariacoes";

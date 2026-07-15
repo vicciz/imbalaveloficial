@@ -1,6 +1,6 @@
 'use client';
 
-import { Usuario } from '@/src/services/usuarios';
+import { Usuario } from '@/src/services/usuario/usuarios';
 
 interface SelectUsuariosProps {
   usuarios: Usuario[];

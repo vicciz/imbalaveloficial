@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AdminLayout } from "@/src/layout/Admin";
-import { createColecao, listarColecoes, adicionarProdutoColecao,listarProdutosColecao, removerProdutoColecao, delColecao } from "@/src/services/colecao";
-import { listarProdutos, Produto } from "@/src/services/produtos";
+import { AdminLayout } from "@/src/components/layout/Admin";
+import { createColecao, listarColecoes, adicionarProdutoColecao,listarProdutosColecao, removerProdutoColecao, delColecao } from "@/src/services/categoria/colecao";
+import { listarProdutos, Produto } from "@/src/services/produto/produtos";
 
 export default function Colecao() {
   const [nome, setNome] = useState("");

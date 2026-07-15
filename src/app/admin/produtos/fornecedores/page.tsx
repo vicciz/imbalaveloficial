@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AdminLayout } from "@/src/layout/Admin";
+import { AdminLayout } from "@/src/components/layout/Admin";
 import {
   criarFornecedor,
   editarFornecedor,
   excluirFornecedor,
   listarFornecedores,
   type Fornecedor,
-} from "@/src/services/fornecedores";
+} from "@/src/services/categoria/fornecedores";
 
 export default function FornecedoresPage() {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);

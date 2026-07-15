@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { supabase } from "@/supabaseClient";
+import { BackButton, useNavigation } from "@/src/navigation";
 
 export default function Login() {
+  const { goHome, goTo } = useNavigation();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -63,11 +65,15 @@ export default function Login() {
     );
 
     alert("Login realizado!");
-    window.location.href = "/";
+    goHome();
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-4">
+      <div className="absolute left-4 top-4 sm:left-6 sm:top-6">
+        <BackButton label="Voltar" />
+      </div>
+
       <div className="w-full max-w-md bg-white/90 backdrop-blur-md border border-black/10 rounded-2xl p-8 text-zinc-900 shadow-xl">
         <h1 className="text-3xl font-bold text-center mb-2">Entrar</h1>
         <p className="text-center text-zinc-600 mb-8">Acesse sua conta</p>
@@ -113,9 +119,12 @@ export default function Login() {
 
           {/* Esqueci senha */}
           <div className="text-right text-sm">
-            <a href="#" className="text-indigo-600 hover:underline">
+            <button
+              type="button"
+              className="text-indigo-600 hover:underline"
+            >
               Esqueci minha senha
-            </a>
+            </button>
           </div>
 
           {/* Botão */}
@@ -129,9 +138,13 @@ export default function Login() {
 
         <p className="text-center text-sm text-zinc-600 mt-6">
           Não tem uma conta?{" "}
-          <a href="/cadastro" className="text-indigo-600 hover:underline">
+          <button
+            type="button"
+            onClick={() => goTo("/auth/cadastro")}
+            className="text-indigo-600 hover:underline"
+          >
             Criar conta
-          </a>
+          </button>
         </p>
       </div>
     </div>

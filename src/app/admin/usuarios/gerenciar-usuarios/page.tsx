@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AdminLayout } from "@/src/layout/Admin";
+import { AdminLayout } from "@/src/components/layout/Admin";
 
 import {
   Usuario,
   listarUsuarios,
   excluirUsuario,
-} from "@/src/services/usuarios";
+} from "@/src/services/usuario/usuarios";
 
 export default function GerenciarUsuarios() {
   const [usuarios, setUsuarios] =

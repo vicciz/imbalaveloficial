@@ -1,5 +1,6 @@
-import ProductHero from "@/src/app/produto/componentes/produto/ProductHero";
-import { buscarProdutoPorId } from "@/src/services/produtos";
+import ProductHero from "@/src/components/produto/ProductHero";
+import BackButton from "@/src/components/navigation/BackButton";
+import { buscarProdutoPorId } from "@/src/services/produto/produtos";
 
 type Props = {
   params: Promise<{
@@ -19,5 +20,13 @@ export default async function Page({
     return <div>Produto não encontrado.</div>;
   }
 
-  return <ProductHero produto={produto} />;
+  return (
+    <div className="space-y-4">
+      <BackButton
+        label="Voltar"
+        destination="/"
+      />
+      <ProductHero produto={produto} />
+    </div>
+  );
 }

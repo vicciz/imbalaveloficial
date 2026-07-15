@@ -1,7 +1,7 @@
 import "./globals.css";
-import Header from "@/src/layout/Home/Header";
+import Header from "@/src/components/layout/Home/Header";
 import NewsletterPopup from "@/src/components/Admin/common/NewsletterPopup";
-import SitePageLayout from "@/src/layout/Admin/SitePageLayout";
+import SitePageLayout from "@/src/components/layout/Admin/SitePageLayout";
 import Script from 'next/script';
 import type { Metadata } from "next";
 import logoTexto from "@/public/imagens/logoTexto.png";
@@ -10,6 +10,8 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Inter, Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { Toaster } from "sonner";
+import NavigationTracker from "@/src/navigation/NavigationTracker";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -95,10 +97,12 @@ fbq('track', 'PageView');`}
         )}
 
         <NewsletterPopup />
+        <NavigationTracker />
         <Header />
         <main className="pt-20">
           <SitePageLayout>{children}</SitePageLayout>
         </main>
+        <Toaster position="bottom-right" duration={4000} richColors />
       </body>
     </html>
   );

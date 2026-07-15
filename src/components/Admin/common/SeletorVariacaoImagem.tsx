@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listarVariacoesProduto } from "@/src/services/variacoes";
+import { listarVariacoesProduto } from "@/src/services/produto/variacoes";
 
 interface Props {
   produtoId?: number;
