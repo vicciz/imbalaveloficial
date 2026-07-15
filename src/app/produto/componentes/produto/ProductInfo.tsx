@@ -2,10 +2,8 @@
 
 import { Produto } from "@/src/services/produtos";
 import { Star } from "lucide-react";
-import SeletorVariacoes
- from "./SeletorVariacoes";
- import ProductDescribe from "../ProductDescribe";
- 
+import SeletorVariacoes from "./SeletorVariacoes";
+
 type Props = {
   produto: Produto;
 
@@ -16,10 +14,7 @@ type Props = {
       valores: string[];
     }[];
 
-    atributosSelecionados: Record<
-      string,
-      string
-    >;
+    atributosSelecionados: Record<string, string>;
 
     selecionarAtributo: (
       tipo: string,
@@ -32,43 +27,36 @@ export default function ProductInfo({
   produto,
   variacao,
 }: Props) {
-  
+
   const preco =
-  variacao?.variacaoSelecionada?.preco ??
-  produto.preco;
+    variacao?.variacaoSelecionada?.preco ??
+    produto.preco;
 
-  console.log("ATRIBUTOS", variacao?.atributos);
+  // Fallback enquanto o produto ainda não possui avaliações reais
+  const rating = produto.rating ?? 5;
+  const reviews = produto.reviews ?? 1;
 
-console.log(
-  "SELECIONADOS",
-  variacao?.atributosSelecionados
-);
-
-console.log(
-  "VARIAÇÃO",
-  variacao?.variacaoSelecionada
-);
   return (
     <div className="flex h-full flex-col">
 
       {/* Avaliação */}
       <div className="mb-6 flex items-center gap-1">
+
         {[1, 2, 3, 4, 5].map((item) => (
           <Star
             key={item}
             className={`h-6 w-6 ${
-              item <= Math.round(produto.rating ?? 0)
+              item <= Math.round(rating)
                 ? "fill-yellow-400 text-yellow-400"
                 : "text-slate-300"
             }`}
           />
-        ))
-
-        }
+        ))}
 
         <span className="ml-3 text-sm text-slate-500">
-          +{produto.reviews ?? 0}
+          {reviews} avaliações
         </span>
+
       </div>
 
       {/* Nome */}
@@ -81,18 +69,6 @@ console.log(
         {produto.descricao}
       </p>
 
-      {/* Visualizações */}
-      <span className="mt-4 text-sm text-slate-400">
-        125 Visualizações
-      </span>
-
-      {/* Desconto */}
-      <div className="mt-6">
-        <span className="rounded-full bg-green-100 px-4 py-1 text-sm font-medium text-green-600">
-          30% OFF
-        </span>
-      </div>
-
       {/* Preço */}
       <div className="mt-5">
 
@@ -103,21 +79,14 @@ console.log(
           })}
         </h2>
 
-        <span className="text-base text-slate-400 line-through">
-          R$ 52,00
-        </span>
-
       </div>
 
       {/* Variações */}
       <div className="mt-8 flex items-center gap-3">
         <SeletorVariacoes
-          atributos={
-            variacao?.atributos ?? []
-          }
+          atributos={variacao?.atributos ?? []}
           atributosSelecionados={
-            variacao?.atributosSelecionados ??
-            {}
+            variacao?.atributosSelecionados ?? {}
           }
           onSelecionar={
             variacao?.selecionarAtributo ??
@@ -125,7 +94,6 @@ console.log(
           }
         />
       </div>
-
 
       {/* Promoções */}
       <div className="mt-8 flex items-center gap-3">
@@ -139,6 +107,7 @@ console.log(
         </button>
 
       </div>
+
     </div>
   );
 }

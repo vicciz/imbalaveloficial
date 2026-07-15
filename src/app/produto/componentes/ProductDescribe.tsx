@@ -7,18 +7,7 @@ type Props = {
 };
 
 export default function ProductDescribe({ produto }: Props) {
-  const descricao = [
-    {
-      titulo: "Velocidade",
-      texto:
-        "Silencioso, eficiente e com múltiplas velocidades, ele proporciona excelente circulação de ar, garantindo mais conforto para sua casa ou escritório.",
-    },
-    {
-      titulo: "Sensor de Umidade",
-      texto:
-        "Mantém seus ambientes sempre frescos com este ventilador de alto desempenho.",
-    },
-  ];
+  const textoDescricao = produto.detalhes || produto.descricao || "";
 
   return (
     <section className="mt-20">
@@ -27,11 +16,11 @@ export default function ProductDescribe({ produto }: Props) {
   {/* Título e texto 1 */}
   <div className="col-span-2 text-center">
     <h2 className="text-4xl font-bold">
-      Velocidade
+      {produto.nome}
     </h2>
 
     <p className="mt-3 max-w-lg mx-auto text-gray-600">
-      Silencioso, eficiente e com múltiplas velocidades...
+      {textoDescricao}
     </p>
   </div>
 
@@ -48,11 +37,11 @@ export default function ProductDescribe({ produto }: Props) {
   {/* Segunda descrição */}
   <div className="flex flex-col justify-center text-right">
     <h2 className="text-4xl font-bold">
-      Sensor de Umidade
+      {produto.nome}
     </h2>
 
     <p className="mt-3 text-gray-600">
-      Mantém seus ambientes sempre frescos...
+      {textoDescricao}
     </p>
   </div>
 

@@ -9,22 +9,13 @@ export default function ProductSpecification({
 }: Props) {
   const especificacoes = [
     {
-      titulo: "Características gerais",
+      titulo: "Informações do Produto",
       itens: [
-        { nome: "Marca", valor: "IMBALÁVEL" },
-        { nome: "Modelo", valor: produto.nome },
-        { nome: "Cor", valor: "Verde" },
-        { nome: "Voltagem", valor: "220V" },
-      ],
-    },
-    {
-      titulo: "Potência",
-      itens: [
-        { nome: "Potência", valor: "60W" },
-        { nome: "Velocidades", valor: "3" },
-        { nome: "Alimentação", valor: "Bivolt" },
-        { nome: "Consumo", valor: "0,06 kWh" },
-      ],
+        { nome: "Nome", valor: produto.nome },
+        ...(produto.fornecedor ? [{ nome: "Fornecedor", valor: produto.fornecedor }] : []),
+        ...(produto.preco ? [{ nome: "Preço", valor: `R$ ${Number(produto.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }] : []),
+        ...(produto.estoque !== undefined && produto.estoque !== null ? [{ nome: "Estoque", valor: `${produto.estoque} unidades` }] : []),
+      ].filter(item => item.valor !== undefined && item.valor !== null),
     },
   ];
 
