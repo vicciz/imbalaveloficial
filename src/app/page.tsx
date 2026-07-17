@@ -6,29 +6,57 @@ import { listarProdutos, type Produto as ServiceProduto } from '@/src/services/p
 import CarrosselProdutos from '@/src/components/layout/Home/carrossel';
 import BannerCarousel from '@/src/components/layout/Home/BannerCarousel';
 
-interface ProdutoImagem {
-  caminho: string;
-  principal: boolean;
-  ordem: number;
-}
+const vantagens = [
+  {
+    titulo: 'Frete gratis acima de R$199',
+    descricao: 'Entrega rapida com rastreio para todo o Brasil.',
+    badge: '24h',
+  },
+  {
+    titulo: 'Compre no Pix e ganhe cashback',
+    descricao: 'Aproveite beneficios exclusivos no pagamento instantaneo.',
+    badge: 'Pix',
+  },
+  {
+    titulo: 'Compra protegida ate a entrega',
+    descricao: 'Suporte completo da equipe Imbalavel em todo o pedido.',
+    badge: 'Safe',
+  },
+  {
+    titulo: 'Parcelamento em ate 12x',
+    descricao: 'No cartao com aprovacao rapida e sem burocracia.',
+    badge: '12x',
+  },
+];
 
-interface ProdutoResumo {
-  id: number;
-  nome: string;
-  produto_imagem: ProdutoImagem[];
-}
+const categorias = [
+  'Lacrado importado',
+  'Assinatura premium',
+  'Para presente',
+  'Mais vendidos',
+  'Lancamentos',
+  'Kit com desconto',
+  'Fixacao intensa',
+  'Ocasiões especiais',
+];
 
-interface ColecaoHome {
-  id: number;
-  nome: string;
-  produtos: ProdutoResumo[];
-}
+const campanhas = [
+  {
+    titulo: 'Semana dos classicos',
+    descricao: 'Ate 40% OFF em fragrancias masculinas selecionadas.',
+    acao: 'Aproveitar agora',
+    destaque: 'Oferta relampago',
+  },
+  {
+    titulo: 'Selecao para presente',
+    descricao: 'Combos prontos para impressionar em qualquer data.',
+    acao: 'Ver kits',
+    destaque: 'Curadoria',
+  },
+];
 
 export default function Page() {
   const [produtos, setProdutos] = useState<ServiceProduto[]>([]);
-  const [colecoesHome, setColecoesHome] = useState<ColecaoHome[]>([]);
-  const [curtidas, setCurtidas] = useState<Set<number>>(new Set());
-  const [descurtidas, setDescurtidas] = useState<Set<number>>(new Set());
 
 //carregar produtos
   useEffect(() => {
@@ -47,108 +75,119 @@ export default function Page() {
 
  
   return (
-    <main className="min-h-screen bg-slate-50 text-zinc-900 relative">
-      {/* Fundo Mesh Gradient Animado */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-600 opacity-15 blur-3xl rounded-full animate-pulse"></div>
-        <div className="absolute top-1/4 right-0 w-96 h-96 bg-pink-600 opacity-15 blur-3xl rounded-full animate-pulse animation-delay-2000"></div>
-        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-indigo-600 opacity-12 blur-3xl rounded-full animate-pulse animation-delay-4000"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-cyan-600 opacity-10 blur-3xl rounded-full animate-pulse animation-delay-3000"></div>
-      </div>
-{/** */}
-      <style>{`
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.15; }
-          50% { opacity: 0.25; }
-        }
-        .animate-pulse { animation: pulse-slow 8s ease-in-out infinite; }
-        .animation-delay-2000 { animation-delay: 2s; }
-        .animation-delay-3000 { animation-delay: 3s; }
-        .animation-delay-4000 { animation-delay: 4s; }
-      `}</style>
-
-      {/* HERO */}
+    <main className="min-h-screen bg-[#ebebeb] text-zinc-900">
       <BannerCarousel />
 
-      {colecoesHome.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 pb-24">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold">Coleções em destaque</h2>
-            <p className="text-zinc-600 mt-4">Seleções especiais definidas pela curadoria</p>
-          </div>
-
-          <div className="space-y-10">
-            {colecoesHome.map((colecao) => (
-              <div key={colecao.id} className="bg-white/80 border border-black/5 backdrop-blur rounded-2xl p-8">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-                  <h3 className="text-2xl font-semibold">{colecao.nome}</h3>
-                  <a
-                    href={`/colecao/${colecao.id}`}
-                    className="text-sm text-indigo-600 hover:underline"
-                  >
-                    Ver coleção completa
-                  </a>
+      <section className="relative -mt-10 md:-mt-12 z-10 px-4 sm:px-6 pb-7">
+        <div className="max-w-7xl mx-auto rounded-2xl bg-white shadow-[0_12px_30px_rgba(0,0,0,0.12)] border border-black/5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-black/5">
+            {vantagens.map((item) => (
+              <div key={item.titulo} className="p-5 md:p-6 flex items-start gap-4">
+                <div className="h-11 w-11 rounded-full bg-[#ffe600] text-[#202020] text-sm font-extrabold flex items-center justify-center shadow-sm">
+                  {item.badge}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {colecao.produtos.map((p) => {
-                    const principal =
-                      p.produto_imagem?.find(img => img.principal) ??
-                      p.produto_imagem?.[0];
-
-                    
-                    return (
-                      <div
-                        key={p.id}
-                        className="bg-white border border-slate-200 rounded-2xl shadow-lg p-4 text-slate-900 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 flex flex-col"
-                      >
-                      </div>
-                    );
-                  })}
+                <div>
+                  <h2 className="font-semibold text-sm md:text-base leading-tight text-[#202020]">{item.titulo}</h2>
+                  <p className="text-xs md:text-sm text-[#737373] mt-1 leading-relaxed">{item.descricao}</p>
                 </div>
               </div>
             ))}
           </div>
-        </section>
-      )}
-
-      {/* DESTAQUES */}
-      <section
-        id="destaques"
-        className="max-w-7xl mx-auto px-6 pb-24"
-      >
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold">
-            Destaques IMBALÁVEL
-          </h2>
-
-          <p className="text-zinc-600 mt-4">
-            Perfumes masculinos mais buscados e bem avaliados
-          </p>
         </div>
-
-        <div className="flex justify-center">
-          <div className="w-full">
-            <CarrosselProdutos
-              titulo="Todos os produtos"
-              produtos={produtos}
-            />
-          </div>
-        </div>
-        
       </section>
 
-      {/* BENEFÍCIOS */}
-      <section className="bg-slate-100 py-20">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+      <section className="px-4 sm:px-6 pb-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="rounded-2xl bg-gradient-to-r from-[#fff159] via-[#ffe600] to-[#ffd100] p-[1px] shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+            <div className="rounded-2xl bg-white px-4 py-4 md:px-6 md:py-5">
+              <p className="text-xs uppercase tracking-wide text-[#666] mb-3">Explore por estilo</p>
+
+              <div className="flex gap-3 overflow-x-auto pb-1">
+                {categorias.map((categoria) => (
+                  <button
+                    key={categoria}
+                    type="button"
+                    className="shrink-0 px-4 py-2 rounded-full border border-[#d9d9d9] bg-[#fafafa] text-sm font-medium text-[#333] hover:bg-[#fff9cc] hover:border-[#ffe600] transition"
+                  >
+                    {categoria}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 sm:px-6 pb-10">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <article className="lg:col-span-7 rounded-2xl bg-[#fff159] p-6 md:p-8 text-[#202020] shadow-[0_10px_24px_rgba(0,0,0,0.1)]">
+            <p className="text-xs md:text-sm uppercase tracking-wide font-semibold">Marca oficial Imbalavel</p>
+            <h2 className="mt-2 text-2xl md:text-4xl font-extrabold leading-tight">
+              Perfumes de impacto com
+              <span className="block">preco de campanha toda semana</span>
+            </h2>
+            <p className="mt-4 text-sm md:text-base text-[#3d3d3d] max-w-xl">
+              Curadoria masculina com selo de originalidade, envio agil e condicoes especiais para recompra.
+            </p>
+            <button
+              type="button"
+              className="mt-6 rounded-lg bg-[#3483fa] px-6 py-3 text-white font-semibold text-sm md:text-base hover:bg-[#2968c8] transition"
+            >
+              Ver ofertas do dia
+            </button>
+          </article>
+
+          <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+            {campanhas.map((campanha) => (
+              <article
+                key={campanha.titulo}
+                className="rounded-2xl bg-white p-5 border border-black/5 shadow-[0_8px_20px_rgba(0,0,0,0.08)]"
+              >
+                <p className="text-[11px] uppercase tracking-wide text-[#3483fa] font-bold">{campanha.destaque}</p>
+                <h3 className="mt-2 text-lg font-bold text-[#202020]">{campanha.titulo}</h3>
+                <p className="mt-2 text-sm text-[#666] leading-relaxed">{campanha.descricao}</p>
+                <button
+                  type="button"
+                  className="mt-4 text-sm font-semibold text-[#3483fa] hover:underline"
+                >
+                  {campanha.acao}
+                </button>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="destaques"
+        className="max-w-7xl mx-auto px-4 sm:px-6 pb-14"
+      >
+        <div className="rounded-3xl bg-white border border-black/5 shadow-[0_12px_28px_rgba(0,0,0,0.1)] overflow-hidden">
+          <div className="px-5 pt-7 pb-4 md:px-8 md:pt-9 md:pb-5 border-b border-black/5">
+            <p className="text-xs uppercase tracking-wide text-[#737373]">Vitrine principal</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#202020] mt-1">Destaques Imbalavel</h2>
+            <p className="text-sm md:text-base text-[#666] mt-2">
+              Perfumes mais procurados com reposicao frequente e envio rapido.
+            </p>
+          </div>
+
+          <div className="px-2 md:px-4 pb-6 md:pb-8">
+            <CarrosselProdutos titulo="Todos os produtos" produtos={produtos} />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f5f8ff] border-y border-[#d9e4fb] py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {[
-            { title: 'Entrega Rápida', desc: 'Envios para todo o Brasil' },
-            { title: 'Pagamento Seguro', desc: 'Pix, cartão e boleto' },
-            { title: 'Curadoria Premium', desc: 'Perfumes masculinos selecionados' },
+            { title: 'Entrega rapida', desc: 'Postagem agil e rastreamento em tempo real.' },
+            { title: 'Pagamento seguro', desc: 'Pix, cartao e protecao contra fraudes.' },
+            { title: 'Curadoria premium', desc: 'Fragrancias de alta performance e autenticidade.' },
           ].map((b, i) => (
-            <div key={i}>
-              <h4 className="text-xl font-semibold mb-2">{b.title}</h4>
-              <p className="text-zinc-600">{b.desc}</p>
+            <div key={i} className="rounded-2xl bg-white p-6 border border-[#e7eefc]">
+              <h3 className="text-lg md:text-xl font-semibold text-[#202020]">{b.title}</h3>
+              <p className="text-sm md:text-base text-[#5c5c5c] mt-2 leading-relaxed">{b.desc}</p>
             </div>
           ))}
         </div>
