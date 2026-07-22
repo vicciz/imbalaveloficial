@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Produto } from "@/src/services/produto/produtos";
+import { Produto } from "@/src/components/produto/types/produtos";
 
 type Props = {
   produto: Produto;

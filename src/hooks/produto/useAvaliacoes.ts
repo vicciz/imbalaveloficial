@@ -8,8 +8,8 @@ import {
   atualizarAvaliacao,
   excluirAvaliacao,
   calcularEstatisticasAvaliacoes,
-} from '@/src/services/produto/produtoAvaliacoes';
-import { editarProduto } from '@/src/services/produto/produtos';
+} from '@/src/components/produto/types/produtoAvaliacoes';
+import { editarProduto } from '@/src/components/produto/types/produtos';
 
 interface UseAvaliacoesReturn {
   avaliacoes: (ProdutoAvaliacao & { usuario?: any })[];

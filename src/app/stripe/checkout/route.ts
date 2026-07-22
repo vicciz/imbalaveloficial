@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { buscarProduto } from '@/src/services/produto/produtos';
+import { buscarProduto } from '@/src/components/produto/types/produtos';
 import { supabase } from '@/supabaseClient';
 
 type VariacaoSelecionada = {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import type { Produto } from "@/src/services/produto/produtos";
+import type { Produto } from "@/src/components/produto/types/produtos";
 import type { VitrineSecao } from "@/src/services/vitrine/types";
 
 import {

@@ -1,4 +1,4 @@
-import { supabase } from "../../../supabaseClient";
+import { supabase } from "../../../../supabaseClient";
 //listarImagensProduto(idProduto: number)
 export async function listarImagensProduto(
   idProduto: number

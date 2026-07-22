@@ -7,6 +7,7 @@ import HeaderNavigation from "./HeaderNavigation";
 import HeaderDelivery from "./HeaderDelivery";
 import HeaderCart from "./HeaderCart";
 import type { HeaderUser } from "@/src/hooks/useHeaderUser";
+import { useEffect, useState } from "react";
 
 interface HeaderDesktopProps {
   user: HeaderUser | null;
@@ -14,9 +15,47 @@ interface HeaderDesktopProps {
 }
 
 export default function HeaderDesktop({ user, logout }: HeaderDesktopProps) {
+
+  const [showHeader, setShowHeader] = useState(true);
+const [lastScroll, setLastScroll] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const current = window.scrollY;
+
+      if (current < 80) {
+        setShowHeader(true);
+      } else if (current > lastScroll) {
+        // Descendo
+        setShowHeader(false);
+      } else {
+        // Subindo
+        setShowHeader(true);
+      }
+
+      setLastScroll(current);
+    };
+
+    window.addEventListener("scroll", onScroll);
+
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [lastScroll]);
+
+  
+  
   return (
 <header
-  className="sticky top-0 z-50 shadow-lg"
+  className={`
+    fixed
+    top-0
+    left-0
+    right-0
+    z-50
+    transition-transform
+    duration-300
+    
+    ${showHeader ? "translate-y-0" : "-translate-y-full"}
+  `}
   style={{
     background: "linear-gradient(90deg, #3C1B8B 0%, #60469C 58%, #3C1B8B 100%)",
   }}

@@ -1,4 +1,4 @@
-export { default as ProductCard } from "../layout/Home/ListCardProduto/ListProductCard";
+export { default as ProductCard } from "../../layout/Home/ListCardProduto/ListProductCard";
 export { default as ProductGallery } from "./ProductGallery";
 export { default as ProductInfo } from "./ProductInfo";
 export { default as ProductPurchase } from "./ProductPurchase";

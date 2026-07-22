@@ -1,17 +1,17 @@
 "use client";
 
-import { Produto } from "@/src/services/produto/produtos";
+import { Produto } from "@/src/components/produto/types/produtos";
 import { useProdutoVariacao } from "@/src/hooks/produto/useProdutoVariacao";
 
 import ProductGallery from "./ProductGallery";
 import ProductInfo from "./ProductInfo";
 import ProductPurchase from "./ProductPurchase";
-import ProductDescribe from "./ProductDescribe";
-import ProductSpecification from "./productEspecification";
+import ProductDescribe from "./productEspecification";
 import ProductList from "./ProductList";
 import ProductApresentation from "./ProductApresentation";
 import ProductReviews from "./ProductRviews";
 import Footer from "@/src/components/layout/Home/Footer/Footer";
+import ProductSpecification from "./productEspecification";
 
 type Props = {
   produto: Produto;

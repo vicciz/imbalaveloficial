@@ -11,7 +11,7 @@ import {
   excluirProduto,
   listarProdutos,
   Produto,
-} from "@/src/services/produto/produtos";
+} from "@/src/components/produto/types/produtos";
 
 import { AdminLayout } from "@/src/components/layout/Admin";
 import PageHeader from "@/src/components/Admin/common/PageHeader";

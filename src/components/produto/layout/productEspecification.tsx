@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Produto } from "@/src/services/produto/produtos";
+import { Produto } from "@/src/components/produto/types/produtos";
 import { useProdutoEspecificacoes } from "@/src/hooks/produto/useProdutoEspecificacoes";
 
 type Props = {

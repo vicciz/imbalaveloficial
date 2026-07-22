@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Star, Trash2, AlertCircle, Check } from "lucide-react";
-import { Produto } from "@/src/services/produto/produtos";
+import { Produto } from "@/src/components/produto/types/produtos";
 import { useAvaliacoes } from "@/src/hooks/produto/useAvaliacoes";
 import { supabase } from "@/supabaseClient";
 

@@ -4,7 +4,7 @@ import {
   buscarProdutosPorIds,
   listarProdutosCategoria,
   listarProdutosPorColecao,
-} from "@/src/services/produto/produtos";
+} from "@/src/components/produto/types/produtos";
 
 /* ============================
    LISTAR

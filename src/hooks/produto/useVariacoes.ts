@@ -17,7 +17,7 @@ import {
   criarVariacaoProduto,
   adicionarItemVariacao,
   excluirVariacoesProduto,
-} from "@/src/services/produto/variacoes";
+} from "@/src/components/produto/types/variacoes";
 
 import {
   gerarCombinacoes,

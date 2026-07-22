@@ -2,5 +2,10 @@
     
   "path-intellisense.mappings": {
     "/": "${workspaceFolder}/public"
-  }
+  },
+  "editor.defaultFormatter": "GitHub.copilot-chat",
+  "editor.wordWrap": "on",
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true
 }

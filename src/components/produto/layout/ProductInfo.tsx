@@ -1,6 +1,6 @@
 "use client";
 
-import { Produto } from "@/src/services/produto/produtos";
+import { Produto } from "@/src/components/produto/types/produtos";
 import { Star } from "lucide-react";
 import SeletorVariacoes from "./SeletorVariacoes";
 

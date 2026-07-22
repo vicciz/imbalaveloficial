@@ -1,6 +1,6 @@
-import ProductHero from "@/src/components/produto/ProductHero";
+import { ProductHero } from "@/src/components/produto/layout";
 import BackButton from "@/src/components/navigation/BackButton";
-import { buscarProdutoPorId } from "@/src/services/produto/produtos";
+import { buscarProdutoPorId } from "@/src/components/produto/types/produtos";
 
 type Props = {
   params: Promise<{

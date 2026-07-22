@@ -10,7 +10,7 @@ import {
   listarProdutosCategoria,
   removerProdutoCategoria,
 } from "@/src/services/categoria/categorias";
-import { listarProdutos, Produto } from "@/src/services/produto/produtos";
+import { listarProdutos, Produto } from "@/src/components/produto/types/produtos";
 
 export default function Categoria() {
   const [nome, setNome] = useState("");

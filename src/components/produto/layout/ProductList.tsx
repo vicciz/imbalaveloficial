@@ -1,5 +1,5 @@
-import { Produto } from "@/src/services/produto/produtos";
-import ProductCard from "../layout/Home/ListCardProduto/ListProductCard";
+import { Produto } from "@/src/components/produto/types/produtos";
+import ProductCard from "../../layout/Home/ListCardProduto/ProductCard";
 
 type Props = {
   titulo: string;

@@ -11,7 +11,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 
-import { Produto } from "@/src/services/produto/produtos";
+import { Produto } from "@/src/components/produto/types/produtos";
 import { Button } from "@/src/components/ui/button";
 import { supabase } from "@/supabaseClient";
 import {

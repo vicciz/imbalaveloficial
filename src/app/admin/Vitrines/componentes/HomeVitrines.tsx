@@ -1,5 +1,5 @@
 "use client";
-
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import {
@@ -9,7 +9,7 @@ import {
 
 import type {
   Produto,
-} from "@/src/services/produto/produtos";
+} from "@/src/components/produto/types/produtos";
 
 import type {
   VitrineSecao,
@@ -77,16 +77,66 @@ export default function HomeVitrines() {
 
   }, []);
 
+  if (!vitrines.length) {
+  return (
+    <div className="space-y-10">
+      {[...Array(3)].map((_, index) => (
+        <div
+          key={index}
+          className="
+            rounded-3xl
+            bg-white
+            p-6
+            shadow-sm
+          "
+        >
+          <div className="mb-6 h-8 w-56 animate-pulse rounded bg-zinc-200" />
+
+          <div className="flex gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="
+                  h-[330px]
+                  w-[210px]
+                  animate-pulse
+                  rounded-xl
+                  bg-zinc-200
+                "
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
   return (
 
     <div className="mx-auto max-w-7xl space-y-12 px-4">
 
       {vitrines.map(item => (
 
-        <section
-          key={item.vitrine.id}
-          className="mb-16"
-        >
+        <motion.section
+    key={item.vitrine.id}
+    className="mb-16"
+    initial={{
+        opacity: 0,
+        y: 40,
+    }}
+    whileInView={{
+        opacity: 1,
+        y: 0,
+    }}
+    viewport={{
+        once: true,
+        amount: 0.2,
+    }}
+    transition={{
+        duration: 0.5,
+    }}
+>
 
           <ProductSection
 
@@ -96,7 +146,7 @@ export default function HomeVitrines() {
 
         />
 
-        </section>
+       </motion.section>
 
       ))}
 

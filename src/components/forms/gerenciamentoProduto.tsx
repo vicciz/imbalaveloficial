@@ -7,7 +7,7 @@ import {
   buscarProdutoPorId,
   cadastrarProduto,
   editarProduto,
-} from "@/src/services/produto/produtos";
+} from "@/src/components/produto/types/produtos";
 
 import {
   listarCategorias,
@@ -15,11 +15,11 @@ import {
 
 import {
   listarTiposVariacaoCompleto,
-} from "@/src/services/produto/variacoes";
+} from "@/src/components/produto/types/variacoes";
 
 import {
   salvarGaleriaProduto,
-} from "@/src/services/produto/galeriaProduto";
+} from "@/src/components/produto/types/galeriaProduto";
 
 import {
   FormProdutoProps,

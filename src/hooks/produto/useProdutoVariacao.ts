@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   listarVariacoesProduto,
-} from "@/src/services/produto/variacoes";
+} from "@/src/components/produto/types/variacoes";
 
 export function useProdutoVariacao(
   produtoId: number

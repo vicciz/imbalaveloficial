@@ -1,4 +1,4 @@
-import { Produto } from "@/src/services/produto/produtos";
+import { Produto } from "@/src/components/produto/types/produtos";
 import ProductCardImage from "./ProductCardImage";
 import ProductCardInfo from "./ProductCardInfo";
 

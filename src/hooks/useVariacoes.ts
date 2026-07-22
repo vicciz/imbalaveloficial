@@ -14,7 +14,7 @@ import {
   salvarVariacao,
   editarTipoVariacao,
   excluirTipoVariacao,
-} from "@/src/services/produto/variacoes";
+} from "@/src/components/produto/types/variacoes";
 
 import {
   gerarCombinacoes,
@@ -25,7 +25,7 @@ import {
   criarVariacaoProduto,
   adicionarItemVariacao,
   excluirVariacoesProduto,
-} from "@/src/services/produto/variacoes";
+} from "@/src/components/produto/types/variacoes";
 
 export function useVariacoes(
   produtoId: number

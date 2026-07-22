@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
 	listarEspecificacoesProduto,
 	ProdutoEspecificacao,
-} from '@/src/services/produto/produtoEspecificacoes';
+} from '@/src/components/produto/types/produtoEspecificacoes';
 
 interface GrupoEspecificacao {
 	titulo: string;

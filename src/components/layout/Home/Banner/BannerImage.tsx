@@ -15,11 +15,14 @@ export default function BannerImage({
       height={500}
       priority
       className="
-        h-full
-        w-full
-        object-cover
-        object-center
-      "
+    h-full
+    w-full
+    object-cover
+    object-center
+    transition-transform
+    duration-[8000ms]
+    hover:scale-105
+"
     />
   );
 }

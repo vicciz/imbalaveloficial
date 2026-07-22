@@ -1,5 +1,5 @@
 // services/produto/produtos.ts – wrapper around Supabase table `produtos`
-import { supabase } from '../../../supabaseClient';
+import { supabase } from '../../../../supabaseClient';
 import { listarProdutosColecao }
 from "@/src/services/colecao";
 

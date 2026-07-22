@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import {
   listarProdutos,
   type Produto,
-} from "@/src/services/produto/produtos";
+} from "@/src/components/produto/types/produtos";
 
 import ProductCard from "./ProductCard";
 

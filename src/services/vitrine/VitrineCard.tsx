@@ -9,7 +9,7 @@ import {
 
 import type {
   Produto,
-} from "@/src/services/produto/produtos";
+} from "@/src/components/produto/types/produtos";
 
 import type {
   VitrineSecao,
