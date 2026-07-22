@@ -54,7 +54,7 @@ className="
             object-contain
             transition-all
             duration-500
-            group-hover:scale-110
+           group-hover:scale-[1.08]
           "
           />
       </div>
@@ -71,7 +71,23 @@ className="
           {produto.nome}
         </h3>
 
-        <div className="mt-3">
+        <div className="mt-3"><div className="mb-2">
+
+    <span
+        className="
+            rounded-md
+            bg-green-100
+            px-2
+            py-1
+            text-xs
+            font-semibold
+            text-green-700
+        "
+    >
+        20% OFF
+    </span>
+
+</div>
           <span className="text-[34px]
 tracking-tight
 transition-colors
@@ -82,6 +98,11 @@ group-hover:text-violet-700 font-light tracking-tight">
               currency: "BRL",
             })}
           </span>
+          <p className="mt-1 text-xs text-zinc-500">
+
+    em até 10x sem juros
+
+</p>
         </div>
 
        <p

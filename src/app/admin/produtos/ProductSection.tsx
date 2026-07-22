@@ -8,13 +8,15 @@ import HomeProductCard from "../Vitrines/componentes/HomeProductCard";
 import type { Produto } from "@/src/components/produto/types/produtos";
 
 type Props = {
-  titulo: string;
-  produtos: Produto[];
+    titulo: string;
+    produtos: Produto[];
+    href?: string;
 };
 
 export default function ProductSection({
-  titulo,
-  produtos,
+    titulo,
+    produtos,
+    href = "/produtos",
 }: Props) {
   if (!produtos.length) return null;
 
@@ -48,37 +50,53 @@ function scrollRight() {
       duration-300
       hover:shadow-lg
     "
-      ><div
-  className="
-    -mx-6
-    -mt-6
-    mb-6
-    h-1
-    rounded-t-3xl
-    bg-gradient-to-r
-    from-violet-700
-    via-fuchsia-500
-    to-violet-700
-  "
-/>
-      
-      <div className="mb-5 flex items-center justify-between">
-        <h2 className="text-[28px] font-semibold text-zinc-800">
-          {titulo}
+    >
+    <div
+    className="
+        mb-8
+        flex
+        items-center
+        justify-between
+    "
+>
+
+    <div>
+
+        <h2
+            className="
+                text-[30px]
+                font-semibold
+                text-zinc-800
+            "
+        >
+            {titulo}
         </h2>
 
-      <Link
-          href="#"
-          className="
-            text-sm
+        <p
+            className="
+                mt-1
+                text-sm
+                text-zinc-500
+            "
+        >
+            Produtos selecionados especialmente para você.
+        </p>
+
+    </div>
+
+    <Link
+        href={href}
+        className="
             font-medium
             text-violet-600
+            transition
             hover:underline
-          "
-        >
-          Ver mais
-        </Link>
-      </div>
+        "
+    >
+        Ver todos →
+    </Link>
+
+</div>
 
 <div className="relative">
 
