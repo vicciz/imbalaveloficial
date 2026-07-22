@@ -44,26 +44,6 @@ export default function Login() {
       return;
     }
 
-    const {
-      data: usuario,
-      error: usuarioError,
-    } = await supabase
-      .from("usuario")
-      .select("*")
-      .eq("user_id", authData.user.id)
-      .single();
-
-    if (usuarioError) {
-      alert("Usuário não encontrado.");
-      console.error(usuarioError);
-      return;
-    }
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(usuario)
-    );
-
     alert("Login realizado!");
     goHome();
   }

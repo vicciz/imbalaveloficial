@@ -11,7 +11,7 @@ import ProductSpecification from "./productEspecification";
 import ProductList from "./ProductList";
 import ProductApresentation from "./ProductApresentation";
 import ProductReviews from "./ProductRviews";
-import Footer from "@/src/components/layout/Home/Footer";
+import Footer from "@/src/components/layout/Home/Footer/Footer";
 
 type Props = {
   produto: Produto;
@@ -37,6 +37,7 @@ export default function ProductHero({ produto }: Props) {
                 variacao={variacao}
               />
             </div>
+            
 
             <div className="col-span-full xl:col-span-4">
               <ProductInfo

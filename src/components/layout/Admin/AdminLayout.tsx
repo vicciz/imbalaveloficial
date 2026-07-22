@@ -13,10 +13,10 @@ export default function AdminLayout({
   children,
 }: AdminLayoutProps) {
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className="flex min-h-screen bg-slate-100 m-10">
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col m-10">
         <Topbar />
 
         <main

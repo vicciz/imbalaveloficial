@@ -1,49 +1,26 @@
 'use client';
-
-import { useEffect, useState } from 'react';
-import Client from '@/src/components/Admin/common/Perfil';
-import { BackButton } from '@/src/navigation';
-
-interface User {
-  id: number;
-  nome: string;
-  email: string;
-  endereco?: string;
-  image?: string;
-}
+import ProfilePage from '@/src/app/perfil/Layout/ProfilePage';
+import { useHeaderUser } from '@/src/hooks/useHeaderUser';
 
 export default function Perfil() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading, logout } = useHeaderUser();
 
-  useEffect(() => {
-    const stored = localStorage.getItem('user');
-
-    if (stored) {
-      setUser(JSON.parse(stored));
-    }
-  }, []);
+  if (loading) {
+    return null;
+  }
 
   if (!user) {
-    return <p className="p-6">Usuário não logado</p>;
+    return (
+      <div className="min-h-screen bg-[#F8F8FC] p-6 text-slate-700">
+        <p>Usuário não logado</p>
+      </div>
+    );
   }
 
   return (
-    <div className="p-6">
-      <BackButton
-        label="Minha conta"
-        destination="/pedidos"
-        className="mb-4"
-      />
-
-      <h1 className="text-2xl font-bold mb-4">Perfil do Usuário</h1>
-
-      <Client
-        id={user.id}
-        nome={user.nome}
-        email={user.email}
-        endereco={user.endereco ?? 'Não informado'}
-        image={user.image ?? 'default.png'}
-      />
-    </div>
+    <ProfilePage
+      user={{ ...user, email: user.email ?? '' }}
+      onLogout={logout}
+    />
   );
 }

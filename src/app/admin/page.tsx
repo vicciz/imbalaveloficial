@@ -1,32 +1,13 @@
 'use client';
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { AdminLayout } from "@/src/components/layout/Admin";
-
-interface User {
-  id: number;
-  nome: string;
-  email: string;
-  role: string;
-}
+import { useHeaderUser } from "@/src/hooks/useHeaderUser";
 
 export default function AdminHome() {
+  const { user, loading } = useHeaderUser();
 
-  const [user, setUser] = useState<User | null>(null);
-  const [carregado, setCarregado] = useState(false);
-
-  useEffect(() => {
-    const u = localStorage.getItem("user");
-
-    if (u) {
-      setUser(JSON.parse(u));
-    }
-
-    setCarregado(true);
-  }, []);
-
-  if (!carregado) return <p>Carregando...</p>;
+  if (loading) return <p>Carregando...</p>;
 
   // 🔐 BLOQUEIO PRINCIPAL
   if (!user || user.role !== "admin") {
@@ -93,6 +74,22 @@ export default function AdminHome() {
             <p className="mt-2 text-sm text-zinc-600">Gerencie acessos e permissões da equipe.</p>
             <Link href="/admin/usuarios/gerenciar-usuarios" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
               Gerenciar usuários
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">Vitrines</h2>
+
+            <p className="mt-2 text-sm text-zinc-600">
+              Configure as seções da página inicial utilizando categorias,
+              coleções ou produtos específicos.
+            </p>
+
+            <Link
+              href="/admin/Vitrines"
+              className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline"
+            >
+              Gerenciar vitrines
             </Link>
           </div>
         </div>

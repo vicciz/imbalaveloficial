@@ -10,6 +10,9 @@ export interface Endereco {
   cidade: string;
   estado: string;
   pais?: string | null;
+  id_usuario?: number | null;
+  principal?: boolean | null;
+  created_at?: string | null;
 }
 
 // Criar endereço
@@ -57,6 +60,17 @@ export async function listarEnderecos() {
     .from("enderecos")
     .select("*")
     .order("cidade");
+
+  return { data, error };
+}
+
+export async function buscarEnderecoPrincipalUsuario(idUsuario: number) {
+  const { data, error } = await supabase
+    .from("enderecos")
+    .select("*")
+    .eq("id_usuario", idUsuario)
+    .eq("principal", true)
+    .maybeSingle();
 
   return { data, error };
 }

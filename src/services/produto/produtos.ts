@@ -1,5 +1,7 @@
 // services/produto/produtos.ts – wrapper around Supabase table `produtos`
 import { supabase } from '../../../supabaseClient';
+import { listarProdutosColecao }
+from "@/src/services/colecao";
 
 export interface ProdutoImagem {
   id?: number;
@@ -332,5 +334,128 @@ export async function buscarProdutoPorId(
       : null,
     error: normalizeError(error),
   };
+
+}
+
+export async function buscarProdutosPorIds(
+  ids: number[]
+): Promise<{
+  data: Produto[] | null;
+  error: any;
+}> {
+
+  if (ids.length === 0) {
+    return {
+      data: [],
+      error: null,
+    };
+  }
+
+  const client = ensureSupabase();
+
+  const { data, error } = await client
+    .from("produto")
+    .select(`
+      *,
+      categorias(nome),
+      produto_imagem(
+        id,
+        id_produto,
+        id_variacao,
+        id_valor,
+        caminho,
+        ordem,
+        principal
+      )
+    `)
+    .in("id", ids);
+
+  return {
+    data: data
+      ? ids
+          .map(id =>
+            data
+              .map((p: any) => normalizeProduto(p))
+              .find(p => p.id === id)
+          )
+          .filter(Boolean) as Produto[]
+      : null,
+    error: normalizeError(error),
+  };
+}
+
+export async function listarProdutosCategoria(
+  categoriaId: number,
+  limite = 6
+): Promise<{
+  data: Produto[] | null;
+  error: any;
+}> {
+
+  const client = ensureSupabase();
+
+  const { data, error } = await client
+    .from("produto")
+    .select(`
+      *,
+      categorias(nome),
+      produto_imagem(
+        id,
+        id_produto,
+        id_variacao,
+        id_valor,
+        caminho,
+        ordem,
+        principal
+      )
+    `)
+    .eq("categoria_id", categoriaId)
+    .limit(limite);
+
+  return {
+
+    data: data
+      ? data.map((produto: any) =>
+          normalizeProduto(produto)
+        )
+      : null,
+
+    error: normalizeError(error),
+
+  };
+
+}
+export async function listarProdutosPorColecao(
+  colecaoId: number
+): Promise<{
+  data: Produto[] | null;
+  error: any;
+}> {
+
+  const {
+    data,
+    error,
+  } = await listarProdutosColecao(
+    colecaoId
+  );
+
+  if (error) {
+
+    return {
+
+      data: null,
+
+      error,
+
+    };
+
+  }
+
+  const ids =
+    data?.map(
+      produto => produto.produto_id
+    ) ?? [];
+
+  return await buscarProdutosPorIds(ids);
 
 }

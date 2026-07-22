@@ -50,12 +50,6 @@ export async function login(
     };
   }
 
-  // Salva no localStorage
-  localStorage.setItem(
-    "user",
-    JSON.stringify(usuario)
-  );
-
   return {
     data: usuario,
     error: null,
@@ -63,8 +57,6 @@ export async function login(
 }
 
 export async function logout() {
-  localStorage.removeItem("user");
-
   const { error } =
     await supabase.auth.signOut();
 

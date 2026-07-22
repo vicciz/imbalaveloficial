@@ -1,10 +1,10 @@
 import "./globals.css";
-import Header from "@/src/components/layout/Home/Header";
+import Header from "@/src/components/layout/Home/Header/Header";
 import NewsletterPopup from "@/src/components/Admin/common/NewsletterPopup";
 import SitePageLayout from "@/src/components/layout/Admin/SitePageLayout";
 import Script from 'next/script';
 import type { Metadata } from "next";
-import logoTexto from "@/public/imagens/logoTexto.png";
+import logoTexto from "@/public/imagens/icons/logoTexto.png";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -99,7 +99,7 @@ fbq('track', 'PageView');`}
         <NewsletterPopup />
         <NavigationTracker />
         <Header />
-        <main className="pt-20">
+        <main>
           <SitePageLayout>{children}</SitePageLayout>
         </main>
         <Toaster position="bottom-right" duration={4000} richColors />

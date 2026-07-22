@@ -1,17 +1,35 @@
 import { Produto } from "@/src/services/produto/produtos";
-import ProductCard from "./ProductCard";
+import ProductCard from "../layout/Home/ListCardProduto/ListProductCard";
 
 type Props = {
   titulo: string;
   produtos: Produto[];
   layout?: "grid" | "list";
+  categoria?: string;
+  quantidade?: number;
 };
 
 export default function ProductList({
   titulo,
   produtos,
   layout = "grid",
+  categoria,
+  quantidade,
 }: Props) {
+
+  const produtosFiltrados = categoria
+    ? produtos.filter(
+        (produto) =>
+          produto.categoria?.toLowerCase() === categoria.toLowerCase()
+      )
+    : produtos;
+
+
+  const produtosExibidos = quantidade
+    ? produtosFiltrados.slice(0, quantidade)
+    : produtosFiltrados;
+
+
   return (
     <section className="mt-20">
 
@@ -19,27 +37,17 @@ export default function ProductList({
         {titulo}
       </h2>
 
-      {layout === "grid" ? (
-        <div className="grid grid-cols-4 gap-6">
-          {produtos.map((produto) => (
-            <ProductCard
-              key={produto.id}
-              produto={produto}
-              layout="vertical"
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-5">
-          {produtos.map((produto) => (
-            <ProductCard
-              key={produto.id}
-              produto={produto}
-              layout="horizontal"
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-4 gap-6">
+
+        {produtosExibidos.map((produto) => (
+          <ProductCard
+            key={produto.id}
+            produto={produto}
+            layout="vertical"
+          />
+        ))}
+
+      </div>
 
     </section>
   );

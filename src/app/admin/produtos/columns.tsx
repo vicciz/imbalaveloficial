@@ -114,6 +114,7 @@ export function produtoColumns({
         <TableActions
           oculto={produto.oculto ?? false}
           destaque={false}
+          
 
           onEdit={() => {
             window.location.href = `/admin/produtos/editar/${produto.id}`;

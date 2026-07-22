@@ -79,3 +79,11 @@ export function filtrarUsers(
       .includes(valor.toLowerCase())
   );
 }
+
+export async function alterarSenha(novaSenha: string) {
+  const { data, error } = await supabase.auth.updateUser({
+    password: novaSenha,
+  });
+
+  return { data, error };
+}
