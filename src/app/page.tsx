@@ -3,9 +3,7 @@
 import Footer from "@/src/components/layout/Home/Footer/Footer";
 
 import Banner from "../components/layout/Home/Banner";
-
-import HomeVitrines from "./admin/Vitrines/componentes/HomeVitrines";
-
+import HomeVitrines from "@/src/app/admin/home/vitrines/componentes/HomeVitrines";
 
 export default function Page() {
 
@@ -26,32 +24,7 @@ export default function Page() {
         "
       >
 
-        <Banner
-
-          banner={{
-            image:
-              "/imagens/Banners/Imbalavel.png",
-
-            badge:
-              "DESTAQUE DA SEMANA",
-
-            title:
-              "Entrega rápida em todo o Brasil",
-
-            subtitle:
-              "Os melhores perfumes, cosméticos e maquiagem para cuidar da sua beleza todos os dias.",
-
-            buttonText:
-              "Ver ofertas",
-
-            buttonHref:
-              "/produtos",
-
-          }}
-
-          height="420px"
-
-        />
+        <Banner />
 
       </section>
 

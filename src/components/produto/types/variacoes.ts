@@ -1,5 +1,6 @@
 import { supabase } from "../../../../supabaseClient";
-
+import type { ProdutoVariacao, ProdutoVariacaoItem } from "./produtos";
+  
 export interface VariacaoTipo {
   id: number;
   nome: string;
@@ -9,21 +10,6 @@ export interface VariacaoValor {
   id: number;
   id_tipo: number;
   valor: string;
-}
-
-export interface ProdutoVariacao {
-  id: number;
-  id_produto: number;
-  sku: string | null;
-  preco: number | null;
-  estoque: number;
-  ativo: boolean;
-}
-
-export interface ProdutoVariacaoItem {
-  id: number;
-  id_variacao: number;
-  id_valor: number;
 }
 
 /* ===========================

@@ -1,5 +1,5 @@
 import { AdminLayout } from "@/src/components/layout/Admin";
-import FormProduto from "@/src/components/forms/gerenciamentoProduto";
+import FormProduto from "@/src/components/forms/FormProduto";
 
 type Props = {
   params: Promise<{

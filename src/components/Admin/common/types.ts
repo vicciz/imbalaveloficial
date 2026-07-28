@@ -63,9 +63,9 @@ export interface ImagemFormulario {
 
   file?: File;
 
-  caminho?: string;
+  url: string;
 
-  preview: string;
+  caminho?: string;
 
   principal: boolean;
 

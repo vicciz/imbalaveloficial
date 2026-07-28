@@ -1,7 +1,7 @@
 // services/produto/produtos.ts – wrapper around Supabase table `produtos`
 import { supabase } from '../../../../supabaseClient';
 import { listarProdutosColecao }
-from "@/src/services/colecao";
+from "@/src/services/colecao/colecao";
 
 export interface ProdutoImagem {
   id?: number;
@@ -11,6 +11,36 @@ export interface ProdutoImagem {
   ordem: number;
   principal: boolean;
   id_valor: number | null;
+}
+
+export interface ProdutoVariacaoItem {
+  id: number;
+
+  variacao_valor: {
+    id: number;
+    valor: string;
+
+    variacao_tipo: {
+      id: number;
+      nome: string;
+    };
+  };
+}
+
+export interface ProdutoVariacao {
+  id: number;
+
+  id_produto: number;
+
+  sku: string | null;
+
+  preco: number | null;
+
+  estoque: number;
+
+  ativo: boolean;
+
+  produto_variacao_item: ProdutoVariacaoItem[];
 }
 
 export interface Produto {
@@ -34,8 +64,15 @@ export interface Produto {
   categorias?: { nome: string } | null;
 
   produto_imagem?: ProdutoImagem[];
+
+  // ADICIONE ESTA LINHA
+  produto_variacao?: ProdutoVariacao[];
+
   image?: string;
 }
+
+
+
 
 function ensureSupabase() {
   if (!supabase) {
@@ -183,11 +220,20 @@ export async function editarProduto(
   id: number,
   produto: Partial<Produto>
 ): Promise<{ data: Produto | null; error: any }> {
+
   const client = ensureSupabase();
+
+  const {
+    produto_variacao,
+    produto_imagem,
+    categorias,
+    image,
+    ...dados
+  } = produto;
 
   const { data, error } = await client
     .from("produto")
-    .update(produto)
+    .update(dados)
     .eq("id", id)
     .select()
     .single();
@@ -309,25 +355,37 @@ export async function buscarProdutoPorId(
 
   const client = ensureSupabase();
 
-  const { data, error } =
-  await client
-    .from("produto")
-    .select(`
-      *,
-      categorias(nome),
-      produto_imagem(
-    id,
-    id_produto,
-    id_variacao,
-    id_valor,
-    caminho,
-    ordem,
-    principal
-)
-    `)
-    .eq("id", id)
-    .single();
+const { data, error } = await client
+  .from("produto")
+  .select(`
+    *,
+    categorias(nome),
 
+    produto_imagem(
+      id,
+      id_produto,
+      id_variacao,
+      id_valor,
+      caminho,
+      ordem,
+      principal
+    ),
+
+    produto_variacao(
+      *,
+      produto_variacao_item(
+        *,
+        variacao_valor(
+          *,
+          variacao_tipo(*)
+        )
+      )
+    )
+  `)
+  .eq("id", id)
+  .single();
+  console.log(data);
+  
   return {
     data: data
       ? normalizeProduto(data)

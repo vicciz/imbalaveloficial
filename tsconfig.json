@@ -13,15 +13,20 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+
+    "baseUrl": ".",
+
+    "paths": {
+      "@/*": ["./*"]
+    },
+
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-  "@/*": ["./*"]
-}
+    ]
   },
+
   "include": [
     "next-env.d.ts",
     "**/*.ts",
@@ -29,6 +34,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
-  "exclude": ["node_modules"]
+, "src/services/produto/importador"  ],
+
+  "exclude": [
+    "node_modules"
+  ]
 }

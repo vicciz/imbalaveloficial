@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
-import HomeProductCard from "../Vitrines/componentes/HomeProductCard";
+
+
 
 import type { Produto } from "@/src/components/produto/types/produtos";
+import HomeProductCard from "../home/vitrines/componentes/HomeProductCard";
 
 type Props = {
     titulo: string;

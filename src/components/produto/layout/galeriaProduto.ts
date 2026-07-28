@@ -4,7 +4,7 @@ import {
   adicionarImagem,
   excluirImagem,
   definirImagemPrincipal,
-} from "./produtoImagem";
+} from "@/src/components/produto/types/produtoImagem";
 
 import { ImagemFormulario } from "@/src/components/Admin/common/types";
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AdminLayout } from "@/src/components/layout/Admin";
 import { useHeaderUser } from "@/src/hooks/useHeaderUser";
-
+import { House } from "lucide-react";
 export default function AdminHome() {
   const { user, loading } = useHeaderUser();
 
@@ -39,7 +39,7 @@ export default function AdminHome() {
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold">Produtos</h2>
-            <p className="mt-2 text-sm text-zinc-600">Gerencie catálogo, visibilidade e destaques.</p>
+            <p className="mt-2 text-sm text-zinc-600"></p>
             <Link href="/admin/produtos" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
               Acessar produtos
             </Link>
@@ -53,13 +53,28 @@ export default function AdminHome() {
             </Link>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">Fornecedores</h2>
-            <p className="mt-2 text-sm text-zinc-600">Cadastre e mantenha os parceiros da loja atualizados.</p>
-            <Link href="/admin/produtos/fornecedores" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
-              Gerenciar fornecedores
-            </Link>
+         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-violet-100 p-2">
+              <House className="h-5 w-5 text-violet-600" />
+            </div>
+
+            <h2 className="text-lg font-semibold">
+              Home
+            </h2>
           </div>
+
+          <p className="mt-4 text-sm text-zinc-600">
+            Configure banners, cards promocionais e vitrines da página inicial da loja.
+          </p>
+
+          <Link
+            href="/admin/home"
+            className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline"
+          >
+            Configurar Home
+          </Link>
+        </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold">Coleções</h2>
@@ -86,7 +101,7 @@ export default function AdminHome() {
             </p>
 
             <Link
-              href="/admin/Vitrines"
+              href="/admin/home/vitrines"
               className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline"
             >
               Gerenciar vitrines

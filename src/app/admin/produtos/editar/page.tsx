@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { AdminLayout } from "@/src/components/layout/Admin";
-import FormProduto from "@/src/components/forms/gerenciamentoProduto";
+import FormProduto from "@/src/components/forms/FormProduto";
 
 function EditarProdutoContent() {
   const params = useSearchParams();

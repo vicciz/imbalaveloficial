@@ -91,6 +91,9 @@ export default function ProdutosPage() {
         <Link href="/admin/produtos/cadastrar">
           <Button>Novo Produto</Button>
         </Link>
+        <Link href="/admin/produtos/importar">
+          <Button>Importar Produtos</Button>
+        </Link>
       </PageHeader>
 
       <SearchBar
