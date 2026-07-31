@@ -177,27 +177,24 @@ export async function excluirVariacaoProduto(
    ITENS DA VARIAÇÃO
 =========================== */
 
+
 export async function adicionarItemVariacao(
   idVariacao: number,
-  idValor: number
+  idValor: number,
+  sku: string,
+  preco: number,
+  estoque: number
 ) {
   return await supabase
     .from("produto_variacao_item")
     .insert({
       id_variacao: idVariacao,
       id_valor: idValor,
+      sku,
+      preco,
+      estoque,
+      ativo: true,
     });
-}
-
-export async function removerItemVariacao(
-  idVariacao: number,
-  idValor: number
-) {
-  return await supabase
-    .from("produto_variacao_item")
-    .delete()
-    .eq("id_variacao", idVariacao)
-    .eq("id_valor", idValor);
 }
 
 export interface VariacaoTipoCompleta {
@@ -320,3 +317,4 @@ export async function criarItensVariacao(
     .from("produto_variacao_item")
     .insert(registros);
 }
+

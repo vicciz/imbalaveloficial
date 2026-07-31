@@ -14,7 +14,7 @@ import {
   CSS,
 } from "@dnd-kit/utilities";
 import { Switch } from "@/src/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { cn } from "@/src/lib/utils";
 
 interface BannerItemProps {
   id: number;

@@ -53,81 +53,6 @@ export default function Informacoes({
 
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 items-end">
-
-          <div className="grid gap-2">
-
-            <Label htmlFor="preco">
-              Preço
-            </Label>
-
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-2 rounded-l-md border border-r-0 bg-slate-50 text-sm">R$</span>
-              <Input
-                id="preco"
-                type="number"
-                step="0.01"
-                value={produto.preco ?? ""}
-                onChange={(e) =>
-                  atualizarCampo(
-                    "preco",
-                    e.target.value
-                  )
-                }
-                className="rounded-l-none"
-              />
-            </div>
-
-          </div>
-
-          <div className="grid gap-2">
-
-            <Label htmlFor="rating">
-              Rating
-            </Label>
-
-            <div className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-400" />
-              <Input
-                id="rating"
-                type="number"
-                step="0.1"
-                min={0}
-                max={5}
-                value={produto.rating ?? ""}
-                onChange={(e) =>
-                  atualizarCampo(
-                    "rating",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-          </div>
-
-          <div className="grid gap-2">
-
-            <Label htmlFor="reviews">
-              Reviews
-            </Label>
-
-            <Input
-              id="reviews"
-              type="number"
-              value={produto.reviews ?? ""}
-              onChange={(e) =>
-                atualizarCampo(
-                  "reviews",
-                  e.target.value
-                )
-              }
-            />
-
-          </div>
-
-        </div>
-
         <div className="grid md:grid-cols-2 gap-6">
 
           <div className="grid gap-2">
@@ -145,26 +70,6 @@ export default function Informacoes({
               onChange={(e) =>
                 atualizarCampo(
                   "fornecedor",
-                  e.target.value
-                )
-              }
-            />
-
-          </div>
-
-          <div className="grid gap-2">
-
-            <Label htmlFor="estoque">
-              Estoque
-            </Label>
-
-            <Input
-              id="estoque"
-              type="number"
-              value={(produto as any).estoque ?? ""}
-              onChange={(e) =>
-                atualizarCampo(
-                  "estoque",
                   e.target.value
                 )
               }

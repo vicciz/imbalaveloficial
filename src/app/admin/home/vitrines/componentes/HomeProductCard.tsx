@@ -8,10 +8,24 @@ import type { Produto } from "@/src/components/produto/types/produtos";
 type Props = {
   produto: Produto;
 };
+function obterMenorPreco(produto: Produto) {
+  const itens =
+    produto.produto_variacao?.flatMap(
+      (v: any) => v.produto_variacao_item ?? []
+    ) ?? [];
+
+  if (!itens.length) return null;
+
+  return Math.min(
+    ...itens.map((item: any) => Number(item.preco))
+  );
+}
 
 export default function HomeProductCard({
   produto,
 }: Props) {
+  const menorPreco = obterMenorPreco(produto);
+
   return (
     <Link
       href={`/produto/${produto.id}`}
@@ -103,10 +117,12 @@ className="
         group-hover:text-violet-700
       "
     >
-      {Number(produto.preco).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })}
+     {menorPreco !== null
+  ? menorPreco.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    })
+  : "Indisponível"}
     </span>
 
     <p className="mt-1 text-xs text-zinc-500">

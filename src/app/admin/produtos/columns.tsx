@@ -14,6 +14,18 @@ interface ProdutoColumnsProps {
   onToggleVisibility: (produto: Produto) => void;
   onToggleHighlight: (produto: Produto) => void;
 }
+function obterMenorPreco(produto: Produto) {
+  const itens =
+    produto.produto_variacao?.flatMap(
+      (v: any) => v.produto_variacao_item ?? []
+    ) ?? [];
+
+  if (!itens.length) return null;
+
+  return Math.min(
+    ...itens.map((item: any) => Number(item.preco))
+  );
+}
 
 export function produtoColumns({
   onDelete,
@@ -110,33 +122,20 @@ export function produtoColumns({
       title: "Opções",
       align: "center",
 
-      render: (produto) => (
-        <TableActions
-          oculto={produto.oculto ?? false}
-          destaque={false}
-          
+      render: (produto) => {
+      const preco = obterMenorPreco(produto);
 
-          onEdit={() => {
-            window.location.href = `/admin/produtos/editar/${produto.id}`;
-          }}
-
-          onDuplicate={() =>
-            onDuplicate(produto)
-          }
-
-          onToggleVisibility={() =>
-            onToggleVisibility(produto)
-          }
-
-          onToggleHighlight={() =>
-            onToggleHighlight(produto)
-          }
-
-          onDelete={() =>
-            onDelete(produto)
-          }
-        />
-      ),
+      return (
+        <span className="font-semibold">
+          {preco !== null
+            ? preco.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })
+            : "-"}
+        </span>
+        );
+      },
     },
   ];
 }

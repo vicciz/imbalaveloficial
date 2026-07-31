@@ -37,16 +37,20 @@ export default function ProductList({
         {titulo}
       </h2>
 
-      <div className="grid grid-cols-4 gap-6">
-
+      <div
+        className={
+          layout === "list"
+            ? "grid grid-cols-1 gap-4"
+            : "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+        }
+      >
         {produtosExibidos.map((produto) => (
           <ProductCard
             key={produto.id}
             produto={produto}
-            layout="vertical"
+            layout={layout === "list" ? "horizontal" : "vertical"}
           />
         ))}
-
       </div>
 
     </section>

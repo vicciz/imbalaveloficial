@@ -21,7 +21,10 @@ import Pagination from "@/src/components/Admin/common/Pagination";
 import TableActions from "@/src/components/Admin/table/TableActions";
 import StatusBadge from "@/src/components/Admin/table/StatusBadge";
 import ModalVariacoes from "@/src/app/admin/ModalVariacoes/ModalVariacoes";
-
+import {
+  obterMenorPreco,
+  formatarPreco,
+} from "@/src/lib/produto-util";
 import {
   Table,
   TableBody,
@@ -39,7 +42,7 @@ export default function ProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [busca, setBusca] = useState("");
   const [pagina, setPagina] = useState(1);
-
+  const preco = obterMenorPreco(produtos[0]);
   const [produtoSelecionadoVariacao, setProdutoSelecionadoVariacao] =
     useState<Produto | null>(null);
 
@@ -147,13 +150,10 @@ export default function ProdutosPage() {
                     "-"}
                 </TableCell>
 
-                <TableCell>
-                  {Number(
-                    produto.preco
-                  ).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
+                <TableCell className="text-right">
+                  {formatarPreco(
+                    obterMenorPreco(produto)
+                  )}
                 </TableCell>
 
                 <TableCell>

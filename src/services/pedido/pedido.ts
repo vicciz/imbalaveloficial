@@ -20,37 +20,46 @@ export async function criarPedido(
 export async function adicionarItemPedido(
   idPedido: number,
   idProduto: number,
-  quantidade: number
+  quantidade: number,
+  precoUnitario: number,
+  idVariacao: number | null
 ) {
   return await supabase
     .from("pedidoItem")
     .insert({
       id_pedido: idPedido,
       id_produto: idProduto,
+      id_variacao: idVariacao,
       quantidade,
+      preco_unitario: precoUnitario,
+      subtotal: precoUnitario * quantidade,
     });
 }
 
 export async function buscarPedidosUsuario(userId: string) {
-  const { data, error } = await supabase
-    .from("pedido")
-    .select(`
-      *,
-      pedidoItem (
-        quantidade,
-        produto (
-          id,
-          nome,
-          preco,
-          produto_imagem (
-            caminho,
-            principal,
-            ordem
-          )
+const { data, error } = await supabase
+  .from("pedido")
+  .select(`
+    *,
+    pedidoItem (
+      quantidade,
+      preco_unitario,
+      subtotal,
+      id_variacao,
+
+      produto (
+        id,
+        nome,
+        preco,
+        produto_imagem (
+          caminho,
+          principal,
+          ordem
         )
       )
-    `)
-    .eq("id_usuario", userId);
+    )
+  `)
+  .eq("id_usuario", userId);
 
   const pedidos = data?.map((pedido) => ({
     ...pedido,

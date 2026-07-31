@@ -26,27 +26,46 @@ export default function Pedido() {
       }
 
       // Busca apenas os pedidos do usuário logado
-      const { data, error } = await supabase
-        .from("pedido")
-        .select(`
-          *,
-          pedidoItem (
-            quantidade,
-            produto (
-              id,
-              nome,
-              preco,
-              produto_imagem (
-                caminho,
-                principal,
-                ordem
-              )
-            )
-          )
-        `)
-        .eq("id_usuario", user.id)
-        .order("created_at", { ascending: false });
+const { data, error } = await supabase
+  .from("pedido")
+  .select(`
+    *,
+    pedidoItem (
+    quantidade,
+    preco_unitario,
+    subtotal,
+    id_variacao,
 
+    produto (
+      id,
+      nome,
+      produto_imagem (
+        caminho,
+        principal,
+        ordem,
+        id_valor
+      )
+    ),
+
+    produto_variacao (
+      id,
+      produto_variacao_item (
+        id_valor,
+
+        variacao_valor (
+          valor,
+
+          variacao_tipo (
+            nome
+          )
+        )
+      )
+    )
+)
+  `)
+  .eq("id_usuario", user.id)
+  
+  .order("created_at", { ascending: false });
       if (error) {
         console.error(error);
         setPedidos([]);
@@ -54,30 +73,70 @@ export default function Pedido() {
         return;
       }
 
-      const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
-        ...pedido,
-        pedidoItem: (pedido.pedidoItem ?? []).map((item: any) => {
-          const imagens =
-            item.produto?.produto_imagem?.sort(
-              (a: any, b: any) => a.ordem - b.ordem
-            ) ?? [];
+const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
+  ...pedido,
 
-          const principal =
-            imagens.find((img: any) => img.principal) ?? imagens[0];
+  pedidoItem: (pedido.pedidoItem ?? []).map((item: any) => {
+    const itemCor =
+      item.produto_variacao?.produto_variacao_item?.find(
+        (v: any) =>
+          v.variacao_valor?.variacao_tipo?.nome
+            ?.toLowerCase() === "cor"
+      );
 
-          return {
-            ...item,
-            produto: {
-              ...item.produto,
-              image: principal
-                ? supabase.storage
-                    .from("produtos")
-                    .getPublicUrl(principal.caminho).data.publicUrl
-                : "",
-            },
-          };
-        }),
-      }));
+    const imagens =
+      item.produto?.produto_imagem ?? [];
+
+    let principal;
+
+    if (itemCor?.id_valor != null) {
+      const imagensCor = imagens.filter(
+        (img: any) =>
+          img.id_valor === itemCor.id_valor
+      );
+
+      principal =
+        imagensCor.find(
+          (img: any) => img.principal
+        ) ??
+        imagensCor.sort(
+          (a: any, b: any) => a.ordem - b.ordem
+        )[0];
+    }
+
+    principal =
+      principal ??
+      imagens.find(
+        (img: any) => img.principal
+      ) ??
+      imagens[0];
+
+    const atributos =
+  item.produto_variacao?.produto_variacao_item
+    ?.map((v: any) => ({
+      tipo: v.variacao_valor?.variacao_tipo?.nome,
+      valor: v.variacao_valor?.valor,
+    }))
+    .filter((v: any) => v.valor) ?? [];
+
+    return {
+      ...item,
+
+      atributos,
+
+      produto: {
+        ...item.produto,
+
+        image: principal
+          ? supabase.storage
+              .from("produtos")
+              .getPublicUrl(principal.caminho)
+              .data.publicUrl
+          : "",
+      },
+    };
+  }),
+}));
 
       setPedidos(pedidosNormalizados);
       setCarregando(false);
@@ -157,9 +216,23 @@ export default function Pedido() {
                           )}
 
                           <div>
-                            <p className="font-medium text-slate-900">
-                              {item.produto?.nome ?? "Produto"}
-                            </p>
+                            <div>
+                                <p className="font-medium text-slate-900">
+                                  {item.produto?.nome}
+                                </p>
+
+                                {item.atributos?.length > 0 && (
+                                  <p className="text-xs text-slate-500">
+                                    {item.atributos
+                                      .map((a: any) => a.valor)
+                                      .join(" • ")}
+                                  </p>
+                                )}
+
+                                <p className="text-sm text-slate-600">
+                                  Quantidade: {item.quantidade}
+                                </p>
+</div>
 
                             <p className="text-sm text-slate-600">
                               Quantidade: {item.quantidade}
@@ -167,9 +240,12 @@ export default function Pedido() {
                           </div>
                         </div>
 
-                        <p className="text-sm font-semibold text-slate-900">
-                          R$ {Number(item.produto?.preco ?? 0).toFixed(2)}
-                        </p>
+                       <p className="text-sm font-semibold text-slate-900">
+                        {Number(item.preco_unitario).toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </p>
                       </div>
                     )
                   )}

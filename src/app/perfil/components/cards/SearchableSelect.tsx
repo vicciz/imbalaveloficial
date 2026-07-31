@@ -3,7 +3,7 @@
 import { Check, ChevronDown, Search } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/src/lib/utils"
 import { Input } from "@/src/components/ui/input"
 import { ScrollArea } from "@/src/components/ui/scroll-area"
 

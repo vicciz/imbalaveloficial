@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/src/lib/utils"
 import type { SearchProduct } from "@/src/types/search"
 
 import SearchEmpty from "./SearchEmpty"

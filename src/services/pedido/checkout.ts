@@ -19,24 +19,39 @@ type ProdutoImagem = {
 type Produto = {
   id?: number;
   nome: string;
-  preco: string | number;
   produto_imagem?: ProdutoImagem[];
 };
 
-type VariacaoSelecionada = {
-  id: number;
-  sku: string | null;
-  preco: number | null;
-  produto_variacao_item?: Array<{
-    id_valor?: number | null;
-    variacao_valor?: {
-      valor?: string;
-      variacao_tipo?: {
-        nome?: string;
-      };
-    };
-  }>;
-};
+async function carregarVariacao(
+  idVariacao: number
+): Promise<VariacaoSelecionada | null> {
+  const { data } = await supabase
+    .from("produto_variacao")
+    .select(`
+      id,
+
+      produto_variacao_item (
+        id,
+        sku,
+        preco,
+        estoque,
+        ativo,
+
+        id_valor,
+
+        variacao_valor (
+          valor,
+          variacao_tipo (
+            nome
+          )
+        )
+      )
+    `)
+    .eq("id", idVariacao)
+    .maybeSingle();
+
+  return data as VariacaoSelecionada | null;
+}
 
 type ItemCarrinho = {
   id: number;
@@ -45,6 +60,28 @@ type ItemCarrinho = {
   quantidade: number | string;
   produto: Produto;
   variacao?: VariacaoSelecionada | null;
+};
+
+type VariacaoSelecionada = {
+  id: number;
+
+  produto_variacao_item: Array<{
+    id: number;
+    sku: string | null;
+    preco: number;
+    estoque: number;
+    ativo: boolean;
+
+    id_valor?: number | null;
+
+    variacao_valor?: {
+      valor?: string;
+
+      variacao_tipo?: {
+        nome?: string;
+      };
+    };
+  }>;
 };
 
 function obterAtributo(
@@ -65,33 +102,11 @@ function obterAtributo(
   );
 }
 
-async function carregarVariacao(
-  idVariacao: number
-): Promise<VariacaoSelecionada | null> {
-  const { data } = await supabase
-    .from("produto_variacao")
-    .select(`
-      id,
-      sku,
-      preco,
-      produto_variacao_item (
-        id_valor,
-        variacao_valor (
-          valor,
-          variacao_tipo (
-            nome
-          )
-        )
-      )
-    `)
-    .eq("id", idVariacao)
-    .maybeSingle();
 
-  return (data as VariacaoSelecionada | null) ?? null;
-}
 
 export async function criarCheckoutCarrinho(
   userId: string,
+  enderecoId: number,
   selectedItemIds?: number[]
 ) {
   let query = supabase
@@ -132,16 +147,24 @@ export async function criarCheckoutCarrinho(
     throw new Error("Carrinho vazio");
   }
 
-  const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
-    await Promise.all(itens.map(async (item) => {
+const line_items = await Promise.all(
+  itens.map(async (item) => {
       const produto = item.produto;
       const variacao = item.id_variacao
         ? await carregarVariacao(item.id_variacao)
         : null;
 
-      const precoFinal = Number(
-        variacao?.preco ?? produto.preco
+      const itemVariacao = variacao?.produto_variacao_item.find(
+        (item) => item.ativo
       );
+
+      if (!itemVariacao) {
+        throw new Error(
+          `Nenhuma variação ativa encontrada para ${produto.nome}.`
+        );
+      }
+
+      const precoFinal = Number(itemVariacao.preco);
 
       const cor = obterAtributo(variacao, "cor");
       const modelo = obterAtributo(variacao, "modelo");
@@ -177,6 +200,7 @@ export async function criarCheckoutCarrinho(
             imagensCor.find((img) => img.principal) ??
             imagensCor.sort((a, b) => a.ordem - b.ordem)[0];
         }
+
       }
 
       // Procura a imagem principal
@@ -210,7 +234,7 @@ export async function criarCheckoutCarrinho(
             metadata: {
               produto_id: String(item.id_produto ?? produto.id ?? ""),
               variacao_id: String(item.id_variacao ?? ""),
-              sku: String(variacao?.sku ?? ""),
+              sku: String(itemVariacao?.sku ?? ""),
               cor: String(cor ?? ""),
               modelo: String(modelo ?? ""),
               voltagem: String(voltagem ?? ""),
@@ -236,6 +260,7 @@ export async function criarCheckoutCarrinho(
 
       metadata: {
         userId,
+        enderecoId: String(enderecoId),
       },
 
       line_items,

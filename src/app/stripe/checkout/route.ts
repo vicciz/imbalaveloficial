@@ -115,9 +115,11 @@ export async function POST(request: NextRequest) {
       Math.floor(Number(quantidade) || 1)
     );
 
-    const preco = Number(
-      variacaoSelecionada?.preco ?? produto.preco
-    );
+const preco = Number(
+  variacaoSelecionada?.item?.preco ??
+  variacaoSelecionada?.preco ??
+  0
+);
     if (Number.isNaN(preco) || preco <= 0) {
       throw new Error('Preço do produto inválido');
     }
@@ -160,11 +162,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!imageUrl) {
-      imageUrl = getPublicImageUrl(
-        produto.image || produto.image1 || produto.image2 || produto.image3 || produto.image4 || produto.image5 || produto.image6 || produto.imagem_detalhe
-      );
-    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

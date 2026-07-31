@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/src/components/layout/Admin";
 import { supabase } from "@/supabaseClient";
-import { buscarPedidosUsuario } from "@/src/services/pedido/pedido";
+
 
 export default function Pedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -14,25 +14,28 @@ export default function Pedido() {
       setCarregando(true);
 
       const { data, error } = await supabase
-        .from("pedido")
-        .select(`
-          *,
-          pedidoItem (
-            quantidade,
-            produto (
-              id,
-              nome,
-              preco,
-              produto_imagem (
-                caminho,
-                principal,
-                ordem
-              )
+      .from("pedido")
+      .select(`
+        *,
+        pedidoItem (
+          quantidade,
+          preco_unitario,
+          subtotal,
+          id_variacao,
+
+          produto (
+            id,
+            nome,
+            preco,
+            produto_imagem (
+              caminho,
+              principal,
+              ordem
             )
           )
-        `)
+        )
+      `)
         .order("created_at", { ascending: false });
-
       if (error) {
         console.error(error);
         setPedidos([]);
@@ -121,8 +124,11 @@ export default function Pedido() {
                       </div>
 
                       <p className="text-sm font-semibold text-slate-900">
-                        R$ {Number(item.produto?.preco ?? 0).toFixed(2)}
-                      </p>
+                      {Number(item.preco_unitario).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </p>
                     </div>
                   ))}
                 </div>

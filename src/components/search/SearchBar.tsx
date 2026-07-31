@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/src/lib/utils"
 import { useSearch } from "@/src/hooks/useSearch"
 import { Input } from "@/src/components/ui/input"
 

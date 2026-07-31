@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import { criarCheckoutCarrinho } from "@/src/services/pedido/checkout";
 import { supabase } from "@/supabaseClient";
+
 export async function POST(request: Request) {
-  const { userId, selectedItemIds } = await request.json();
+  const { userId, enderecoId, selectedItemIds } = await request.json();
 
   if (!userId) {
     return NextResponse.json(
       { error: "UserId não enviado" },
+      { status: 400 }
+    );
+  }
+
+  if (!enderecoId) {
+    return NextResponse.json(
+      { error: "EnderecoId não enviado" },
       { status: 400 }
     );
   }
@@ -20,6 +28,7 @@ export async function POST(request: Request) {
 
   const session = await criarCheckoutCarrinho(
     userId,
+    enderecoId,
     selectedItemIds
   );
 

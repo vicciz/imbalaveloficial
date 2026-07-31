@@ -2,13 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { buscarEndereco } from "@/src/services/usuario/enderecos";
 
-//Rode no terminal stripe listen --forward-to localhost:3000/api/webhooks/stripe/
+//Rode no terminal  stripe listen --forward-to localhost:3000/stripe/webhooks/stripe/
 import {
   buscarCarrinho,
   calcularTotal,
   limparCarrinho,
 } from "@/src/services/carrinho/cart";
-
 import {
   criarPedido,
   adicionarItemPedido,
@@ -153,13 +152,20 @@ export async function POST(
         // =====================
 
         for (const item of itens) {
-          await adicionarItemPedido(
-            pedido.id,
-            item.id_produto,
-            Number(
-              item.quantidade
-            )
+          const precoUnitario =
+          Number(
+            item.variacao?.produto_variacao_item?.[0]?.preco ??
+            Number(item.subtotal)??
+            0
           );
+
+        await adicionarItemPedido(
+          pedido.id,
+          item.id_produto,
+          Number(item.quantidade),
+          precoUnitario,
+          item.id_variacao
+        );
         }
 
         console.log(

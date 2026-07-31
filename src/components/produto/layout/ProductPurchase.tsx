@@ -213,6 +213,15 @@ export default function ProductPurchase({
         data: { user },
       } = await supabase.auth.getUser();
 
+      console.log("VARIAÇÃO SELECIONADA:");
+      console.log(variacao?.variacaoSelecionada);
+
+      console.log("ITEM:");
+      console.log(variacao?.variacaoSelecionada?.item);
+
+      console.log("PREÇO:");
+      console.log(variacao?.variacaoSelecionada?.item?.preco);
+      
       const response = await fetch(
         "/stripe/checkout",
         {

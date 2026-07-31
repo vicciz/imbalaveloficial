@@ -9,7 +9,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Inter, Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { cn } from "@/src/lib/utils";
 import { Toaster } from "sonner";
 import NavigationTracker from "@/src/navigation/NavigationTracker";
 
