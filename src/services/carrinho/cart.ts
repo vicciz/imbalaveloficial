@@ -1,5 +1,4 @@
 import { supabase } from "../../../supabaseClient";
-
 type CarrinhoBase = {
   id: number;
   id_user: string;
@@ -13,7 +12,6 @@ type RemoverCarrinhoArgs = {
   productId: number;
   idVariacao?: number | null;
 };
-
 function normalizarQuantidade(qtd: number) {
   return Math.max(1, Math.min(Number(qtd) || 1, 30));
 }
@@ -187,21 +185,28 @@ export async function buscarCarrinho(
     return { data: itensBase, error: null };
   }
 
-  const selectVariacoes = `
-      id,
-      sku,
-      preco,
-      estoque,
-      produto_variacao_item (
-        id_valor,
-        variacao_valor (
-          valor,
-          variacao_tipo (
-            nome
-          )
-        )
+ const selectVariacoes = `
+  id,
+
+  produto_variacao_item (
+    id,
+    sku,
+    preco,
+    estoque,
+    ativo,
+    imagem_principal,
+
+    id_valor,
+
+    variacao_valor (
+      valor,
+
+      variacao_tipo (
+        nome
       )
-    `;
+    )
+  )
+`;
 
   console.log("QUERY BUSCAR CARRINHO #2", {
     from: "produto_variacao",
@@ -278,8 +283,10 @@ export function calcularTotal(itens: any[]) {
   return itens.reduce(
     (acc, item) =>
       acc +
-      Number(item.variacao?.preco ?? item.produto.preco) *
-        Number(item.quantidade),
+      Number(
+        item?.variacao?.produto_variacao_item?.[0]?.preco ?? 0
+      ) *
+      Number(item.quantidade),
     0
   );
 }

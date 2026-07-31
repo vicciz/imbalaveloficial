@@ -4,11 +4,27 @@ import type {
   EspecificacaoImportacao,
 } from "./types";
 
-
 export async function importarEspecificacaoProduto(
   idProduto: number,
-  item: EspecificacaoImportacao
-) {
+  item: EspecificacaoImportacao,
+  tiposVariacao: Set<string>
+): Promise<boolean> {
+
+  const nome =
+    item.nome
+      .trim()
+      .toLowerCase();
+
+  // Não importa especificações que são tipos de variação
+  if (tiposVariacao.has(nome)) {
+
+    console.warn(
+      `Especificação "${item.nome}" ignorada porque é um tipo de variação.`
+    );
+
+    return false;
+
+  }
 
   const {
     error,
@@ -32,15 +48,16 @@ export async function importarEspecificacaoProduto(
           item.valor,
 
         ordem:
-          0,
+          item.ordem ?? 0,
 
       });
-
 
   if (error) {
 
     throw error;
 
   }
+
+  return true;
 
 }

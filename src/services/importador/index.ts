@@ -22,6 +22,8 @@ import {
   importarVariacaoProduto,
 } from "./variacao";
 
+import { limparProdutoImportado } from "./limparProdutoImportado";
+
 export async function importarCatalogo(
   arquivo: File,
   onProgress?: (
@@ -35,7 +37,6 @@ export async function importarCatalogo(
 
   let imagensZip =
     new Map<string, Blob>();
-
 
   if (
     arquivo.name
@@ -51,7 +52,7 @@ export async function importarCatalogo(
       await lerZip(
         arquivo
       );
-    
+
     console.log(
       "Quantidade de imagens no ZIP:",
       zip.imagens.size
@@ -64,7 +65,6 @@ export async function importarCatalogo(
       zip.imagens;
 
   }
-
 
   const {
 
@@ -80,19 +80,15 @@ export async function importarCatalogo(
     await lerExcel(
       excel
     );
-  
+
   console.log("=== IMAGENS LIDAS DO EXCEL ===");
-  console.table(imagens);
   console.table(imagens);
 
   console.group("=== IMPORTAÇÃO ===");
 
   console.log("Produtos:", produtos);
-
   console.log("Imagens:", imagens);
-
   console.log("Especificações:", especificacoes);
-
   console.log("Variações:", variacoes);
 
   console.groupEnd();
@@ -121,82 +117,67 @@ export async function importarCatalogo(
     of produtos
   ) {
 
-    
-
     try {
+
       console.log(
-      "Importando produto:",
-      produto.nome
-    );
+        "Importando produto:",
+        produto.nome
+      );
 
       const idProduto =
         await criarProdutoImportado(
           produto
         );
+      
+      await limparProdutoImportado(idProduto);
 
       resultado.produtos++;
       atual++;
 
-        onProgress?.(
-          atual,
-          total,
-          produto.nome
-        );
+      onProgress?.(
+        atual,
+        total,
+        produto.nome
+      );
 
+      // ===========================
+      // IMAGENS
+      // ===========================
 
       const imagensProduto =
-  imagens.filter(
-    (imagem) =>
-      imagem.produto
-        .trim()
-        .toLowerCase() ===
-      produto.nome
-        .trim()
-        .toLowerCase()
+        imagens.filter(
+          (imagem) =>
+            imagem.produto
+              .trim()
+              .toLowerCase() ===
+            produto.nome
+              .trim()
+              .toLowerCase()
         );
+
       console.log(
         "Imagens encontradas:",
         imagensProduto
-      );  
+      );
 
-
-      // Só importa imagens se o arquivo enviado for um ZIP
       if (
         imagensZip.size > 0
       ) {
-      console.log(
-        "Quantidade de imagens:",
-        imagensProduto.length
-      );
+
+        console.log(
+          "Quantidade de imagens:",
+          imagensProduto.length
+        );
+
         for (
-          
           const imagem
           of imagensProduto
         ) {
-          console.log(
-            "Imagem:",
-            imagem
-          );
-          console.log(
-            "Procurando:",
-            imagem.arquivo
-          );
 
-          console.log(
-            "Existe no ZIP?",
-            imagensZip.has(
-              imagem.arquivo
-            )
-          );
           const blob =
             imagensZip.get(
               imagem.arquivo
             );
-          
-          console.log(
-            "Blob encontrado?",
-            !!blob
-          );
 
           if (!blob) {
 
@@ -209,57 +190,26 @@ export async function importarCatalogo(
             continue;
 
           }
-          console.log(
-            "Enviando para Storage..."
-          );
+
           await importarImagemProduto(
 
             idProduto,
 
             imagem,
+
             blob
-            
 
           );
 
           resultado.imagens++;
 
         }
-        console.log(
-          "Upload concluído."
-        );
 
       }
 
-
-const especificacoesProduto =
-  especificacoes.filter(
-    (item) =>
-      item.produto
-        .trim()
-        .toLowerCase() ===
-      produto.nome
-        .trim()
-        .toLowerCase()
-  );
-
-      for (
-        const especificacao
-        of especificacoesProduto
-      ) {
-
-        await importarEspecificacaoProduto(
-
-          idProduto,
-
-          especificacao
-
-        );
-
-        resultado.especificacoes++;
-
-      }
-
+      // ===========================
+      // VARIAÇÕES
+      // ===========================
 
       const variacoesProduto =
         variacoes.filter(
@@ -272,11 +222,21 @@ const especificacoesProduto =
               .toLowerCase()
         );
 
+      const tiposVariacao =
+        new Set<string>();
 
       for (
         const variacao
         of variacoesProduto
       ) {
+
+        tiposVariacao.add(
+
+          variacao.tipo
+            .trim()
+            .toLowerCase()
+
+        );
 
         await importarVariacaoProduto(
 
@@ -287,6 +247,45 @@ const especificacoesProduto =
         );
 
         resultado.variacoes++;
+
+      }
+
+      // ===========================
+      // ESPECIFICAÇÕES
+      // ===========================
+
+      const especificacoesProduto =
+        especificacoes.filter(
+          (item) =>
+            item.produto
+              .trim()
+              .toLowerCase() ===
+            produto.nome
+              .trim()
+              .toLowerCase()
+        );
+
+      for (
+        const especificacao
+        of especificacoesProduto
+      ) {
+
+        const importada =
+          await importarEspecificacaoProduto(
+
+            idProduto,
+
+            especificacao,
+
+            tiposVariacao
+
+          );
+
+        if (importada) {
+
+          resultado.especificacoes++;
+
+        }
 
       }
 
@@ -311,9 +310,9 @@ const especificacoesProduto =
     }
 
     console.log(
-        "Resultado:",
-        resultado
-      );
+      "Resultado:",
+      resultado
+    );
 
   }
 

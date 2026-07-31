@@ -1,5 +1,5 @@
 // services/produtos.ts – wrapper around Supabase table `produtos`
-import { supabase } from '../../supabaseClient';
+import { supabase } from "../../../supabaseClient";
 
 export interface ProdutoImagem {
   id?: number;
@@ -44,17 +44,22 @@ function ensureSupabase() {
 
 function normalizeProduto(produto: any): Produto {
   const imagens =
-  (produto.produto_imagem ?? [])
-    .sort(
-      (a: ProdutoImagem, b: ProdutoImagem) =>
-        a.ordem - b.ordem
-    );
+    (produto.produto_imagem ?? [])
+      .sort((a: ProdutoImagem, b: ProdutoImagem) => a.ordem - b.ordem);
 
   const imagemPrincipal =
     imagens.find((img: any) => img.principal) ?? imagens[0];
 
+  const primeiroItem =
+    produto.produto_variacao
+      ?.flatMap((v: any) => v.produto_variacao_item ?? [])
+      ?.find((i: any) => i.ativo);
+
   return {
     ...produto,
+
+    preco: primeiroItem?.preco ?? 0,
+    estoque: primeiroItem?.estoque ?? 0,
 
     image: imagemPrincipal
       ? supabase.storage
@@ -87,41 +92,28 @@ function normalizeError(error: any) {
 /**
  * List all products, optionally filtering by categoria and/or tipo_cosmetico
  */
-export async function listarProdutos(
-  categoria?: string,
-  tipo?: string,
-  incluirOcultos: boolean = false
-): Promise<{ data: Produto[] | null; error: any }> {
+export async function listarProdutos() {
   const client = ensureSupabase();
-  let query = client.from('produto')
-.select(`
-  *,
-  categorias(nome),
-  produto_imagem(
-    id,
-    id_produto,
-    id_variacao,
-    id_valor,
-    caminho,
-    ordem,
-    principal
-)
-`)
 
-  if (categoria && categoria !== 'Todos') {
-    query = query.eq('categorias.nome', categoria);
-  }
-  // tipo_cosmetico not present in current table schema
+  const { data, error } = await client
+    .from("produto")
+    .select(`
+      id,
+      nome,
+      produto_variacao(
+        id,
+        produto_variacao_item(
+          id,
+          preco,
+          estoque
+        )
+      )
+    `);
 
-  if (!incluirOcultos) {
-    query = query.or('oculto.is.null,oculto.eq.false');
-  }
+  console.log("ERRO:", error);
+  console.log("DADOS:", data);
 
-  const { data, error } = await query;
-  return {
-    data: data ? data.map((p: any) => normalizeProduto(p)) : null,
-    error,
-  };
+  return { data: null, error };
 }
 
 export async function buscarProduto(

@@ -76,7 +76,7 @@ export default function SearchProducts({
               </div>
 
               <div className="shrink-0 text-sm font-semibold text-[#5B3EEA]">
-                {formatCurrency(item.preco)}
+                {formatCurrency(item.preco.preco)}
               </div>
             </button>
           )

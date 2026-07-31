@@ -41,7 +41,15 @@ export async function importarImagemProduto(
         {
           upsert: true,
         }
-      );
+    );
+  
+  const { data: valor } = await supabase
+  .from("variacao_valor")
+  .select("id")
+  .ilike("valor", imagem.valor.trim())
+  .maybeSingle();
+
+const idValor = valor?.id ?? null;
 
   console.log("Resposta upload:");
   console.log(resultadoUpload);
@@ -76,8 +84,10 @@ console.log({
         principal: imagem.principal,
 
         ordem: imagem.ordem,
+        id_valor: idValor,
 
       });
+  
 
   console.log("Resposta banco:");
   console.log(resultadoBanco);

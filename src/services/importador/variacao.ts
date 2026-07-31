@@ -160,33 +160,23 @@ export async function importarVariacaoProduto(
 
 
 
-  const {
-    data: variacao,
-    error,
-  } =
-    await supabase
+const {
+  data: variacao,
+  error,
+} =
+await supabase
 
-      .from("produto_variacao")
+  .from("produto_variacao")
 
-      .insert({
+  .insert({
 
-        id_produto:
-          idProduto,
+    id_produto: idProduto,
 
-        preco:
-          item.preco,
+  })
 
-        estoque:
-          item.estoque,
+  .select("id")
 
-        ativo:
-          true,
-
-      })
-
-      .select("id")
-
-      .single();
+  .single();
 
 
   if (error) {
@@ -202,19 +192,19 @@ export async function importarVariacaoProduto(
     error: erroItem,
 
   } =
-    await supabase
+await supabase
+  .from("produto_variacao_item")
+  .insert({
+    id_variacao: variacao.id,
+    id_valor: idValor,
 
-      .from("produto_variacao_item")
+    preco: item.preco,
+    estoque: item.estoque,
 
-      .insert({
-
-        id_variacao:
-          variacao.id,
-
-        id_valor:
-          idValor,
-
-      });
+    sku: item.sku ?? null,
+    ativo: true,
+    imagem_principal: item.imagem_principal ?? null,
+  });
 
   if (erroItem) {
 

@@ -12,10 +12,6 @@ export interface ProdutoImportacao {
 
   fornecedor: string;
 
-  preco: number;
-
-  estoque: number;
-
   destaque: boolean;
 
   oculto?: boolean;
@@ -25,15 +21,11 @@ export interface ProdutoImportacao {
 }
 
 export interface ImagemImportacao {
-
   produto: string;
-
+  valor: string; // NOVO
   arquivo: string;
-
-  principal: boolean;
-
   ordem: number;
-
+  principal: boolean;
 }
 
 export interface EspecificacaoImportacao {
@@ -61,5 +53,9 @@ export interface VariacaoImportacao {
   preco: number;
 
   estoque: number;
+
+  sku?: string;
+
+  imagem_principal?: string;
 
 }

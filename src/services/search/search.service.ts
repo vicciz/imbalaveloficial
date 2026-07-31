@@ -111,7 +111,7 @@ function normalizeProduct(product: SearchProdutoRow): SearchProduct {
   return {
     id: product.id,
     nome: product.nome,
-    preco: normalizePrice(product.preco),
+    preco: normalizePrice(productproduto.preco),
     image: getProductImage(product.produto_imagem),
     marca: product.fornecedor?.trim() || null,
     categoria,

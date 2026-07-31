@@ -36,18 +36,16 @@ export default function ProductPurchase({
   const { goCart } = useNavigation();
   const [itensCarrinho, setItensCarrinho] =
     useState<any[]>([]);
+  
   const [carregandoCarrinho, setCarregandoCarrinho] =
     useState(false);
   const [quantidade, setQuantidade] =
     useState(1);
   const [comprando, setComprando] =
     useState(false);
-
+  
   const estoque =
-    variacao?.variacaoSelecionada
-      ?.estoque ??
-    produto.estoque ??
-    0;
+    variacao?.variacaoSelecionada?.estoque ?? 0;
 
   const disponivel =
     estoque > 0;
@@ -91,7 +89,9 @@ export default function ProductPurchase({
 
   function getPrecoUnitario(item: any) {
     return Number(
-      item?.variacao?.preco ?? item?.produto?.preco ?? 0
+      item?.variacao?.produto_variacao_item?.[0]?.preco ??
+      item?.produto?.preco ??
+      0
     );
   }
 
@@ -278,16 +278,15 @@ export default function ProductPurchase({
         return;
       }
 
-      const idVariacao =
-        variacao?.variacaoSelecionada?.id ?? null;
+     const idItemVariacao =
+       variacao?.variacaoSelecionada?.item?.id ?? null;
 
-      await adicionarAoCarrinho(
-        produto.id,
-        user.id,
-        quantidade,
-        idVariacao
-      );
-
+        await adicionarAoCarrinho(
+            produto.id,
+            user.id,
+            quantidade,
+            idItemVariacao
+        );
       const detalhes = [
         getAtributoSelecionado("cor"),
         getAtributoSelecionado("modelo"),

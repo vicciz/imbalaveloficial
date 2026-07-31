@@ -7,12 +7,14 @@ import {
   CardTitle,
 } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
-import GaleriaVariacao from "./GaleriaVariacao";
-
-import { CardVariacaoProps } from "./types";
-import { useState } from "react";
-import { salvarVariacao } from "@/src/components/produto/types/variacoes";
 import { Button } from "../../ui/button";
+import { useState } from "react";
+
+import GaleriaVariacao from "./GaleriaVariacao";
+import { CardVariacaoProps } from "./types";
+
+import { salvarItemVariacao } from "@/src/components/produto/types/variacoes";
+
 export default function CardVariacao({
   produto,
   variacao,
@@ -20,121 +22,111 @@ export default function CardVariacao({
   setImagens,
   abrirCropper,
 }: CardVariacaoProps) {
+  const atributos = variacao.produto_variacao_item
+    .map((item) => item.variacao_valor.valor)
+    .join(" / ");
 
-  const atributos =
-    variacao.produto_variacao_item
-      .map(
-        item =>
-          item.variacao_valor.valor
-      )
-      .join(" / ");
+  const idCor = variacao.produto_variacao_item.find(
+    (item) =>
+      item.variacao_valor.variacao_tipo.nome.toLowerCase() ===
+      "cor"
+  )?.variacao_valor.id;
 
-  const idCor =
-    variacao.produto_variacao_item.find(
-      item =>
-        item.variacao_valor
-          .variacao_tipo.nome
-          .toLowerCase() === "cor"
-    )?.variacao_valor.id;
-  
-  const [preco, setPreco] = useState(variacao.preco ?? 0);
-  const [estoque, setEstoque] = useState(variacao.estoque);
-  const [sku, setSku] = useState(variacao.sku ?? "");
+  // Cada produto_variacao possui um item comercial
+  const item = variacao.produto_variacao_item[0];
+
+  const [preco, setPreco] = useState(item?.preco ?? 0);
+  const [estoque, setEstoque] = useState(item?.estoque ?? 0);
+  const [sku, setSku] = useState(item?.sku ?? "");
+
+  async function salvar() {
+    if (!item) return;
+
+    await salvarItemVariacao(item.id, {
+      preco,
+      estoque,
+      sku,
+      ativo: item.ativo,
+      imagem_principal: item.imagem_principal,
+    });
+  }
+
   return (
-
     <Card>
-
       <CardHeader>
-
-        <CardTitle>
-
-          {atributos}
-
-        </CardTitle>
-
+        <CardTitle>{atributos}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-6">
+        <div className="grid md:grid-cols-3 gap-6">
+          <div>
+            <label className="text-sm font-medium">
+              Preço
+            </label>
 
-      <div className="grid md:grid-cols-3 gap-6">
+            <Input
+              type="number"
+              value={preco}
+              onChange={(e) =>
+                setPreco(Number(e.target.value))
+              }
+            />
+          </div>
 
-        <div>
+          <div>
+            <label className="text-sm font-medium">
+              Estoque
+            </label>
 
-          <label className="text-sm font-medium">
-            Preço
-          </label>
+            <Input
+              type="number"
+              value={estoque}
+              onChange={(e) =>
+                setEstoque(Number(e.target.value))
+              }
+            />
+          </div>
 
-          <Input
-            value={preco}
-            onChange={(e) =>
-              setPreco(Number(e.target.value))
-            }
-          />
-        </div>
+          <div>
+            <label className="text-sm font-medium">
+              SKU
+            </label>
 
-        <div>
+            <Input
+              value={sku}
+              onChange={(e) =>
+                setSku(e.target.value)
+              }
+            />
 
-          <label className="text-sm font-medium">
-            Estoque
-          </label>
-
-          <Input
-            value={estoque}
-            onChange={(e) =>
-              setEstoque(Number(e.target.value))
-            }
-          />
-        </div>
-
-        <div>
-
-          <label className="text-sm font-medium">
-            SKU
-          </label>
-
-          <Input
-            value={sku}
-            onChange={(e) =>
-              setSku(e.target.value)
-            }
-          />
-          <Button
-            onClick={async () => {
-              await salvarVariacao(variacao.id, {
-                preco,
-                estoque,
-                sku,
-                ativo: variacao.ativo,
-              });
-            }}
-          >
-            Salvar
+            <Button
+              className="mt-3"
+              onClick={salvar}
+            >
+              Salvar
             </Button>
-            <p className="text-sm text-muted-foreground">
-              {imagens.filter(img => img.idValor === idCor).length}
-              {" "}
+
+            <p className="text-sm text-muted-foreground mt-2">
+              {
+                imagens.filter(
+                  (img) => img.idValor === idCor
+                ).length
+              }{" "}
               imagens cadastradas
             </p>
+          </div>
         </div>
 
-      </div>
-
-      <GaleriaVariacao
-        titulo={atributos}
-        imagens={
-          imagens.filter(
-            img => img.idValor === idCor
-          )
-        }
-        setImagens={setImagens}
-        abrirCropper={abrirCropper}
-        idValor={idCor!}
-      />
-
+        <GaleriaVariacao
+          titulo={atributos}
+          imagens={imagens.filter(
+            (img) => img.idValor === idCor
+          )}
+          setImagens={setImagens}
+          abrirCropper={abrirCropper}
+          idValor={idCor!}
+        />
       </CardContent>
-
     </Card>
-
   );
-
 }

@@ -28,10 +28,8 @@ export default function ProductInfo({
   variacao,
 }: Props) {
 
-  const preco =
-    variacao?.variacaoSelecionada?.preco ??
-    produto.preco;
-
+const preco =
+  variacao?.variacaoSelecionada?.preco ?? 0;
   // Fallback enquanto o produto ainda não possui avaliações reais
   const rating = produto.rating ?? 5;
   const reviews = produto.reviews ?? 1;

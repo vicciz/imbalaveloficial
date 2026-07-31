@@ -4,12 +4,7 @@ export default function HeaderNavigation() {
   return (
     <nav className="border-t border-white/10">
       <div className="max-w-7xl mx-auto px-6 flex items-center gap-6 h-9">
-        <Link
-          href="/produtos"
-          className="text-white text-sm font-medium opacity-90 hover:opacity-100 transition-opacity"
-        >
-          Produtos
-        </Link>
+        
 
         <Link
           href="/pedidos"

@@ -1,26 +1,37 @@
-// services/produto/produtos.ts – wrapper around Supabase table `produtos`
-import { supabase } from '../../../../supabaseClient';
-import { listarProdutosColecao }
-from "@/src/services/colecao/colecao";
+// services/produto/produtos.ts
+
+import { supabase } from "../../../../supabaseClient";
+import { listarProdutosColecao } from "@/src/services/colecao/colecao";
 
 export interface ProdutoImagem {
   id?: number;
-  id_produto: number
+  id_produto: number;
   id_variacao: number | null;
+  id_valor: number | null;
   caminho: string;
   ordem: number;
   principal: boolean;
-  id_valor: number | null;
 }
 
 export interface ProdutoVariacaoItem {
   id: number;
 
-  variacao_valor: {
+  id_variacao: number;
+  id_valor: number;
+
+  preco: number;
+  estoque: number;
+
+  sku: string | null;
+  ativo: boolean;
+
+  imagem_principal?: string | null;
+
+  variacao_valor?: {
     id: number;
     valor: string;
 
-    variacao_tipo: {
+    variacao_tipo?: {
       id: number;
       nome: string;
     };
@@ -32,48 +43,46 @@ export interface ProdutoVariacao {
 
   id_produto: number;
 
-  sku: string | null;
-
-  preco: number | null;
-
-  estoque: number;
-
-  ativo: boolean;
-
   produto_variacao_item: ProdutoVariacaoItem[];
 }
 
 export interface Produto {
   id: number;
+
   nome: string;
-  preco: string | number;
+
+  preco: number | null;
+
+  estoque?: number | null;
 
   link?: string | null;
+
   rating?: number | null;
+
   reviews?: number | null;
 
   descricao?: string | null;
+
   detalhes?: string | null;
 
   fornecedor?: string | null;
+
   oculto?: boolean | null;
+
   destaque?: boolean | null;
-  estoque?: number | null;
 
   categoria_id?: number | null;
-  categorias?: { nome: string } | null;
+
+  categorias?: {
+    nome: string;
+  } | null;
 
   produto_imagem?: ProdutoImagem[];
 
-  // ADICIONE ESTA LINHA
   produto_variacao?: ProdutoVariacao[];
 
   image?: string;
 }
-
-
-
-
 function ensureSupabase() {
   if (!supabase) {
     throw new Error('Supabase client not initialized');
@@ -83,22 +92,52 @@ function ensureSupabase() {
 
 function normalizeProduto(produto: any): Produto {
   const imagens =
-  (produto.produto_imagem ?? [])
-    .sort(
-      (a: ProdutoImagem, b: ProdutoImagem) =>
-        a.ordem - b.ordem
-    );
+    (produto.produto_imagem ?? [])
+      .sort(
+        (a: ProdutoImagem, b: ProdutoImagem) =>
+          a.ordem - b.ordem
+      );
 
   const imagemPrincipal =
-    imagens.find((img: any) => img.principal) ?? imagens[0];
+    imagens.find((img) => img.principal) ?? imagens[0];
+
+  const itens =
+    (produto.produto_variacao ?? [])
+      .flatMap(
+        (variacao: ProdutoVariacao) =>
+          variacao.produto_variacao_item ?? []
+      )
+      .filter(
+        (item: ProdutoVariacaoItem) =>
+          item.ativo
+      );
+
+  const menorPreco =
+    itens.length > 0
+      ? Math.min(
+          ...itens.map((item) => Number(item.preco))
+        )
+      : null;
+
+  const estoqueTotal =
+    itens.reduce(
+      (total, item) =>
+        total + Number(item.estoque ?? 0),
+      0
+    );
 
   return {
     ...produto,
 
+    preco: menorPreco,
+
+    estoque: estoqueTotal,
+
     image: imagemPrincipal
       ? supabase.storage
           .from("produtos")
-          .getPublicUrl(imagemPrincipal.caminho).data.publicUrl
+          .getPublicUrl(imagemPrincipal.caminho)
+          .data.publicUrl
       : "",
 
     produto_imagem: imagens,
@@ -122,44 +161,67 @@ function normalizeError(error: any) {
   };
 }
 
-
-/**
- * List all products, optionally filtering by categoria and/or tipo_cosmetico
- */
 export async function listarProdutos(
   categoria?: string,
   tipo?: string,
   incluirOcultos: boolean = false
-): Promise<{ data: Produto[] | null; error: any }> {
+): Promise<{
+  data: Produto[] | null;
+  error: any;
+}> {
   const client = ensureSupabase();
-  let query = client.from('produto')
-.select(`
-  *,
-  categorias(nome),
-  produto_imagem(
-    id,
-    id_produto,
-    id_variacao,
-    id_valor,
-    caminho,
-    ordem,
-    principal
-)
-`)
 
-  if (categoria && categoria !== 'Todos') {
-    query = query.eq('categorias.nome', categoria);
+  let query = client
+    .from("produto")
+    .select(`
+      *,
+      categorias(nome),
+
+      produto_imagem(
+        id,
+        id_produto,
+        id_variacao,
+        id_valor,
+        caminho,
+        ordem,
+        principal
+      ),
+
+      produto_variacao(
+        id,
+        id_produto,
+
+        produto_variacao_item(
+          id,
+          id_variacao,
+          id_valor,
+          preco,
+          estoque,
+          sku,
+          ativo,
+          imagem_principal
+        )
+      )
+    `);
+
+  if (categoria && categoria !== "Todos") {
+    query = query.eq("categorias.nome", categoria);
   }
-  // tipo_cosmetico not present in current table schema
 
   if (!incluirOcultos) {
-    query = query.or('oculto.is.null,oculto.eq.false');
+    query = query.or("oculto.is.null,oculto.eq.false");
   }
 
   const { data, error } = await query;
+
   return {
-    data: data ? data.map((p: any) => normalizeProduto(p)) : null,
-    error,
+    data: data
+      ? data.map((produto: any) =>
+          normalizeProduto(produto)
+        )
+      : null,
+
+    error: normalizeError(error),
   };
 }
 
@@ -177,15 +239,23 @@ export async function buscarProduto(
   .select(`
     *,
     categorias(nome),
+
     produto_imagem(
-    id,
-    id_produto,
-    id_variacao,
-    id_valor,
-    caminho,
-    ordem,
-    principal
-)
+      id,
+      id_produto,
+      id_variacao,
+      id_valor,
+      caminho,
+      ordem,
+      principal
+    ),
+
+    produto_variacao(
+      *,
+      produto_variacao_item(
+        *
+      )
+    )
   `)
   .ilike("nome", `%${String(texto)}%`)
   .maybeSingle();
@@ -195,10 +265,7 @@ export async function buscarProduto(
     error: normalizeError(error),
   };
 }
-/**
- * Create or update product record. Images should already be uploaded to
- * Supabase Storage; pass the public path in the object.
- */
+
 export async function cadastrarProduto(
   produto: Partial<Produto>
 ): Promise<{ data: Produto | null; error: any }> {
@@ -305,9 +372,10 @@ export async function listarProdutosOcultos() {
   return await client
   .from("produto")
   .select(`
-    *,
-    categorias(nome),
-    produto_imagem(
+  *,
+  categorias(nome),
+
+  produto_imagem(
     id,
     id_produto,
     id_variacao,
@@ -315,8 +383,15 @@ export async function listarProdutosOcultos() {
     caminho,
     ordem,
     principal
-)
-  `)
+  ),
+
+  produto_variacao(
+    *,
+    produto_variacao_item(
+      *
+    )
+  )
+`)
   .eq("oculto", true);
 }
 
@@ -329,9 +404,10 @@ export async function listarProdutosOrdenados(
   return await client
   .from("produto")
   .select(`
-    *,
-    categorias(nome),
-    produto_imagem(
+  *,
+  categorias(nome),
+
+  produto_imagem(
     id,
     id_produto,
     id_variacao,
@@ -339,8 +415,15 @@ export async function listarProdutosOrdenados(
     caminho,
     ordem,
     principal
-)
-  `)
+  ),
+
+  produto_variacao(
+    *,
+    produto_variacao_item(
+      *
+    )
+  )
+`)
   .order(campo, {
     ascending: asc,
   });
@@ -401,7 +484,6 @@ export async function buscarProdutosPorIds(
   data: Produto[] | null;
   error: any;
 }> {
-
   if (ids.length === 0) {
     return {
       data: [],
@@ -416,6 +498,7 @@ export async function buscarProdutosPorIds(
     .select(`
       *,
       categorias(nome),
+
       produto_imagem(
         id,
         id_produto,
@@ -424,6 +507,22 @@ export async function buscarProdutosPorIds(
         caminho,
         ordem,
         principal
+      ),
+
+      produto_variacao(
+        id,
+        id_produto,
+
+        produto_variacao_item(
+          id,
+          id_variacao,
+          id_valor,
+          preco,
+          estoque,
+          sku,
+          ativo,
+          imagem_principal
+        )
       )
     `)
     .in("id", ids);
@@ -431,17 +530,17 @@ export async function buscarProdutosPorIds(
   return {
     data: data
       ? ids
-          .map(id =>
+          .map((id) =>
             data
-              .map((p: any) => normalizeProduto(p))
-              .find(p => p.id === id)
+              .map((produto: any) => normalizeProduto(produto))
+              .find((produto) => produto.id === id)
           )
           .filter(Boolean) as Produto[]
       : null,
+
     error: normalizeError(error),
   };
 }
-
 export async function listarProdutosCategoria(
   categoriaId: number,
   limite = 6
@@ -449,7 +548,6 @@ export async function listarProdutosCategoria(
   data: Produto[] | null;
   error: any;
 }> {
-
   const client = ensureSupabase();
 
   const { data, error } = await client
@@ -457,6 +555,7 @@ export async function listarProdutosCategoria(
     .select(`
       *,
       categorias(nome),
+
       produto_imagem(
         id,
         id_produto,
@@ -465,13 +564,28 @@ export async function listarProdutosCategoria(
         caminho,
         ordem,
         principal
+      ),
+
+      produto_variacao(
+        id,
+        id_produto,
+
+        produto_variacao_item(
+          id,
+          id_variacao,
+          id_valor,
+          preco,
+          estoque,
+          sku,
+          ativo,
+          imagem_principal
+        )
       )
     `)
     .eq("categoria_id", categoriaId)
     .limit(limite);
 
   return {
-
     data: data
       ? data.map((produto: any) =>
           normalizeProduto(produto)
@@ -479,10 +593,9 @@ export async function listarProdutosCategoria(
       : null,
 
     error: normalizeError(error),
-
   };
-
 }
+
 export async function listarProdutosPorColecao(
   colecaoId: number
 ): Promise<{

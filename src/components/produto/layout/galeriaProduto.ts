@@ -17,8 +17,8 @@ export async function salvarGaleriaProduto({
   idProduto,
   imagens,
 }: SalvarGaleriaProps) {
-  for (let index = 0; index < imagens.length; index++) {
-    const imagem = imagens[index];
+  for (let ordem = 0; ordem < imagens.length; ordem++) {
+    const imagem = imagens[ordem];
 
     // Imagem já existe no banco
     if (imagem.id) {
@@ -69,7 +69,7 @@ export async function salvarGaleriaProduto({
    await adicionarImagem(
     idProduto,
     caminho,
-    index,
+    ordem,
     imagem.principal,
     imagem.idValor ?? null
 );

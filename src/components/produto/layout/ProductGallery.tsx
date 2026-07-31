@@ -13,41 +13,37 @@ export default function ProductGallery({
   produto,
   variacao,
 }: Props) {
+
   // Miniaturas da variação selecionada
-  const imagens = useMemo(() => {
-    const todas = produto.produto_imagem ?? [];
+const imagens = useMemo(() => {
+  const idValor =
+    variacao?.variacaoSelecionada?.item?.id_valor;
 
-    const itemCor =
-      variacao?.variacaoSelecionada?.produto_variacao_item?.find(
-        (item: any) =>
-          item.variacao_valor?.variacao_tipo?.nome === "Cor"
-      );
+  if (idValor != null) {
+    const imagensDaCor =
+      (produto.produto_imagem ?? [])
+        .filter(
+          (img) => img.id_valor === idValor
+        )
+        .sort((a, b) => a.ordem - b.ordem)
+        .map((img) => ({
+          ...img,
+          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/produtos/${img.caminho}`,
+        }));
 
-    const idCor = itemCor?.id_valor;
-
-    let imagensFiltradas = todas;
-
-    if (idCor) {
-      const imagensCor = todas.filter(
-        (img) => img.id_valor === idCor
-      );
-
-      if (imagensCor.length > 0) {
-        imagensFiltradas = imagensCor;
-      } else {
-        imagensFiltradas = todas.filter(
-          (img) => img.id_valor == null
-        );
-      }
+    if (imagensDaCor.length > 0) {
+      return imagensDaCor;
     }
+  }
 
-    return imagensFiltradas
-      .sort((a, b) => a.ordem - b.ordem)
-      .map((img) => ({
-        ...img,
-        url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/produtos/${img.caminho}`,
-      }));
-  }, [produto, variacao]);
+  return (produto.produto_imagem ?? [])
+    .filter((img) => img.id_valor == null)
+    .sort((a, b) => a.ordem - b.ordem)
+    .map((img) => ({
+      ...img,
+      url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/produtos/${img.caminho}`,
+    }));
+}, [produto, variacao]);
 
   // Uma miniatura principal para cada cor
   const miniaturas = useMemo(() => {
@@ -93,7 +89,6 @@ export default function ProductGallery({
             variacao?.variacaoSelecionada?.produto_variacao_item?.some(
               (item: any) => item.id_valor === imagem.id_valor
             );
-
           return (
             <button
               key={imagem.id}

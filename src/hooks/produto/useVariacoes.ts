@@ -11,7 +11,7 @@ import {
   criarTipoVariacao,
   criarValorVariacao,
   excluirValorVariacao,
-  salvarVariacao,
+  salvarItemVariacao,
   editarTipoVariacao,
   excluirTipoVariacao,
   criarVariacaoProduto,
@@ -134,16 +134,23 @@ export function useVariacoes(
   }
 
   async function atualizarVariacao(
-    id: number,
+    idItem: number,
     dados: {
       sku: string;
       preco: number;
       estoque: number;
       ativo: boolean;
+      imagem_principal?: string | null;
     }
   ) {
-    await salvarVariacao(id, dados);
+    await salvarItemVariacao(
+      idItem,
+      dados
+    );
+
+    await carregarTudo();
   }
+
   async function gerarTodasCombinacoes(
     nomeProduto: string
   ) {
@@ -162,10 +169,7 @@ export function useVariacoes(
         )
         .map((tipo: any) => ({
           nome: tipo.nome,
-          valores:
-            tipo.variacao_valor.map(
-              (v: any) => v.valor
-            ),
+          valores: tipo.variacao_valor,
         }));
 
       const combinacoes =
@@ -185,13 +189,7 @@ export function useVariacoes(
           data: variacao,
         } =
           await criarVariacaoProduto(
-            produtoId,
-            gerarSku(
-              nomeProduto,
-              i
-            ),
-            0,
-            0
+            produtoId
           );
 
         if (!variacao) {
@@ -202,20 +200,13 @@ export function useVariacoes(
           const valorSelecionado =
             combinacao[tipo.nome];
 
-          const valor =
-            tipo.variacao_valor.find(
-              (v: any) =>
-                v.valor ===
-                valorSelecionado
-            );
-
-          if (!valor) {
+          if (!valorSelecionado) {
             continue;
           }
 
           await adicionarItemVariacao(
             variacao.id,
-            valor.id
+            valorSelecionado.id
           );
         }
       }
@@ -226,7 +217,7 @@ export function useVariacoes(
     }
   }
 
-    useEffect(() => {
+  useEffect(() => {
     carregarTudo();
   }, [produtoId]);
 

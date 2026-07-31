@@ -111,33 +111,42 @@ export async function listarVariacoesProduto(
   idProduto: number
 ) {
   return await supabase
-    .from("produto_variacao")
-    .select(`
-      *,
-      produto_variacao_item(
-        *,
-        variacao_valor(
-          *,
-          variacao_tipo(*)
+  .from("produto_variacao")
+  .select(`
+    id,
+    id_produto,
+
+    produto_variacao_item(
+      id,
+      id_valor,
+
+      preco,
+      estoque,
+      sku,
+      ativo,
+      imagem_principal,
+
+      variacao_valor(
+        id,
+        valor,
+
+        variacao_tipo(
+          id,
+          nome
         )
       )
-    `)
-    .eq("id_produto", idProduto);
+    )
+  `)
+  .eq("id_produto", idProduto);;
 }
 
 export async function criarVariacaoProduto(
   idProduto: number,
-  sku: string,
-  preco: number,
-  estoque: number
 ) {
   return await supabase
     .from("produto_variacao")
     .insert({
       id_produto: idProduto,
-      sku,
-      preco,
-      estoque,
     })
     .select()
     .single();
@@ -239,6 +248,24 @@ export async function salvarValoresTipo(
     .insert(registros);
 }
 
+export async function salvarItemVariacao(
+  idItem: number,
+  dados: {
+    preco: number;
+    estoque: number;
+    sku?: string;
+    ativo: boolean;
+    imagem_principal?: string | null;
+  }
+) {
+  return await supabase
+    .from("produto_variacao_item")
+    .update(dados)
+    .eq("id", idItem)
+    .select()
+    .single();
+}
+
 export async function excluirVariacoesProduto(
   idProduto: number
 ) {
@@ -246,33 +273,6 @@ export async function excluirVariacoesProduto(
     .from("produto_variacao")
     .delete()
     .eq("id_produto", idProduto);
-}
-
-
-export async function salvarVariacao(
-  id: number,
-  dados: {
-    sku: string;
-    preco: number;
-    estoque: number;
-    ativo: boolean;
-  }
-) {
-  const resposta = await supabase
-    .from("produto_variacao")
-    .update(dados)
-    .eq("id", id)
-    .select()
-    .single();
-
-  console.log(
-    "SALVANDO",
-    id,
-    dados,
-    resposta
-  );
-
-  return resposta;
 }
 
 export async function listarTiposProduto(

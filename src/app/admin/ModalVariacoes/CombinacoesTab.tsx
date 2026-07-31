@@ -115,7 +115,7 @@ await Promise.all(
         dados.map((item) =>
           atualizarVariacao(item.id, {
             sku: item.sku,
-            preco: item.preco,
+            preco: item.preco.preco,
             estoque: item.estoque,
             ativo: item.ativo,
           })

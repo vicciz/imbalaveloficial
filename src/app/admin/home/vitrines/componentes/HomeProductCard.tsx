@@ -88,16 +88,31 @@ className="
     </span>
 
 </div>
-          <span className="text-[34px]
-tracking-tight
-transition-colors
-duration-300
-group-hover:text-violet-700 font-light tracking-tight">
-            {Number(produto.preco).toLocaleString("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            })}
-          </span>
+  <div className="mt-3">
+    <span className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
+      A partir de
+    </span>
+
+    <span
+      className="
+        text-[34px]
+        font-light
+        tracking-tight
+        transition-colors
+        duration-300
+        group-hover:text-violet-700
+      "
+    >
+      {Number(produto.preco).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      })}
+    </span>
+
+    <p className="mt-1 text-xs text-zinc-500">
+      em até 10x sem juros
+    </p>
+  </div>
           <p className="mt-1 text-xs text-zinc-500">
 
     em até 10x sem juros

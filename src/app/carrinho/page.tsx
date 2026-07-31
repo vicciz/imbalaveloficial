@@ -40,11 +40,12 @@ export default function CarrinhoP() {
     );
   }
 
-  function getPrecoUnitario(item: any) {
-    return Number(
-      item?.variacao?.preco ?? item?.produto?.preco ?? 0
-    );
-  }
+function getPrecoUnitario(item: any) {
+  return Number(
+    item?.variacao?.produto_variacao_item?.[0]?.preco ??
+    0
+  );
+}
 
   function formatarCriadoEm(criadoEm?: string) {
     if (!criadoEm) return "-";

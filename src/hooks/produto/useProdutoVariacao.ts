@@ -110,11 +110,37 @@ const { data, error } =
       )
   );
 
-  return encontrada ?? variacoes[0] ?? null;
-}, [
-  variacoes,
-  atributosSelecionados,
-]);
+  const variacao = encontrada ?? variacoes[0];
+
+  if (!variacao) {
+    return null;
+  }
+
+  const itemComercial =
+  variacao.produto_variacao_item.find(
+    (item: any) => item.preco !== undefined
+  );
+
+    return {
+  ...variacao,
+
+  item: itemComercial,
+
+  preco: itemComercial?.preco ?? 0,
+
+  estoque: itemComercial?.estoque ?? 0,
+
+  sku: itemComercial?.sku ?? null,
+
+  ativo: itemComercial?.ativo ?? true,
+
+  imagem_principal:
+    itemComercial?.imagem_principal ?? null,
+};
+    }, [
+      variacoes,
+      atributosSelecionados,
+  ]);
 
   const atributos =
     useMemo(() => {
@@ -166,7 +192,13 @@ const { data, error } =
         })
       );
     }, [variacoes]);
-
+console.log(
+  JSON.stringify(
+    variacaoSelecionada,
+    null,
+    2
+  )
+);
   return {
     loading,
 

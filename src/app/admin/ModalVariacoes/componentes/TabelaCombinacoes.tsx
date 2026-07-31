@@ -104,7 +104,7 @@ export default function TabelaCombinacoes({
         [&::-webkit-inner-spin-button]:appearance-none
         [&::-webkit-outer-spin-button]:appearance-none
       "
-      value={variacao.preco ?? ""}
+      value={variacaoproduto.preco ?? ""}
       onChange={(e) =>
         onAlterar(
           variacao.id,

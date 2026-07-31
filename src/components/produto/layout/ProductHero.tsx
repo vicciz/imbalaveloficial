@@ -51,8 +51,6 @@ export default function ProductHero({ produto }: Props) {
           {/* Descrição */}
           <ProductDescribe produto={produto} />
 
-          {/* Especificações */}
-          <ProductSpecification produto={produto} />
 
           {/* Apresentação */}
           <ProductApresentation produto={produto} />

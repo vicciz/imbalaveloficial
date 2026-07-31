@@ -56,7 +56,7 @@ export default function LinhaVariacao({
 
         <Input
           type="number"
-          value={variacao.preco ?? 0}
+          value={variacaoproduto.preco ?? 0}
           className="w-28 text-center"
           onChange={(e) =>
             onAlterar(

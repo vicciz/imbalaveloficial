@@ -374,7 +374,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
                   <div>
                     <p className="font-medium text-slate-800">{variacao.sku ?? "Sem SKU"}</p>
                     <p className="text-sm text-slate-600">
-                      Preço: R$ {Number(variacao.preco ?? 0).toFixed(2)} • Estoque: {variacao.estoque}
+                      Preço: R$ {Number(variacaoproduto.preco ?? 0).toFixed(2)} • Estoque: {variacao.estoque}
                     </p>
                   </div>
                   <button

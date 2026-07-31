@@ -4,53 +4,118 @@ import type {
   ProdutoImportacao,
 } from "./types";
 
-
 import {
   obterCategoriaId,
 } from "./categoria";
-
 
 import {
   obterMarcaId,
 } from "./marca";
 
-
 import {
   obterFornecedorId,
 } from "./fornecedor";
 
-
 export async function criarProdutoImportado(
   item: ProdutoImportacao
 ) {
-
 
   const categoriaId =
     await obterCategoriaId(
       item.categoria
     );
 
-
   const marcaId =
     await obterMarcaId(
       item.marca
     );
-
 
   const fornecedorId =
     await obterFornecedorId(
       item.fornecedor
     );
 
-const { data: existente } = await supabase
-  .from("produto")
-  .select("id")
-  .eq("nome", item.nome)
-  .maybeSingle();
+  const {
+    data: existente,
+    error: erroBusca,
+  } =
+    await supabase
 
-if (existente) {
-  return existente.id;
-}
+      .from("produto")
+
+      .select("id")
+
+      .eq("nome", item.nome)
+
+      .maybeSingle();
+
+  if (erroBusca) {
+
+    throw erroBusca;
+
+  }
+
+  // ===========================
+  // PRODUTO JÁ EXISTE
+  // ===========================
+
+  if (existente) {
+
+    const { error: erroUpdate } =
+      await supabase
+
+        .from("produto")
+
+        .update({
+
+          descricao:
+            item.descricao,
+
+          detalhes:
+            item.detalhes,
+
+          categoria_id:
+            categoriaId,
+
+          marca_id:
+            marcaId,
+
+          id_fornecedor:
+            fornecedorId,
+
+          fornecedor:
+            item.fornecedor,
+
+          destaque:
+            item.destaque,
+
+          oculto:
+            item.oculto ?? false,
+
+          link:
+            item.link ?? "",
+
+        })
+
+        .eq(
+          "id",
+          existente.id
+        );
+
+    if (erroUpdate) {
+
+      throw erroUpdate;
+
+    }
+
+    return existente.id;
+
+  }
+
+  // ===========================
+  // NOVO PRODUTO
+  // ===========================
+
   const {
     data,
     error,
@@ -59,66 +124,55 @@ if (existente) {
 
       .from("produto")
 
-.insert({
+      .insert({
 
-  nome:
-    item.nome,
+        nome:
+          item.nome,
 
-  descricao:
-    item.descricao,
+        descricao:
+          item.descricao,
 
-  detalhes:
-    item.detalhes,
+        detalhes:
+          item.detalhes,
 
-  preco:
-    item.preco,
+        categoria_id:
+          categoriaId,
 
-  estoque:
-    String(
-      item.estoque
-    ),
+        marca_id:
+          marcaId,
 
-  categoria_id:
-    categoriaId,
+        id_fornecedor:
+          fornecedorId,
 
-  marca_id:
-    marcaId,
+        fornecedor:
+          item.fornecedor,
 
-  id_fornecedor:
-    fornecedorId,
+        destaque:
+          item.destaque,
 
-  fornecedor:
-    item.fornecedor,
+        oculto:
+          item.oculto ?? false,
 
-  destaque:
-    item.destaque,
+        link:
+          item.link ?? "",
 
-  oculto:
-    item.oculto ?? false,
+        rating:
+          0,
 
-  link:
-    item.link ?? "",
+        reviews:
+          0,
 
-  rating:
-    0,
-
-  reviews:
-    0,
-
-})
+      })
 
       .select("id")
 
       .single();
 
+  if (error) {
 
- if (error) {
+    throw error;
 
-  console.error(error);
-
-  throw new Error(error.message);
-
-}
+  }
 
   return data.id;
 
