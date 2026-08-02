@@ -44,12 +44,23 @@ export default function AdminHome() {
               Acessar produtos
             </Link>
           </div>
+        
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold">Categorias</h2>
             <p className="mt-2 text-sm text-zinc-600">Organize produtos por grupos e categorias da loja.</p>
             <Link href="/admin/produtos/categoria" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
               Gerenciar categorias
+            </Link>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">CJ Dropshipping</h2>
+            <p className="mt-2 text-sm text-zinc-600">Importe produtos diretamente do CJ Dropshipping.</p>
+            <Link
+              href="/admin/cjdropshipping"
+              className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline"
+            >
+              Importar do CJ
             </Link>
           </div>
 
@@ -73,7 +84,7 @@ export default function AdminHome() {
             className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline"
           >
             Configurar Home
-          </Link>
+            </Link>
         </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

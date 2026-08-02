@@ -1,0 +1,140 @@
+{
+  "pid": "1366274996376309760",
+  "productName": "[\"USB胎压监测系统\",\"无线胎压检测器安卓导航\",\"胎压无线胎压监测器\"]",
+  "productNameSet": [
+    "USB胎压监测系统",
+    "无线胎压检测器安卓导航",
+    "胎压无线胎压监测器"
+  ],
+  "productNameEn": "Wireless Tire Pressure Monitor Android Navigation Tire Pressure Wireless Tire Pressure Monitor",
+  "productSku": "CJQT1024712",
+  "bigImage": "https://cf.cjdropshipping.com/1614580141596.jpg",
+  "productImage": "[\"https://cf.cjdropshipping.com/1614580141596.jpg\",\"https://cf.cjdropshipping.com/1614580141603.jpg\",\"https://cf.cjdropshipping.com/1614580141600.jpg\",\"https://cf.cjdropshipping.com/1614580141599.jpg\",\"https://cf.cjdropshipping.com/1614580141604.jpg\"]",
+  "productImageSet": [
+    "https://cf.cjdropshipping.com/1614580141599.jpg",
+    "https://cf.cjdropshipping.com/1614580141596.jpg",
+    "https://cf.cjdropshipping.com/1614580141600.jpg",
+    "https://cf.cjdropshipping.com/1614580141603.jpg",
+    "https://cf.cjdropshipping.com/1614580141604.jpg"
+  ],
+  "productWeight": "160.00",
+  "productUnit": null,
+  "productType": "ORDINARY_PRODUCT",
+  "categoryId": "CB255FA6-9B4C-4542-82CC-F774DE8F8C68",
+  "categoryName": "Automobiles & Motorcycles > Auto Replacement Parts > Other Replacement Parts",
+  "entryCode": "9031809090",
+  "entryName": "监测器",
+  "entryNameEn": "Monitor",
+  "materialName": "[\"塑料\"]",
+  "materialNameSet": [
+    "塑料"
+  ],
+  "materialNameEn": "[\"Plastic\"]",
+  "materialNameEnSet": [
+    "Plastic"
+  ],
+  "materialKey": "[\"PLASTIC\"]",
+  "materialKeySet": [
+    "PLASTIC"
+  ],
+  "packingWeight": "180.00",
+  "packingName": "[\"塑料袋\"]",
+  "packingNameSet": [
+    "塑料袋"
+  ],
+  "packingNameEn": "[\"Plastic bags\"]",
+  "packingNameEnSet": [
+    "Plastic bags"
+  ],
+  "packingKey": "[\"PLASTIC_BAG\"]",
+  "packingKeySet": [
+    "PLASTIC_BAG"
+  ],
+  "productKey": "[\"款式\"]",
+  "productKeySet": [
+    "款式"
+  ],
+  "productKeyEn": "style",
+  "productKeyEnSet": [
+    "style"
+  ],
+  "productPro": "[\"内置电池\"]",
+  "productProSet": [
+    "内置电池"
+  ],
+  "productProEn": "[\"BATTERY\"]",
+  "productProEnSet": [
+    "BATTERY"
+  ],
+  "sellPrice": "12.25-14.17",
+  "sourceFrom": 2,
+  "description": "<p><b>Product&nbsp;information</b><br></p><p>Carrying method: portable<br>Applicable models: General<br>Display mode: digital<br>A: Black external<br>B: black built-in<br>Tire pressure gauge type: pressure monitoring system<br>Tire pressure gauge accuracy type: high precision</p><p><b>Packing list</b><br></p><p>Tire pressure monitor&nbsp;set*1</p><p><img src=\"https://cf.cjdropshipping.com/1614580125344.jpg\" style=\"max-width:100%;\"><img src=\"https://cf.cjdropshipping.com/1614580125332.jpg\" style=\"max-width: 100%;\"><img src=\"https://cf.cjdropshipping.com/1614580125334.jpg\" style=\"max-width: 100%;\"><img src=\"https://cf.cjdropshipping.com/1614580125343.jpg\" style=\"max-width: 100%;\"><img src=\"https://cf.cjdropshipping.com/1614580125351.jpg\" style=\"max-width: 100%;\"><img src=\"https://cf.cjdropshipping.com/1614580125347.jpg\" style=\"max-width: 100%;\"><br></p>",
+  "variants": [
+    {
+      "vid": "1366274997747847168",
+      "pid": "1366274996376309760",
+      "variantName": null,
+      "variantNameEn": "Wireless Tire Pressure Monitor Android Navigation Tire Pressure Wireless Tire Pressure Monitor A",
+      "variantImage": "https://cf.cjdropshipping.com/1614580141599.jpg",
+      "variantSku": "CJQT102471201AZ",
+      "barcode": "1598446136764",
+      "barcode2": null,
+      "variantUnit": "个",
+      "variantProperty": "[]",
+      "variantKey": "A",
+      "variantLength": 180,
+      "variantWidth": 160,
+      "variantHeight": 80,
+      "variantVolume": 2304000,
+      "variantWeight": 180,
+      "variantSellPrice": 12.25,
+      "createTime": 1614580318000,
+      "variantStandard": "long=180,width=160,height=80",
+      "variantSugSellPrice": 114.17,
+      "combineNum": null,
+      "inventoryNum": null,
+      "combineVariants": null,
+      "inventories": null
+    },
+    {
+      "vid": "1366274997798178816",
+      "pid": "1366274996376309760",
+      "variantName": null,
+      "variantNameEn": "Wireless Tire Pressure Monitor Android Navigation Tire Pressure Wireless Tire Pressure Monitor B",
+      "variantImage": "https://cf.cjdropshipping.com/1614580141603.jpg",
+      "variantSku": "CJQT102471202BY",
+      "barcode": "1598446136765",
+      "barcode2": null,
+      "variantUnit": "个",
+      "variantProperty": "[]",
+      "variantKey": "B",
+      "variantLength": 180,
+      "variantWidth": 160,
+      "variantHeight": 80,
+      "variantVolume": 2304000,
+      "variantWeight": 180,
+      "variantSellPrice": 14.17,
+      "createTime": 1614580318000,
+      "variantStandard": "long=180,width=160,height=80",
+      "variantSugSellPrice": 132.07,
+      "combineNum": null,
+      "inventoryNum": null,
+      "combineVariants": null,
+      "inventories": null
+    }
+  ],
+  "addMarkStatus": 0,
+  "createrTime": "2021-03-01T06:31:57+08:00",
+  "productVideo": null,
+  "status": "3",
+  "suggestSellPrice": "114.17 - 132.07",
+  "listedNum": 37,
+  "supplierName": null,
+  "supplierId": null,
+  "customizationVersion": null,
+  "customizationJson1": null,
+  "customizationJson2": null,
+  "customizationJson3": null,
+  "customizationJson4": null,
+  "isTestProduct": false
+}
