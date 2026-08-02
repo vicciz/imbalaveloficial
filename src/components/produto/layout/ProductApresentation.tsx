@@ -1,5 +1,6 @@
 "use client";
 
+import ProductDescription from "@/src/components/product/ProductDescription";
 import { Produto } from "@/src/components/produto/types/produtos";
 
 type Props = {
@@ -20,9 +21,7 @@ export default function ProductApresentation({
           Apresentação do Produto
         </h2>
 
-        <div className="mt-6 space-y-4 text-slate-700">
-          <p className="whitespace-pre-line">{apresentacaoCompleta}</p>
-        </div>
+        <ProductDescription html={apresentacaoCompleta} className="mt-6" />
       </div>
     </section>
   );

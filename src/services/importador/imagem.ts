@@ -4,11 +4,18 @@ import type {
   ImagemImportacao,
 } from "./types";
 
+export interface ImagemProdutoSalva {
+  id: number;
+  caminho: string;
+  principal: boolean;
+  ordem: number;
+}
+
 export async function importarImagemProduto(
   idProduto: number,
   imagem: ImagemImportacao,
   blob: Blob
-) {
+): Promise<ImagemProdutoSalva> {
 
   const extensao =
     imagem.arquivo
@@ -43,14 +50,6 @@ export async function importarImagemProduto(
         }
     );
   
-  const { data: valor } = await supabase
-  .from("variacao_valor")
-  .select("id")
-  .ilike("valor", imagem.valor.trim())
-  .maybeSingle();
-
-const idValor = valor?.id ?? null;
-
   console.log("Resposta upload:");
   console.log(resultadoUpload);
 
@@ -84,9 +83,10 @@ console.log({
         principal: imagem.principal,
 
         ordem: imagem.ordem,
-        id_valor: idValor,
 
-      });
+      })
+      .select("id,caminho,principal,ordem")
+      .single();
   
 
   console.log("Resposta banco:");
@@ -101,6 +101,17 @@ console.log({
 
   }
 
-  return caminho;
+  const imagemSalva = resultadoBanco.data ?? null;
+
+  if (!imagemSalva) {
+    throw new Error("Falha ao recuperar imagem salva");
+  }
+
+  return {
+    id: imagemSalva.id,
+    caminho: imagemSalva.caminho,
+    principal: imagemSalva.principal,
+    ordem: imagemSalva.ordem,
+  };
 
 }

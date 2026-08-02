@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/src/components/layout/Admin";
 import { supabase } from "@/supabaseClient";
+import { variantImageService } from "@/src/services/products/services/VariantImageService";
 
 export default function Pedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -40,6 +41,7 @@ const { data, error } = await supabase
       id,
       nome,
       produto_imagem (
+        id,
         caminho,
         principal,
         ordem,
@@ -77,39 +79,12 @@ const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
   ...pedido,
 
   pedidoItem: (pedido.pedidoItem ?? []).map((item: any) => {
-    const itemCor =
-      item.produto_variacao?.produto_variacao_item?.find(
-        (v: any) =>
-          v.variacao_valor?.variacao_tipo?.nome
-            ?.toLowerCase() === "cor"
-      );
-
     const imagens =
       item.produto?.produto_imagem ?? [];
-
-    let principal;
-
-    if (itemCor?.id_valor != null) {
-      const imagensCor = imagens.filter(
-        (img: any) =>
-          img.id_valor === itemCor.id_valor
-      );
-
-      principal =
-        imagensCor.find(
-          (img: any) => img.principal
-        ) ??
-        imagensCor.sort(
-          (a: any, b: any) => a.ordem - b.ordem
-        )[0];
-    }
-
-    principal =
-      principal ??
-      imagens.find(
-        (img: any) => img.principal
-      ) ??
-      imagens[0];
+    const principal = variantImageService.getPrimaryImage(
+      imagens,
+      item.produto_variacao
+    );
 
     const atributos =
   item.produto_variacao?.produto_variacao_item

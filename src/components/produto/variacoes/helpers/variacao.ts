@@ -1,4 +1,5 @@
 import { supabase } from "@/supabaseClient";
+import { variantImageService } from "@/src/services/products/services/VariantImageService";
 
 export function obterAtributo(
   variacao: any,
@@ -55,38 +56,10 @@ export function obterImagemVariacao(
   if (!produto?.produto_imagem)
     return "";
 
-  const itemCor =
-    variacao?.produto_variacao_item?.find(
-      (item: any) =>
-        item.variacao_valor?.variacao_tipo?.nome
-          ?.toLowerCase() === "cor"
-    );
-
-  let principal;
-
-  if (itemCor?.id_valor != null) {
-    const imagens =
-      produto.produto_imagem.filter(
-        (img: any) =>
-          img.id_valor === itemCor.id_valor
-      );
-
-    principal =
-      imagens.find(
-        (img: any) => img.principal
-      ) ??
-      imagens.sort(
-        (a: any, b: any) =>
-          a.ordem - b.ordem
-      )[0];
-  }
-
-  principal =
-    principal ??
-    produto.produto_imagem.find(
-      (img: any) => img.principal
-    ) ??
-    produto.produto_imagem[0];
+  const principal = variantImageService.getPrimaryImage(
+    produto.produto_imagem,
+    variacao
+  );
 
   if (!principal) return "";
 

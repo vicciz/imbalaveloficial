@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { buscarProduto } from '@/src/components/produto/types/produtos';
+import { variantImageService } from '@/src/services/products/services/VariantImageService';
 import { supabase } from '@/supabaseClient';
 
 type VariacaoSelecionada = {
   id?: number | string;
   sku?: string;
   preco?: number | string;
+  produto_variacao_imagem?: Array<{
+    id?: number;
+    id_variacao?: number;
+    id_imagem?: number;
+  }>;
   produto_variacao_item?: Array<{
     id_valor?: number | null;
     variacao_valor?: {
@@ -56,20 +62,6 @@ function obterAtributo(
         atributo.tipo.trim().toLowerCase() === chave
     )?.valor ?? ''
   );
-}
-
-function obterIdCorSelecionada(
-  variacaoSelecionada?: VariacaoSelecionada | null
-) {
-  const itemCor =
-    variacaoSelecionada?.produto_variacao_item?.find(
-      (item) =>
-        item.variacao_valor?.variacao_tipo?.nome
-          ?.trim()
-          .toLowerCase() === 'cor'
-    );
-
-  return itemCor?.id_valor ?? null;
 }
 
 export async function POST(request: NextRequest) {
@@ -142,25 +134,14 @@ const preco = Number(
       ? `${produto.nome} • ${resumoVariacao.join(' • ')}`
       : produto.nome;
 
-    const idCorSelecionada = obterIdCorSelecionada(
+    const selectedImage = variantImageService.getPrimaryImage(
+      produto.produto_imagem ?? [],
       variacaoSelecionada as VariacaoSelecionada | null
     );
 
-    let imageUrl: string | null = null;
-
-    if (idCorSelecionada && Array.isArray(produto.produto_imagem)) {
-      const imagensDaCor = produto.produto_imagem
-        .filter((img: any) => img.id_valor === idCorSelecionada)
-        .sort((a: any, b: any) => a.ordem - b.ordem);
-
-      const imagemVariacao =
-        imagensDaCor.find((img: any) => img.principal) ??
-        imagensDaCor[0];
-
-      if (imagemVariacao?.caminho) {
-        imageUrl = getPublicImageUrl(imagemVariacao.caminho);
-      }
-    }
+    const imageUrl = selectedImage?.caminho
+      ? getPublicImageUrl(selectedImage.caminho)
+      : null;
 
 
     const session = await stripe.checkout.sessions.create({

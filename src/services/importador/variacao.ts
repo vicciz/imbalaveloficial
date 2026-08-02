@@ -1,8 +1,34 @@
 import { supabase } from "@/supabaseClient";
+import { VariantImageMatcher, variantImageMatcher } from "@/src/services/products/images/VariantImageMatcher";
+import { variantImageService } from "@/src/services/products/services/VariantImageService";
 
 import type {
   VariacaoImportacao,
 } from "./types";
+
+import type { ImagemProdutoSalva } from "./imagem";
+
+function selecionarImagemPrincipal(imagens: ImagemProdutoSalva[]): ImagemProdutoSalva | null {
+  if (imagens.length === 0) {
+    return null;
+  }
+
+  return imagens.find((imagem) => imagem.principal) ?? imagens[0] ?? null;
+}
+
+function logMatchDevelopment(variationImage: string | null, matchedImage: ImagemProdutoSalva | null): void {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+
+  console.log("===== VARIANT IMAGE MATCH =====");
+  console.log("Variation Image:");
+  console.log(variationImage ?? "");
+  console.log("Filename:");
+  console.log(VariantImageMatcher.extractFilename(variationImage));
+  console.log("Matched:");
+  console.log(matchedImage ? `produto_imagem.id=${matchedImage.id}` : "No match found.");
+}
 
 
 
@@ -142,7 +168,8 @@ async function obterValorVariacaoId(
 
 export async function importarVariacaoProduto(
   idProduto: number,
-  item: VariacaoImportacao
+  item: VariacaoImportacao,
+  imagensProduto: ImagemProdutoSalva[] = []
 ) {
 
 
@@ -210,5 +237,14 @@ await supabase
 
     throw erroItem;
 
+  }
+
+  const imagemVariacao = item.imagem_principal ?? null;
+  const matchedImage = variantImageMatcher.match(imagemVariacao, imagensProduto) ?? selecionarImagemPrincipal(imagensProduto);
+
+  logMatchDevelopment(imagemVariacao, matchedImage);
+
+  if (matchedImage) {
+    await variantImageService.linkImageToVariation(variacao.id, matchedImage.id);
   }
 }

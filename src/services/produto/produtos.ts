@@ -11,6 +11,25 @@ export interface ProdutoImagem {
   id_valor: number | null;
 }
 
+export interface ProdutoVariacaoImagem {
+  id: number;
+  id_variacao: number;
+  id_imagem: number;
+}
+
+export interface ProdutoVariacaoItem {
+  id?: number;
+  preco?: number | null;
+  estoque?: number | null;
+  ativo?: boolean;
+}
+
+export interface ProdutoVariacao {
+  id: number;
+  produto_variacao_item?: ProdutoVariacaoItem[];
+  produto_variacao_imagem?: ProdutoVariacaoImagem[];
+}
+
 export interface Produto {
   id: number;
   nome: string;
@@ -32,6 +51,7 @@ export interface Produto {
   categorias?: { nome: string } | null;
 
   produto_imagem?: ProdutoImagem[];
+  produto_variacao?: ProdutoVariacao[];
   image?: string;
 }
 
@@ -58,8 +78,8 @@ function normalizeProduto(produto: any): Produto {
   return {
     ...produto,
 
-    preco: primeiroItem?.preco ?? 0,
-    estoque: primeiroItem?.estoque ?? 0,
+    preco: primeiroItem?.preco ?? produto.preco ?? 0,
+    estoque: primeiroItem?.estoque ?? produto.estoque ?? 0,
 
     image: imagemPrincipal
       ? supabase.storage

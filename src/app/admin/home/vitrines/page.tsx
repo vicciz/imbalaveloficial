@@ -156,7 +156,9 @@ async function excluir(id: number) {
     onOpenChange={setOpen}
 >
 
-   <DialogContent className="max-w-6xl p-8">
+     <DialogContent className="max-w-6xl p-8">
+
+       <div className="max-h-[80vh] overflow-y-auto pr-2">
 
           <DialogHeader>
 
@@ -187,6 +189,8 @@ async function excluir(id: number) {
               }}
 
           />
+
+              </div>
 
       </DialogContent>
 

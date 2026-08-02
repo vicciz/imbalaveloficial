@@ -12,6 +12,24 @@ export interface VariacaoValor {
   valor: string;
 }
 
+function isVariantImageTableMissing(error: any): boolean {
+  if (!error) {
+    return false;
+  }
+
+  const code = typeof error.code === "string" ? error.code : "";
+  const message = typeof error.message === "string" ? error.message.toLowerCase() : "";
+  const details = typeof error.details === "string" ? error.details.toLowerCase() : "";
+
+  return (
+    code === "42P01" ||
+    code === "PGRST200" ||
+    message.includes("produto_variacao_imagem") ||
+    details.includes("produto_variacao_imagem") ||
+    (message.includes("relation") && message.includes("does not exist"))
+  );
+}
+
 /* ===========================
    TIPOS
 =========================== */
@@ -110,34 +128,75 @@ export async function excluirValorVariacao(
 export async function listarVariacoesProduto(
   idProduto: number
 ) {
-  return await supabase
-  .from("produto_variacao")
-  .select(`
-    id,
-    id_produto,
-
-    produto_variacao_item(
+  const { data, error } = await supabase
+    .from("produto_variacao")
+    .select(`
       id,
-      id_valor,
+      id_produto,
 
-      preco,
-      estoque,
-      sku,
-      ativo,
-      imagem_principal,
-
-      variacao_valor(
+      produto_variacao_item(
         id,
-        valor,
+        id_valor,
 
-        variacao_tipo(
+        preco,
+        estoque,
+        sku,
+        ativo,
+        imagem_principal,
+
+        variacao_valor(
           id,
-          nome
+          valor,
+
+          variacao_tipo(
+            id,
+            nome
+          )
         )
       )
-    )
-  `)
-  .eq("id_produto", idProduto);;
+    `)
+    .eq("id_produto", idProduto);
+
+  if (error || !data) {
+    return {
+      data: null,
+      error,
+    };
+  }
+
+  const variacaoIds = data.map((variacao: any) => variacao.id).filter(Boolean);
+
+  if (variacaoIds.length === 0) {
+    return {
+      data,
+      error: null,
+    };
+  }
+
+  const { data: links, error: linksError } = await supabase
+    .from("produto_variacao_imagem")
+    .select("id,id_variacao,id_imagem")
+    .in("id_variacao", variacaoIds);
+
+  const linksByVariationId = new Map<number, any[]>();
+
+  if (!linksError && links) {
+    for (const link of links) {
+      const existing = linksByVariationId.get(link.id_variacao) ?? [];
+      existing.push(link);
+      linksByVariationId.set(link.id_variacao, existing);
+    }
+  }
+
+  const merged = data.map((variacao: any) => ({
+    ...variacao,
+    produto_variacao_imagem: linksByVariationId.get(variacao.id) ?? [],
+  }));
+
+  return {
+    data: merged,
+    error: isVariantImageTableMissing(linksError) ? null : error ?? linksError,
+  };
 }
 
 export async function criarVariacaoProduto(
@@ -261,6 +320,16 @@ export async function salvarItemVariacao(
     .eq("id", idItem)
     .select()
     .single();
+}
+
+export async function salvarStatusVariacao(
+  idVariacao: number,
+  ativo: boolean
+) {
+  return await supabase
+    .from("produto_variacao_item")
+    .update({ ativo })
+    .eq("id_variacao", idVariacao);
 }
 
 export async function excluirVariacoesProduto(

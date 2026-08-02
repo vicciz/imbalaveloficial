@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import ProductDescriptionContent from "@/src/components/product/ProductDescription";
 import { Produto } from "@/src/components/produto/types/produtos";
 
 type Props = {
   produto: Produto;
 };
 
-export default function ProductDescription({
+export default function ProductDescribe({
   produto,
 }: Props) {
   const [expandido, setExpandido] = useState(false);
@@ -29,11 +30,11 @@ export default function ProductDescription({
       <div className="relative">
 
         <div
-          className={`whitespace-pre-line text-lg leading-8 text-slate-700 transition-all duration-300 ${
-            !textoLongo || expandido ? "" : "line-clamp-4"
+          className={`transition-all duration-300 ${
+            !textoLongo || expandido ? "" : "max-h-64 overflow-hidden"
           }`}
         >
-          {descricao}
+          <ProductDescriptionContent html={descricao} className="text-lg" />
         </div>
 
         {textoLongo && !expandido && (

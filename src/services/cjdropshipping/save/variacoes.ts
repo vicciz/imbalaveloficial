@@ -1,8 +1,17 @@
 import { supabase } from "@/supabaseClient";
+import { variantImageMatcher, VariantImageMatcher } from "@/src/services/products/images/VariantImageMatcher";
+import { variantImageService } from "@/src/services/products/services/VariantImageService";
 import type {
 	CjProdutoNormalizado,
 } from "../types";
 import type { CjVariacaoNormalizada } from "../types";
+
+type SavedProductImage = {
+	id: number;
+	caminho: string;
+	principal: boolean;
+	ordem: number;
+};
 interface IdRow {
 	id: number;
 }
@@ -200,7 +209,19 @@ async function criarVariacaoProduto(
 	return data.id;
 }
 
-export async function salvarVariacoes(idProduto: number, produtoCJ: CjProdutoNormalizado): Promise<number[]> {
+function selecionarImagemPrincipal(imagens: SavedProductImage[]): SavedProductImage | null {
+	if (imagens.length === 0) {
+		return null;
+	}
+
+	return imagens.find((imagem) => imagem.principal) ?? imagens[0] ?? null;
+}
+
+export async function salvarVariacoes(
+	idProduto: number,
+	produtoCJ: CjProdutoNormalizado,
+	imagensProduto: SavedProductImage[] = []
+): Promise<number[]> {
 	const cacheTipos = new Map<string, number>();
 	const cacheValores = new Map<string, number>();
 
@@ -245,6 +266,23 @@ export async function salvarVariacoes(idProduto: number, produtoCJ: CjProdutoNor
 
 		if (erroItens) {
 			throw new Error(extrairMensagemErro(erroItens, "Falha ao salvar itens da variacao"));
+		}
+
+		const matchedImage = variantImageMatcher.match(variacao.imagemPrincipal ?? null, imagensProduto);
+		const fallbackImage = matchedImage ?? selecionarImagemPrincipal(imagensProduto);
+
+		if (process.env.NODE_ENV !== "production") {
+			console.log("===== VARIANT IMAGE MATCH =====");
+			console.log("Variation Image:");
+			console.log(variacao.imagemPrincipal ?? "");
+			console.log("Filename:");
+			console.log(VariantImageMatcher.extractFilename(variacao.imagemPrincipal ?? null));
+			console.log("Matched:");
+			console.log(matchedImage ? `produto_imagem.id=${matchedImage.id}` : "No match found.");
+		}
+
+		if (fallbackImage) {
+			await variantImageService.linkImageToVariation(idVariacao, fallbackImage.id);
 		}
 	}
 

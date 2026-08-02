@@ -12,6 +12,7 @@ import {
 
 import { listarCategorias } from "@/src/services/categoria/categorias";
 import { listarColecoes } from "@/src/services/colecao/colecao";
+import { listarProdutosDaVitrine } from "@/src/services/vitrine";
 
 import { supabase } from "@/supabaseClient";
 
@@ -59,6 +60,15 @@ export default function VitrineForm({
   const [colecoes, setColecoes] = useState<any[]>([]);
 
   useEffect(() => {
+    setTitulo(vitrine?.titulo ?? "");
+    setTipo(vitrine?.tipo ?? "categoria");
+    setReferencia(vitrine?.referencia ?? "");
+    setQuantidade(vitrine?.quantidade ?? 6);
+    setOrdem(vitrine?.ordem ?? 1);
+    setAtivo(vitrine?.ativo ?? true);
+  }, [vitrine]);
+
+  useEffect(() => {
 
     async function carregar() {
 
@@ -76,6 +86,31 @@ export default function VitrineForm({
     carregar();
 
   }, []);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarProdutosSelecionados() {
+      if (!vitrine || vitrine.tipo !== "produtos") {
+        setProdutos([]);
+        return;
+      }
+
+      const { data } = await listarProdutosDaVitrine(vitrine);
+
+      if (!ativo) {
+        return;
+      }
+
+      setProdutos(data ?? []);
+    }
+
+    carregarProdutosSelecionados();
+
+    return () => {
+      ativo = false;
+    };
+  }, [vitrine?.id, vitrine?.tipo]);
 
   async function salvar() {
 

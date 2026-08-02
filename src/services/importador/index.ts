@@ -12,6 +12,7 @@ import {
 
 import {
   importarImagemProduto,
+  type ImagemProdutoSalva,
 } from "./imagem";
 
 import {
@@ -37,6 +38,7 @@ export async function importarCatalogo(
 
   let imagensZip =
     new Map<string, Blob>();
+  let imagensSalvas: ImagemProdutoSalva[] = [];
 
   if (
     arquivo.name
@@ -117,6 +119,8 @@ export async function importarCatalogo(
     of produtos
   ) {
 
+    imagensSalvas = [];
+
     try {
 
       console.log(
@@ -191,7 +195,7 @@ export async function importarCatalogo(
 
           }
 
-          await importarImagemProduto(
+          const imagemSalva = await importarImagemProduto(
 
             idProduto,
 
@@ -200,6 +204,8 @@ export async function importarCatalogo(
             blob
 
           );
+
+          imagensSalvas.push(imagemSalva);
 
           resultado.imagens++;
 
@@ -242,7 +248,9 @@ export async function importarCatalogo(
 
           idProduto,
 
-          variacao
+          variacao,
+
+          imagensSalvas
 
         );
 

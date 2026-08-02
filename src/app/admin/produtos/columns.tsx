@@ -5,6 +5,7 @@ import Link from "next/link";
 import { TableColumn } from "@/src/components/Admin/table/types";
 import TableActions from "@/src/components/Admin/table/TableActions";
 import StatusBadge from "@/src/components/Admin/table/StatusBadge";
+import { formatarPreco, obterMenorPreco } from "@/src/lib/produto-util";
 
 import { Produto, ProdutoImagem } from "@/src/components/produto/types/produtos";
 
@@ -14,19 +15,6 @@ interface ProdutoColumnsProps {
   onToggleVisibility: (produto: Produto) => void;
   onToggleHighlight: (produto: Produto) => void;
 }
-function obterMenorPreco(produto: Produto) {
-  const itens =
-    produto.produto_variacao?.flatMap(
-      (v: any) => v.produto_variacao_item ?? []
-    ) ?? [];
-
-  if (!itens.length) return null;
-
-  return Math.min(
-    ...itens.map((item: any) => Number(item.preco))
-  );
-}
-
 export function produtoColumns({
   onDelete,
   onDuplicate,
@@ -90,12 +78,8 @@ export function produtoColumns({
 
       render: (produto) => (
         <span className="font-semibold">
-          {Number(produto.preco).toLocaleString(
-            "pt-BR",
-            {
-              style: "currency",
-              currency: "BRL",
-            }
+          {formatarPreco(
+            obterMenorPreco(produto) ?? Number(produto.preco ?? 0)
           )}
         </span>
       ),
@@ -127,12 +111,9 @@ export function produtoColumns({
 
       return (
         <span className="font-semibold">
-          {preco !== null
-            ? preco.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })
-            : "-"}
+          {formatarPreco(
+            preco ?? Number(produto.preco ?? 0)
+          )}
         </span>
         );
       },

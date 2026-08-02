@@ -7,6 +7,7 @@ import {
   listarProdutos,
   type Produto,
 } from "@/src/components/produto/types/produtos";
+import { obterMenorPreco, formatarPreco } from "@/src/lib/produto-util";
 
 type Props = {
   value: Produto[];
@@ -77,6 +78,11 @@ export default function ProdutosSelector({
 
   }
 
+  function getPriceLabel(produto: Produto): string {
+    const price = obterMenorPreco(produto) ?? Number(produto.preco ?? 0);
+    return formatarPreco(price);
+  }
+
   return (
 
     <div className="space-y-6">
@@ -145,21 +151,7 @@ export default function ProdutosSelector({
                 </h4>
 
                 <p className="text-sm text-zinc-500">
-
-                  {Number(produto.preco).toLocaleString(
-
-                    "pt-BR",
-
-                    {
-
-                      style: "currency",
-
-                      currency: "BRL",
-
-                    }
-
-                  )}
-
+                  {getPriceLabel(produto)}
                 </p>
 
               </div>
@@ -243,21 +235,7 @@ export default function ProdutosSelector({
               </h4>
 
               <p className="text-sm text-zinc-500">
-
-                {Number(produto.preco).toLocaleString(
-
-                  "pt-BR",
-
-                  {
-
-                    style: "currency",
-
-                    currency: "BRL",
-
-                  }
-
-                )}
-
+                {getPriceLabel(produto)}
               </p>
 
             </div>

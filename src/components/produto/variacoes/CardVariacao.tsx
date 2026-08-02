@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import {
   Card,
   CardContent,
@@ -7,37 +9,41 @@ import {
   CardTitle,
 } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
+import { Switch } from "@/src/components/ui/switch";
 import { Button } from "../../ui/button";
-import { useState } from "react";
 
-import GaleriaVariacao from "./GaleriaVariacao";
+import VariantImageManagerDialog from "./VariantImageManagerDialog";
 import { CardVariacaoProps } from "./types";
 
 import { salvarItemVariacao } from "@/src/components/produto/types/variacoes";
+import { variantImageService } from "@/src/services/products/services/VariantImageService";
 
 export default function CardVariacao({
-  produto,
   variacao,
   imagens,
-  setImagens,
-  abrirCropper,
+  onRefresh,
 }: CardVariacaoProps) {
+  const [modalAberto, setModalAberto] = useState(false);
+
   const atributos = variacao.produto_variacao_item
     .map((item) => item.variacao_valor.valor)
     .join(" / ");
 
-  const idCor = variacao.produto_variacao_item.find(
-    (item) =>
-      item.variacao_valor.variacao_tipo.nome.toLowerCase() ===
-      "cor"
-  )?.variacao_valor.id;
-
   // Cada produto_variacao possui um item comercial
   const item = variacao.produto_variacao_item[0];
+  const imagensPersistidas = useMemo(
+    () => imagens.filter((image): image is typeof image & { id: number } => typeof image.id === "number"),
+    [imagens]
+  );
+  const totalImagensVariacao = useMemo(
+    () => variantImageService.getVariationImages(imagensPersistidas, variacao).length,
+    [imagensPersistidas, variacao]
+  );
 
   const [preco, setPreco] = useState(item?.preco ?? 0);
   const [estoque, setEstoque] = useState(item?.estoque ?? 0);
   const [sku, setSku] = useState(item?.sku ?? "");
+  const [ativo, setAtivo] = useState(item?.ativo ?? true);
 
   async function salvar() {
     if (!item) return;
@@ -46,9 +52,11 @@ export default function CardVariacao({
       preco,
       estoque,
       sku,
-      ativo: item.ativo,
+      ativo,
       imagem_principal: item.imagem_principal,
     });
+
+    await onRefresh();
   }
 
   return (
@@ -106,27 +114,37 @@ export default function CardVariacao({
               Salvar
             </Button>
 
+            <Button
+              variant="outline"
+              className="mt-3 ml-2"
+              onClick={() => setModalAberto(true)}
+            >
+              Gerenciar imagens
+            </Button>
+
             <p className="text-sm text-muted-foreground mt-2">
-              {
-                imagens.filter(
-                  (img) => img.idValor === idCor
-                ).length
-              }{" "}
+              {totalImagensVariacao}{" "}
               imagens cadastradas
             </p>
+
+            <div className="mt-4 flex items-center gap-3">
+              <Switch checked={ativo} onCheckedChange={setAtivo} />
+              <span className="text-sm text-slate-700">
+                {ativo ? "Variação ativa" : "Variação desativada"}
+              </span>
+            </div>
           </div>
         </div>
-
-        <GaleriaVariacao
-          titulo={atributos}
-          imagens={imagens.filter(
-            (img) => img.idValor === idCor
-          )}
-          setImagens={setImagens}
-          abrirCropper={abrirCropper}
-          idValor={idCor!}
-        />
       </CardContent>
+
+      <VariantImageManagerDialog
+        open={modalAberto}
+        onOpenChange={setModalAberto}
+        variation={variacao}
+        title={atributos}
+        productImages={imagensPersistidas}
+        onSaved={onRefresh}
+      />
     </Card>
   );
 }

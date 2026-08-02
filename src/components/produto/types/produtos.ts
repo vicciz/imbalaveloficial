@@ -38,12 +38,20 @@ export interface ProdutoVariacaoItem {
   };
 }
 
+export interface ProdutoVariacaoImagem {
+  id: number;
+  id_variacao: number;
+  id_imagem: number;
+}
+
 export interface ProdutoVariacao {
   id: number;
 
   id_produto: number;
 
   produto_variacao_item: ProdutoVariacaoItem[];
+
+  produto_variacao_imagem?: ProdutoVariacaoImagem[];
 }
 
 export interface Produto {
@@ -117,14 +125,16 @@ function normalizeProduto(produto: any): Produto {
       ? Math.min(
           ...itens.map((item) => Number(item.preco))
         )
-      : null;
+      : (typeof produto.preco === "number" ? produto.preco : null);
 
   const estoqueTotal =
-    itens.reduce(
-      (total, item) =>
-        total + Number(item.estoque ?? 0),
-      0
-    );
+    itens.length > 0
+      ? itens.reduce(
+          (total, item) =>
+            total + Number(item.estoque ?? 0),
+          0
+        )
+      : Number(produto.estoque ?? 0);
 
   return {
     ...produto,
@@ -252,6 +262,7 @@ export async function buscarProduto(
 
     produto_variacao(
       *,
+
       produto_variacao_item(
         *
       )
@@ -456,6 +467,7 @@ const { data, error } = await client
 
     produto_variacao(
       *,
+
       produto_variacao_item(
         *,
         variacao_valor(

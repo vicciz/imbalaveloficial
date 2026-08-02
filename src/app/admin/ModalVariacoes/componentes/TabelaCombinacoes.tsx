@@ -16,7 +16,7 @@ import { Switch } from "@/src/components/ui/switch";
 interface Props {
   variacoes?: any[];
   onAlterar: (
-    id: number,
+    idVariacao: number,
     campo: "sku" | "preco" | "estoque" | "ativo",
     valor: any
   ) => void;
@@ -51,27 +51,18 @@ export default function TabelaCombinacoes({
 
         <TableBody>
           {variacoes.map((variacao: any) => (
-            <TableRow key={variacao.id}>
+            <TableRow key={variacao.idVariacao}>
               <TableCell>
-             <Input
-                className="h-10"
-                placeholder="SKU"
-                value={variacao.sku ?? ""}
-                onChange={(e) =>
-                  onAlterar(
-                    variacao.id,
-                    "sku",
-                    e.target.value
-                  )
-                }
-              />
-          </TableCell>
+                <span className="text-sm text-slate-700">
+                  {variacao.atributosTexto ?? "-"}
+                </span>
+              </TableCell>
 
               <TableCell>
                 <Input
                   value={variacao.sku ?? ""}
                   onChange={(e) =>
-                    onAlterar(variacao.id, "sku", e.target.value)
+                    onAlterar(variacao.idVariacao, "sku", e.target.value)
                   }
                 />
               </TableCell>
@@ -104,10 +95,10 @@ export default function TabelaCombinacoes({
         [&::-webkit-inner-spin-button]:appearance-none
         [&::-webkit-outer-spin-button]:appearance-none
       "
-      value={variacaoproduto.preco ?? ""}
+      value={variacao.preco ?? ""}
       onChange={(e) =>
         onAlterar(
-          variacao.id,
+          variacao.idVariacao,
           "preco",
           Number(e.target.value)
         )
@@ -132,7 +123,7 @@ export default function TabelaCombinacoes({
     value={variacao.estoque ?? ""}
     onChange={(e) =>
       onAlterar(
-        variacao.id,
+        variacao.idVariacao,
         "estoque",
         Number(e.target.value)
       )
@@ -146,7 +137,7 @@ export default function TabelaCombinacoes({
                     checked={!!variacao.ativo}
                     onCheckedChange={(v) =>
                       onAlterar(
-                        variacao.id,
+                        variacao.idVariacao,
                         "ativo",
                         v
                       )

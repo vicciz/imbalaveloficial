@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/supabaseClient";
+import { variantImageService } from "@/src/services/products/services/VariantImageService";
 
 import {
   atualizarQuantidadeCarrinho,
@@ -71,51 +72,11 @@ export function useCart() {
       );
     }
 
-    const itemCor =
-      item?.variacao
-        ?.produto_variacao_item
-        ?.find(
-          (registro: any) =>
-            registro
-              ?.variacao_valor
-              ?.variacao_tipo
-              ?.nome
-              ?.trim()
-              .toLowerCase() ===
-            "cor"
-        );
-
-    if (itemCor?.id_valor != null) {
-
-      const imagemCor =
-        imagens
-          .filter(
-            (img: any) =>
-              img.id_valor ===
-              itemCor.id_valor
-          )
-          .sort(
-            (a: any, b: any) =>
-              a.ordem - b.ordem
-          )[0];
-
-      if (imagemCor?.caminho) {
-
-        return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/produtos/${imagemCor.caminho}`;
-
-      }
-
-    }
-
     const principal =
-      imagens.find(
-        (img: any) =>
-          img.principal
-      ) ??
-      imagens.sort(
-        (a: any, b: any) =>
-          a.ordem - b.ordem
-      )[0];
+      variantImageService.getPrimaryImage(
+        imagens,
+        item?.variacao
+      );
 
     return principal?.caminho
       ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/produtos/${principal.caminho}`

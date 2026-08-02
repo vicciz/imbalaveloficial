@@ -215,7 +215,10 @@ async function salvarProduto() {
       const {
         categorias,
         produto_imagem,
+        produto_variacao,
         image,
+        preco,
+        estoque,
         ...dadosProduto
       } = produto;
 
@@ -270,20 +273,6 @@ async function salvarProduto() {
     setSalvando(false);
   }
 }
-
-const imagensGerais =
-  imagens.filter(
-    (img) =>
-      img.idValor == null
-  );
-
-const imagensDaCor = (
-  idValor: number
-) =>
-  imagens.filter(
-    (img) =>
-      img.idValor === idValor
-  );
 
 if (loading) {
   return (
@@ -388,7 +377,7 @@ return (
 
         <GaleriaImagens
           titulo="Galeria Geral"
-          imagens={imagensGerais}
+          imagens={imagens}
           setImagens={setImagens}
           abrirCropper={abrirCropper}
         />
@@ -397,8 +386,7 @@ return (
           produto={produto as Produto}
           variacoes={produto.produto_variacao ?? []}
           imagens={imagens}
-          setImagens={setImagens}
-          abrirCropper={abrirCropper}
+          onRefresh={carregarProduto}
         />
 
       </div>

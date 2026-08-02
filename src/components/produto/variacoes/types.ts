@@ -14,11 +14,5 @@ export interface CardVariacaoProps {
 
   imagens: ImagemFormulario[];
 
-  setImagens: React.Dispatch<
-    React.SetStateAction<ImagemFormulario[]>
-  >;
-
-  abrirCropper: (
-    imagem: ImagemFormulario
-  ) => void;
+  onRefresh: () => Promise<void> | void;
 }

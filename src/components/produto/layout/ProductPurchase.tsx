@@ -45,7 +45,9 @@ export default function ProductPurchase({
     useState(false);
   
   const estoque =
-    variacao?.variacaoSelecionada?.estoque ?? 0;
+    variacao?.variacaoSelecionada?.estoque ??
+    produto.estoque ??
+    0;
 
   const disponivel =
     estoque > 0;

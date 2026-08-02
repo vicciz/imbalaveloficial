@@ -1,5 +1,6 @@
 "use client";
 
+import ProductDescription from "@/src/components/product/ProductDescription";
 import { Produto } from "@/src/components/produto/types/produtos";
 import { Star } from "lucide-react";
 import SeletorVariacoes from "./SeletorVariacoes";
@@ -29,7 +30,11 @@ export default function ProductInfo({
 }: Props) {
 
 const preco =
-  variacao?.variacaoSelecionada?.preco ?? 0;
+  variacao?.variacaoSelecionada?.preco ??
+  produto.preco ??
+  0;
+const sku =
+  variacao?.variacaoSelecionada?.sku ?? null;
   // Fallback enquanto o produto ainda não possui avaliações reais
   const rating = produto.rating ?? 5;
   const reviews = produto.reviews ?? 1;
@@ -63,9 +68,10 @@ const preco =
       </h1>
 
       {/* Descrição */}
-      <p className="mt-6 max-w-md text-lg leading-8 text-slate-600">
-        {produto.descricao}
-      </p>
+      <ProductDescription
+        html={produto.descricao ?? ""}
+        className="mt-6 max-w-md text-lg"
+      />
 
       {/* Preço */}
       <div className="mt-5">
@@ -76,6 +82,10 @@ const preco =
             currency: "BRL",
           })}
         </h2>
+
+        <p className="mt-3 text-sm font-medium uppercase tracking-wide text-slate-500">
+          SKU: <span className="text-slate-700">{sku ?? "Não informado"}</span>
+        </p>
 
       </div>
 

@@ -42,8 +42,8 @@ export default function ProductSpecification({ produto }: Props) {
           </p>
         ) : (
         <dl className="space-y-4">
-          {especificacoesVisiveis.map((item) => (
-            <div key={item.label} className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+          {especificacoesVisiveis.map((item, index) => (
+            <div key={`${item.label}-${item.value}-${index}`} className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
               <dt className="text-sm font-medium uppercase tracking-wide text-slate-500">
                 {item.label}
               </dt>

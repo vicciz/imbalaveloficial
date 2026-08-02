@@ -6,6 +6,23 @@ import {
   listarVariacoesProduto,
 } from "@/src/components/produto/types/variacoes";
 
+function buildSelectedAttributesFromVariation(variacao: any): Record<string, string> {
+  const selecionados: Record<string, string> = {};
+
+  variacao?.produto_variacao_item?.forEach((item: any) => {
+    const tipo = item?.variacao_valor?.variacao_tipo?.nome;
+    const valor = item?.variacao_valor?.valor;
+
+    if (!tipo || !valor) {
+      return;
+    }
+
+    selecionados[tipo] = valor;
+  });
+
+  return selecionados;
+}
+
 export function useProdutoVariacao(
   produtoId: number
 ) {
@@ -46,33 +63,12 @@ const { data, error } =
     if (lista.length) {
       const primeira = lista[0];
 
-      const selecionados: Record<
-        string,
-        string
-      > = {};
-
-      primeira.produto_variacao_item.forEach(
-        (item: any) => {
-          const tipo =
-            item.variacao_valor
-              ?.variacao_tipo?.nome;
-
-          const valor =
-            item.variacao_valor?.valor;
-
-          if (tipo && valor) {
-            selecionados[tipo] = valor;
-          }
-        }
-      );
-
       setAtributosSelecionados(
-        selecionados
+        buildSelectedAttributesFromVariation(primeira)
       );
     }
 
         setLoading(false);
-        console.log(data);
   }
   function selecionarAtributo(
     tipo: string,
@@ -83,6 +79,18 @@ const { data, error } =
         ...old,
         [tipo]: valor,
       })
+    );
+  }
+
+  function selecionarVariacao(idVariacao: number) {
+    const variacao = variacoes.find((item: any) => item.id === idVariacao);
+
+    if (!variacao) {
+      return;
+    }
+
+    setAtributosSelecionados(
+      buildSelectedAttributesFromVariation(variacao)
     );
   }
 
@@ -192,13 +200,7 @@ const { data, error } =
         })
       );
     }, [variacoes]);
-console.log(
-  JSON.stringify(
-    variacaoSelecionada,
-    null,
-    2
-  )
-);
+
   return {
     loading,
 
@@ -211,6 +213,7 @@ console.log(
     variacaoSelecionada,
 
     selecionarAtributo,
+    selecionarVariacao,
 
     recarregar: carregarVariacoes,
 };
