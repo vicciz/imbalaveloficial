@@ -43,6 +43,9 @@ export default function ProductPurchase({
     useState(1);
   const [comprando, setComprando] =
     useState(false);
+  const [cepFrete, setCepFrete] = useState("");
+  const [calculandoFrete, setCalculandoFrete] = useState(false);
+  const [frete, setFrete] = useState<any | null>(null);
   
   const estoque =
     variacao?.variacaoSelecionada?.estoque ??
@@ -236,6 +239,7 @@ export default function ProductPurchase({
             id: produto.id,
             quantidade,
             userId: user?.id ?? "",
+            cepDestino: cepFrete,
             variacaoSelecionada:
               variacao?.variacaoSelecionada ??
               null,
@@ -371,19 +375,118 @@ export default function ProductPurchase({
       {/* FRETE */}
 
       <div>
+        {String(produto.origem ?? "").toLowerCase() === "cj" && (
+          <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <p className="text-sm font-semibold text-amber-900">
+              Envio internacional
+            </p>
+            <p className="mt-1 text-xs leading-5 text-amber-800">
+              Este produto é enviado pela logística da CJ. A origem do envio será definida conforme o warehouse disponível para a variante.
+            </p>
+          </div>
+        )}
 
         <p className="text-sm text-slate-500">
           Frete
         </p>
 
-        <p className="mt-2 text-xl font-semibold">
-          R$ 7,00
-        </p>
+        <div className="mt-2 flex gap-2">
+          <input
+            value={cepFrete}
+            onChange={(event) => setCepFrete(event.target.value)}
+            inputMode="numeric"
+            maxLength={9}
+            placeholder="Digite seu CEP"
+            className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-500"
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={calculandoFrete || cepFrete.replace(/\D/g, "").length !== 8}
+            onClick={async () => {
+              try {
+                setCalculandoFrete(true);
+                setFrete(null);
 
-        <p className="text-sm text-slate-500">
-          Entrega entre 2 e 5 dias úteis
-        </p>
+                const response = await fetch("/api/frete/cotacao", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    produtoId: produto.id,
+                    quantidade,
+                    cepDestino: cepFrete,
+                    preco: Number(
+                      variacao?.variacaoSelecionada?.item?.preco ??
+                      variacao?.variacaoSelecionada?.preco ??
+                      produto.preco ??
+                      0
+                    ),
+                    variantId:
+                      variacao?.variacaoSelecionada?.cj_variant_id ??
+                      variacao?.variacaoSelecionada?.item?.cj_variant_id ??
+                      variacao?.variacaoSelecionada?.item?.fornecedor_sku ??
+                      variacao?.variacaoSelecionada?.fornecedor_sku ??
+                      null,
+                    variantSku: variacao?.variacaoSelecionada?.sku ?? null,
+                  }),
+                });
 
+                const data = await response.json();
+                if (!response.ok) {
+                  toast.error("Não foi possível calcular o frete.", {
+                    description: data?.error ?? "Tente novamente.",
+                  });
+                  return;
+                }
+
+                setFrete(data.selected ?? null);
+              } catch (error) {
+                console.error(error);
+                toast.error("Não foi possível calcular o frete.");
+              } finally {
+                setCalculandoFrete(false);
+              }
+            }}
+            className="shrink-0 rounded-xl"
+          >
+            {calculandoFrete ? "Calculando..." : "Calcular"}
+          </Button>
+        </div>
+
+        {frete ? (
+          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            {frete.international && (
+              <p className="font-semibold text-amber-800">
+                Envio internacional
+              </p>
+            )}
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <span className="text-sm text-slate-600">
+                {frete.serviceName}
+              </span>
+              <span className="font-semibold text-slate-900">
+                {Number(frete.price).toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: frete.currency,
+                })}
+              </span>
+            </div>
+            {frete.deliveryTime && (
+              <p className="mt-1 text-xs text-slate-500">
+                Prazo estimado: {frete.deliveryTime}
+              </p>
+            )}
+            {frete.international && frete.originCountryName && (
+              <p className="mt-1 text-xs text-slate-500">
+                Origem: {frete.originCountryName}
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-slate-500">
+            Informe o CEP para consultar as opções de entrega.
+          </p>
+        )}
       </div>
 
       {/* DIVISOR */}

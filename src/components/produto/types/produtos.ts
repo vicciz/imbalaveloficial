@@ -23,6 +23,7 @@ export interface ProdutoVariacaoItem {
   estoque: number;
 
   sku: string | null;
+  fornecedor_sku?: string | null;
   ativo: boolean;
 
   imagem_principal?: string | null;
@@ -74,6 +75,18 @@ export interface Produto {
   detalhes?: string | null;
 
   fornecedor?: string | null;
+
+  origem?: string | null;
+  id_fornecedor?: number | null;
+  origem_cep?: string | null;
+  origem_pais_codigo?: string | null;
+  origem_pais_nome?: string | null;
+  warehouse_id?: string | null;
+  warehouse_nome?: string | null;
+  peso_kg?: number | null;
+  comprimento_cm?: number | null;
+  largura_cm?: number | null;
+  altura_cm?: number | null;
 
   oculto?: boolean | null;
 

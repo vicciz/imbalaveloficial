@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { supabase } from "../../../supabaseClient";
 import { variantImageService } from "@/src/services/products/services/VariantImageService";
+import { calcularFreteProduto } from "@/src/services/frete/calcularFrete";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY não configurada");
@@ -21,6 +22,14 @@ type ProdutoImagem = {
 type Produto = {
   id?: number;
   nome: string;
+  preco?: number | null;
+  origem?: string | null;
+  id_fornecedor?: number | null;
+  origem_cep?: string | null;
+  peso_kg?: number | null;
+  comprimento_cm?: number | null;
+  largura_cm?: number | null;
+  altura_cm?: number | null;
   produto_imagem?: ProdutoImagem[];
 };
 
@@ -37,6 +46,7 @@ type VariacaoSelecionada = {
     preco: number;
     estoque: number;
     ativo: boolean;
+    fornecedor_sku?: string | null;
     id_valor?: number | null;
     variacao_valor?: {
       valor?: string;
@@ -67,6 +77,7 @@ async function carregarVariacao(idVariacao: number): Promise<VariacaoSelecionada
         preco,
         estoque,
         ativo,
+        fornecedor_sku,
         id_valor,
         variacao_valor (
           valor,
@@ -113,6 +124,13 @@ export async function criarCheckoutCarrinho(
         id,
         nome,
         preco,
+        origem,
+        id_fornecedor,
+        origem_cep,
+        peso_kg,
+        comprimento_cm,
+        largura_cm,
+        altura_cm,
         produto_imagem (
           id,
           caminho,
@@ -190,14 +208,106 @@ export async function criarCheckoutCarrinho(
     })
   );
 
+  const { data: endereco, error: enderecoError } = await supabase
+    .from("enderecos")
+    .select("cep")
+    .eq("id", enderecoId)
+    .eq("id_usuario", userId)
+    .single();
+
+  if (enderecoError || !endereco?.cep) {
+    throw new Error("O endereço selecionado não possui um CEP válido.");
+  }
+
+  const fretes = await Promise.all(
+    itens.map(async (item) => {
+      const variacao = item.id_variacao ? await carregarVariacao(item.id_variacao) : null;
+      const itemVariacao = variacao?.produto_variacao_item.find((variationItem) => variationItem.ativo);
+
+      if (!itemVariacao) {
+        throw new Error(`Nenhuma variação ativa encontrada para ${item.produto.nome}.`);
+      }
+
+      const quantidadeItem = Math.max(1, Number(item.quantidade) || 1);
+      const cotacoes = await calcularFreteProduto({
+        product: item.produto,
+        variantId: itemVariacao.fornecedor_sku ?? null,
+        variantSku: itemVariacao.sku ?? null,
+        destinationCep: String(endereco.cep),
+        quantity: quantidadeItem,
+        productPrice: Number(itemVariacao.preco) || 0,
+      });
+
+      if (!cotacoes.length) {
+        throw new Error(`Nenhuma modalidade de frete disponível para ${item.produto.nome}.`);
+      }
+
+      const escolhido = cotacoes[0];
+      let valorBRL = escolhido.price;
+
+      if (escolhido.currency === "USD") {
+        const usdBrlRate = Number(process.env.USD_BRL_RATE ?? 0);
+        if (!Number.isFinite(usdBrlRate) || usdBrlRate <= 0) {
+          throw new Error("USD_BRL_RATE não configurado para converter o frete internacional.");
+        }
+        valorBRL = Number((escolhido.price * usdBrlRate).toFixed(2));
+      }
+
+      return {
+        produtoId: item.id_produto ?? item.produto.id ?? null,
+        produtoNome: item.produto.nome,
+        ...escolhido,
+        valorBRL,
+      };
+    })
+  );
+
+  const freteTotal = Number(
+    fretes.reduce((total, frete) => total + frete.valorBRL, 0).toFixed(2)
+  );
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",
     metadata: {
       userId,
       enderecoId: String(enderecoId),
+      frete_total_brl: freteTotal.toFixed(2),
+      fretes: JSON.stringify(
+        fretes.map((frete) => ({
+          produtoId: frete.produtoId,
+          produto: frete.produtoNome,
+          provedor: frete.provider,
+          internacional: frete.international,
+          origem: frete.originCountryCode,
+          servico: frete.serviceName,
+          valorBRL: frete.valorBRL,
+        }))
+      ),
     },
-    line_items,
+    line_items: [
+      ...line_items,
+      ...(freteTotal > 0
+        ? [{
+            price_data: {
+              currency: "brl" as const,
+              unit_amount: Math.round(freteTotal * 100),
+              product_data: {
+                name: fretes.some((frete) => frete.international)
+                  ? "Frete — inclui envio internacional"
+                  : "Frete",
+                description: fretes
+                  .map(
+                    (frete) =>
+                      `${frete.produtoNome}: ${frete.serviceName} (${frete.international ? "internacional" : "nacional"})`
+                  )
+                  .join(" • "),
+              },
+            },
+            quantity: 1,
+          }]
+        : []),
+    ],
     success_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/sucesso`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/cancelado`,
   });

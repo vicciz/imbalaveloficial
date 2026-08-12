@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { buscarProduto } from '@/src/components/produto/types/produtos';
 import { variantImageService } from '@/src/services/products/services/VariantImageService';
 import { supabase } from '@/supabaseClient';
+import { calcularFreteProduto } from '@/src/services/frete/calcularFrete';
 
 type VariacaoSelecionada = {
   id?: number | string;
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest) {
       quantidade,
       variacaoSelecionada,
       userId,
+      cepDestino,
     } = await request.json();
 
     if (!id || typeof id !== 'number') {
@@ -110,10 +112,53 @@ export async function POST(request: NextRequest) {
 const preco = Number(
   variacaoSelecionada?.item?.preco ??
   variacaoSelecionada?.preco ??
+  produto.preco ??
   0
 );
     if (Number.isNaN(preco) || preco <= 0) {
       throw new Error('Preço do produto inválido');
+    }
+
+    const cepDestinoNormalizado = String(cepDestino ?? "").replace(/\D/g, "");
+    if (cepDestinoNormalizado.length !== 8) {
+      throw new Error("Informe um CEP válido para calcular o frete antes de finalizar a compra.");
+    }
+
+    const variantId =
+      variacaoSelecionada?.item?.fornecedor_sku ??
+      variacaoSelecionada?.item?.cj_variant_id ??
+      variacaoSelecionada?.fornecedor_sku ??
+      variacaoSelecionada?.cj_variant_id ??
+      null;
+
+    const cotacoesFrete = await calcularFreteProduto({
+      product: produto,
+      variantId: variantId ? String(variantId) : null,
+      variantSku: variacaoSelecionada?.sku ?? null,
+      destinationCep: cepDestinoNormalizado,
+      quantity: quantidadeSelecionada,
+      productPrice: preco,
+    });
+
+    if (!cotacoesFrete.length) {
+      throw new Error("Nenhuma modalidade de frete disponível para este CEP.");
+    }
+
+    const freteEscolhido = cotacoesFrete[0];
+
+    let freteBRL = freteEscolhido.price;
+
+    if (freteEscolhido.currency === "USD") {
+      const usdBrlRate = Number(process.env.USD_BRL_RATE ?? 0);
+      if (!Number.isFinite(usdBrlRate) || usdBrlRate <= 0) {
+        throw new Error("USD_BRL_RATE não configurado para converter o frete internacional.");
+      }
+
+      freteBRL = Number((freteEscolhido.price * usdBrlRate).toFixed(2));
+    }
+
+    if (!Number.isFinite(freteBRL) || freteBRL < 0) {
+      throw new Error("Valor de frete inválido.");
     }
 
     const atributos = extrairAtributosVariacao(
@@ -155,6 +200,11 @@ const preco = Number(
         modelo: String(modelo ?? ''),
         voltagem: String(voltagem ?? ''),
         usuario_id: String(userId ?? ''),
+        cep_destino: cepDestinoNormalizado,
+        frete_provedor: freteEscolhido.provider,
+        frete_servico: freteEscolhido.serviceName,
+        frete_origem_pais: freteEscolhido.originCountryCode,
+        frete_valor_brl: freteBRL.toFixed(2),
       },
       line_items: [
         {
@@ -169,6 +219,23 @@ const preco = Number(
           },
           quantity: quantidadeSelecionada,
         },
+        ...(freteBRL > 0
+          ? [{
+              price_data: {
+                currency: 'brl',
+                unit_amount: Math.round(freteBRL * 100),
+                product_data: {
+                  name: freteEscolhido.international
+                    ? `Frete internacional — ${freteEscolhido.serviceName}`
+                    : `Frete — ${freteEscolhido.serviceName}`,
+                  description: freteEscolhido.international
+                    ? `Origem: ${freteEscolhido.originCountryName ?? freteEscolhido.originCountryCode}. Prazo estimado: ${freteEscolhido.deliveryTime ?? "a consultar"}.`
+                    : `Origem: fornecedor no Brasil. Prazo estimado: ${freteEscolhido.deliveryTime ?? "a consultar"}.`,
+                },
+              },
+              quantity: 1,
+            }]
+          : []),
       ],
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.imbalavel.com.br'}/sucesso`,
