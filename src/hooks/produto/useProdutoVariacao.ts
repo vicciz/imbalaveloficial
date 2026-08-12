@@ -140,6 +140,10 @@ const { data, error } =
 
   sku: itemComercial?.sku ?? null,
 
+  fornecedor_sku: itemComercial?.fornecedor_sku ?? null,
+
+  cj_variant_id: itemComercial?.fornecedor_sku ?? null,
+
   ativo: itemComercial?.ativo ?? true,
 
   imagem_principal:

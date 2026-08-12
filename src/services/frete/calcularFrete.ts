@@ -1,5 +1,6 @@
 import { cjRequest } from "@/src/services/cjdropshipping/client";
 import { supabase } from "@/supabaseClient";
+import { getUsdBrlRate } from "@/src/services/cambio/usdBrl";
 
 export type FreightQuote = {
   provider: "cj" | "frenet";
@@ -42,60 +43,143 @@ async function getSupplierOriginCep(product: any): Promise<string> {
   return digits(data?.origem_cep ?? "");
 }
 
-async function getCJOrigin(vid: string) {
-  const response = await cjRequest<any>(`/product/stock/queryByVid?vid=${encodeURIComponent(vid)}`);
-  const rows = Array.isArray(response?.data) ? response.data : [];
+type CJOrigin = {
+  countryCode: string;
+  countryName: string | null;
+  warehouseId: string | null;
+};
 
-  const available = rows.filter((row: any) => Number(row?.totalInventoryNum ?? row?.storageNum ?? 0) > 0);
-  const candidates = available.length ? available : rows;
+const cjOriginCache = new Map<string, { value: CJOrigin; expiresAt: number }>();
+const cjOriginPromises = new Map<string, Promise<CJOrigin>>();
 
-  // Prefer Brazil if CJ has stock there. Otherwise use the first warehouse
-  // with inventory; the exact origin is then sent to CJ's freight calculator.
-  const selected =
-    candidates.find((row: any) => String(row?.countryCode ?? "").toUpperCase() === "BR") ??
-    candidates[0];
+async function getCJOrigin(vid: string, product: any): Promise<CJOrigin> {
+  const persistedCode = String(product?.origem_pais_codigo ?? "").trim().toUpperCase();
 
-  if (!selected?.countryCode) {
-    throw new Error("A CJ não informou um warehouse/origem disponível para esta variante.");
+  if (persistedCode) {
+    return {
+      countryCode: persistedCode,
+      countryName: product?.origem_pais_nome ?? null,
+      warehouseId: product?.warehouse_id != null ? String(product.warehouse_id) : null,
+    };
   }
 
-  return {
-    countryCode: String(selected.countryCode).toUpperCase(),
-    countryName: selected.countryNameEn ?? selected.areaEn ?? null,
-    warehouseId: selected.areaId != null ? String(selected.areaId) : null,
-  };
+  const cached = cjOriginCache.get(vid);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+
+  const pending = cjOriginPromises.get(vid);
+  if (pending) {
+    return pending;
+  }
+
+  const lookupPromise = (async () => {
+    const response = await cjRequest<any>(
+      `/product/stock/queryByVid?vid=${encodeURIComponent(vid)}`
+    );
+    const rows = Array.isArray(response?.data) ? response.data : [];
+
+    const available = rows.filter(
+      (row: any) =>
+        Number(row?.totalInventoryNum ?? row?.storageNum ?? 0) > 0
+    );
+    const candidates = available.length ? available : rows;
+
+    const selected =
+      candidates.find(
+        (row: any) =>
+          String(row?.countryCode ?? "").toUpperCase() === "BR"
+      ) ?? candidates[0];
+
+    if (!selected?.countryCode) {
+      throw new Error(
+        "A CJ não informou um warehouse/origem disponível para esta variante."
+      );
+    }
+
+    const origin: CJOrigin = {
+      countryCode: String(selected.countryCode).toUpperCase(),
+      countryName:
+        selected.countryNameEn ??
+        selected.countryName ??
+        selected.areaEn ??
+        null,
+      warehouseId:
+        selected.areaId != null ? String(selected.areaId) : null,
+    };
+
+    cjOriginCache.set(vid, {
+      value: origin,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
+
+    if (product?.id && origin.countryCode) {
+      try {
+        await supabase
+          .from("produto")
+          .update({
+            origem_pais_codigo: origin.countryCode,
+            origem_pais_nome: origin.countryName,
+            warehouse_id: origin.warehouseId,
+          })
+          .eq("id", product.id);
+      } catch {
+        // Persisting origin is an optimization and must not block checkout.
+      }
+    }
+
+    return origin;
+  })();
+
+  cjOriginPromises.set(vid, lookupPromise);
+
+  try {
+    return await lookupPromise;
+  } finally {
+    cjOriginPromises.delete(vid);
+  }
 }
 
 async function quoteCJ(params: {
   vid: string;
   quantity: number;
   destinationCep: string;
+  product: any;
 }) {
-  const origin = await getCJOrigin(params.vid);
+  const origin = await getCJOrigin(params.vid, params.product);
 
   const response = await cjRequest<any>("/logistic/freightCalculate", {
-    startCountryCode: origin.countryCode,
-    endCountryCode: "BR",
-    zip: digits(params.destinationCep),
-    products: [{ quantity: params.quantity, vid: params.vid }],
+    method: "POST",
+    body: JSON.stringify({
+      startCountryCode: origin.countryCode,
+      endCountryCode: "BR",
+      zip: digits(params.destinationCep),
+      products: [{ quantity: params.quantity, vid: params.vid }],
+    }),
   });
 
   const data = Array.isArray(response?.data) ? response.data : [];
 
   return data
-    .filter((item: any) => Number.isFinite(Number(item?.logisticPrice ?? item?.totalPostageFee)))
+    .filter((item: any) => {
+      const price = Number(item?.totalPostageFee ?? item?.logisticPrice ?? item?.postage ?? 0);
+      return Number.isFinite(price) && price >= 0 && !item?.errorEn && !item?.error;
+    })
     .map((item: any, index: number): FreightQuote => ({
       provider: "cj",
       international: origin.countryCode !== "BR",
       originCountryCode: origin.countryCode,
       originCountryName: origin.countryName,
       serviceCode: `CJ-${item?.optionId ?? item?.channelId ?? index}`,
-      serviceName: item?.logisticName ?? item?.channel?.enName ?? "Envio internacional",
-      price: Number(item?.totalPostageFee ?? item?.logisticPrice ?? 0),
+      serviceName:
+        item?.logisticName ??
+        item?.channel?.enName ??
+        item?.option?.enName ??
+        "Envio internacional",
+      price: Number(item?.totalPostageFee ?? item?.logisticPrice ?? item?.postage ?? 0),
       currency: "USD",
-      deliveryTime: item?.logisticAging ?? item?.arrivalTime ?? null,
+      deliveryTime: item?.logisticAging ?? item?.arrivalTime ?? item?.option?.arrivalTime ?? null,
     }))
-    .filter((item: FreightQuote) => item.price >= 0)
     .sort((a: FreightQuote, b: FreightQuote) => a.price - b.price);
 }
 
@@ -190,6 +274,7 @@ export async function calcularFreteProduto(params: {
       vid: String(params.variantId),
       quantity,
       destinationCep: params.destinationCep,
+      product,
     });
   }
 

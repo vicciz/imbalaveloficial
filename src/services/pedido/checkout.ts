@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { supabase } from "../../../supabaseClient";
 import { variantImageService } from "@/src/services/products/services/VariantImageService";
 import { calcularFreteProduto } from "@/src/services/frete/calcularFrete";
+import { getUsdBrlRate } from "@/src/services/cambio/usdBrl";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY não configurada");
@@ -246,11 +247,8 @@ export async function criarCheckoutCarrinho(
       let valorBRL = escolhido.price;
 
       if (escolhido.currency === "USD") {
-        const usdBrlRate = Number(process.env.USD_BRL_RATE ?? 0);
-        if (!Number.isFinite(usdBrlRate) || usdBrlRate <= 0) {
-          throw new Error("USD_BRL_RATE não configurado para converter o frete internacional.");
-        }
-        valorBRL = Number((escolhido.price * usdBrlRate).toFixed(2));
+        const usdBrlRate = await getUsdBrlRate();
+        valorBRL = Number((escolhido.price * usdBrlRate.rate).toFixed(2));
       }
 
       return {

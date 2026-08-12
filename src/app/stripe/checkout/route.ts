@@ -149,12 +149,8 @@ const preco = Number(
     let freteBRL = freteEscolhido.price;
 
     if (freteEscolhido.currency === "USD") {
-      const usdBrlRate = Number(process.env.USD_BRL_RATE ?? 0);
-      if (!Number.isFinite(usdBrlRate) || usdBrlRate <= 0) {
-        throw new Error("USD_BRL_RATE não configurado para converter o frete internacional.");
-      }
-
-      freteBRL = Number((freteEscolhido.price * usdBrlRate).toFixed(2));
+      const usdBrlRate = await getUsdBrlRate();
+      freteBRL = Number((freteEscolhido.price * usdBrlRate.rate).toFixed(2));
     }
 
     if (!Number.isFinite(freteBRL) || freteBRL < 0) {

@@ -46,6 +46,10 @@ export default function ProductPurchase({
   const [cepFrete, setCepFrete] = useState("");
   const [calculandoFrete, setCalculandoFrete] = useState(false);
   const [frete, setFrete] = useState<any | null>(null);
+  const [usuarioLogado, setUsuarioLogado] = useState(false);
+  const [enderecos, setEnderecos] = useState<any[]>([]);
+  const [enderecoSelecionadoId, setEnderecoSelecionadoId] = useState<number | null>(null);
+  const [carregandoEndereco, setCarregandoEndereco] = useState(true);
   
   const estoque =
     variacao?.variacaoSelecionada?.estoque ??
@@ -57,7 +61,72 @@ export default function ProductPurchase({
 
   useEffect(() => {
     carregarCarrinhoAtual();
+    carregarEnderecoParaFrete();
   }, []);
+
+  async function carregarEnderecoParaFrete() {
+    try {
+      setCarregandoEndereco(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setUsuarioLogado(false);
+        setEnderecos([]);
+        setEnderecoSelecionadoId(null);
+        return;
+      }
+
+      setUsuarioLogado(true);
+
+      // A tabela `enderecos` usa o ID interno da tabela `usuario`,
+      // não o UUID do Supabase Auth.
+      const { data: perfil, error: perfilError } = await supabase
+        .from("usuario")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (perfilError || !perfil?.id) {
+        console.error("Erro ao localizar perfil do usuário:", perfilError);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("enderecos")
+        .select("*")
+        .eq("id_usuario", perfil.id)
+        .order("principal", { ascending: false })
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("Erro ao carregar endereços:", {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        });
+        return;
+      }
+
+      const lista = data ?? [];
+      setEnderecos(lista);
+
+      const principal = lista.find((endereco: any) => endereco.principal === true);
+      const escolhido = principal ?? lista[0];
+
+      if (escolhido?.id) {
+        setEnderecoSelecionadoId(Number(escolhido.id));
+        setCepFrete(String(escolhido.cep ?? ""));
+      }
+    } catch (error) {
+      console.error("Erro ao carregar endereço para frete:", error);
+    } finally {
+      setCarregandoEndereco(false);
+    }
+  }
 
   function getAtributo(
     item: any,
@@ -189,6 +258,96 @@ export default function ProductPurchase({
     if (quantidade > 1) {
       setQuantidade((q) => q - 1);
     }
+  }
+
+  async function calcularFreteAutomaticamente(cep: string) {
+    const cepLimpo = cep.replace(/\D/g, "");
+
+    if (cepLimpo.length !== 8) {
+      setFrete(null);
+      return;
+    }
+
+    try {
+      setCalculandoFrete(true);
+
+      const response = await fetch("/api/frete/cotacao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          produtoId: produto.id,
+          quantidade,
+          cepDestino: cepLimpo,
+          preco: Number(
+            variacao?.variacaoSelecionada?.item?.preco ??
+            variacao?.variacaoSelecionada?.preco ??
+            produto.preco ??
+            0
+          ),
+          variantId:
+            variacao?.variacaoSelecionada?.cj_variant_id ??
+            variacao?.variacaoSelecionada?.item?.cj_variant_id ??
+            variacao?.variacaoSelecionada?.item?.fornecedor_sku ??
+            variacao?.variacaoSelecionada?.fornecedor_sku ??
+            null,
+          variantSku: variacao?.variacaoSelecionada?.sku ?? null,
+          variantItemId:
+            variacao?.variacaoSelecionada?.item?.id ??
+            null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setFrete(null);
+        toast.error("Não foi possível calcular o frete.", {
+          description: data?.error ?? "Tente novamente.",
+        });
+        return;
+      }
+
+      setFrete(data.selected ?? null);
+    } catch (error) {
+      console.error("Erro ao calcular frete automaticamente:", error);
+      setFrete(null);
+      toast.error("Não foi possível calcular o frete.");
+    } finally {
+      setCalculandoFrete(false);
+    }
+  }
+
+  // Recalcula automaticamente quando o CEP, quantidade ou variante mudarem.
+  useEffect(() => {
+    const cepLimpo = cepFrete.replace(/\D/g, "");
+
+    if (cepLimpo.length !== 8) {
+      setFrete(null);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      calcularFreteAutomaticamente(cepLimpo);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    cepFrete,
+    quantidade,
+    variacao?.variacaoSelecionada?.item?.id,
+    variacao?.variacaoSelecionada?.item?.fornecedor_sku,
+  ]);
+
+  function selecionarEndereco(id: number) {
+    const endereco = enderecos.find(
+      (item) => Number(item.id) === Number(id)
+    );
+
+    if (!endereco) return;
+
+    setEnderecoSelecionadoId(Number(endereco.id));
+    setCepFrete(String(endereco.cep ?? ""));
+    setFrete(null);
   }
 
   async function comprarAgora() {
@@ -390,68 +549,71 @@ export default function ProductPurchase({
           Frete
         </p>
 
-        <div className="mt-2 flex gap-2">
-          <input
-            value={cepFrete}
-            onChange={(event) => setCepFrete(event.target.value)}
-            inputMode="numeric"
-            maxLength={9}
-            placeholder="Digite seu CEP"
-            className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-500"
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={calculandoFrete || cepFrete.replace(/\D/g, "").length !== 8}
-            onClick={async () => {
-              try {
-                setCalculandoFrete(true);
-                setFrete(null);
-
-                const response = await fetch("/api/frete/cotacao", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    produtoId: produto.id,
-                    quantidade,
-                    cepDestino: cepFrete,
-                    preco: Number(
-                      variacao?.variacaoSelecionada?.item?.preco ??
-                      variacao?.variacaoSelecionada?.preco ??
-                      produto.preco ??
-                      0
-                    ),
-                    variantId:
-                      variacao?.variacaoSelecionada?.cj_variant_id ??
-                      variacao?.variacaoSelecionada?.item?.cj_variant_id ??
-                      variacao?.variacaoSelecionada?.item?.fornecedor_sku ??
-                      variacao?.variacaoSelecionada?.fornecedor_sku ??
-                      null,
-                    variantSku: variacao?.variacaoSelecionada?.sku ?? null,
-                  }),
-                });
-
-                const data = await response.json();
-                if (!response.ok) {
-                  toast.error("Não foi possível calcular o frete.", {
-                    description: data?.error ?? "Tente novamente.",
-                  });
-                  return;
+        {usuarioLogado && enderecos.length > 0 ? (
+          <div className="mt-2 space-y-2">
+            {enderecos.length > 1 ? (
+              <select
+                value={enderecoSelecionadoId ?? ""}
+                onChange={(event) =>
+                  selecionarEndereco(Number(event.target.value))
                 }
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-500"
+                disabled={carregandoEndereco || calculandoFrete}
+              >
+                {enderecos.map((endereco) => (
+                  <option key={endereco.id} value={endereco.id}>
+                    {endereco.principal ? "Principal — " : ""}
+                    {endereco.logradouro ?? "Endereço"}{" "}
+                    {endereco.numero ?? ""} — {endereco.cidade ?? ""}/{endereco.estado ?? ""}
+                    {" — CEP "}
+                    {endereco.cep ?? ""}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                <p className="font-medium">
+                  Entrega para {enderecos[0]?.cidade ?? ""}/{enderecos[0]?.estado ?? ""}
+                </p>
+                <p className="text-xs text-slate-500">
+                  CEP {String(enderecos[0]?.cep ?? "")}
+                </p>
+              </div>
+            )}
 
-                setFrete(data.selected ?? null);
-              } catch (error) {
-                console.error(error);
-                toast.error("Não foi possível calcular o frete.");
-              } finally {
-                setCalculandoFrete(false);
-              }
-            }}
-            className="shrink-0 rounded-xl"
-          >
-            {calculandoFrete ? "Calculando..." : "Calcular"}
-          </Button>
-        </div>
+            {calculandoFrete && (
+              <p className="text-xs text-slate-500">
+                Calculando frete para este endereço...
+              </p>
+            )}
+          </div>
+        ) : usuarioLogado && !carregandoEndereco ? (
+          <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            Você ainda não possui um endereço cadastrado.{" "}
+            <Link
+              href="/perfil"
+              className="font-semibold underline"
+            >
+              Cadastrar endereço
+            </Link>
+          </div>
+        ) : (
+          <div className="mt-2 flex gap-2">
+            <input
+              value={cepFrete}
+              onChange={(event) => setCepFrete(event.target.value)}
+              inputMode="numeric"
+              maxLength={9}
+              placeholder="Digite seu CEP"
+              className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-500"
+            />
+            {calculandoFrete && (
+              <span className="self-center whitespace-nowrap text-xs text-slate-500">
+                Calculando...
+              </span>
+            )}
+          </div>
+        )}
 
         {frete ? (
           <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -465,12 +627,20 @@ export default function ProductPurchase({
                 {frete.serviceName}
               </span>
               <span className="font-semibold text-slate-900">
-                {Number(frete.price).toLocaleString("pt-BR", {
+                {Number(frete.priceBRL ?? frete.price).toLocaleString("pt-BR", {
                   style: "currency",
-                  currency: frete.currency,
+                  currency: "BRL",
                 })}
               </span>
             </div>
+            {frete.international && frete.currency === "USD" && (
+              <p className="mt-1 text-xs text-slate-500">
+                {Number(frete.price).toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                })} convertido pela cotação atual do USD/BRL.
+              </p>
+            )}
             {frete.deliveryTime && (
               <p className="mt-1 text-xs text-slate-500">
                 Prazo estimado: {frete.deliveryTime}
@@ -484,7 +654,9 @@ export default function ProductPurchase({
           </div>
         ) : (
           <p className="mt-2 text-xs text-slate-500">
-            Informe o CEP para consultar as opções de entrega.
+            {usuarioLogado
+              ? "Selecione um endereço para consultar as opções de entrega."
+              : "Informe seu CEP para consultar as opções de entrega."}
           </p>
         )}
       </div>
