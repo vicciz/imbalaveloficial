@@ -7,21 +7,26 @@ type Props = {
   produto: Produto;
 };
 
-export default function ProductApresentation({
-  produto,
-}: Props) {
+export default function ProductApresentation({ produto }: Props) {
   const apresentacaoCompleta =
-    produto.detalhes ||
-    "Apresentação não disponível.";
+    produto.detalhes || "Apresentação não disponível.";
 
   return (
-    <section>
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h2 className="text-3xl font-semibold text-slate-900">
+    <section className="space-y-5">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
+          Sobre o produto
+        </p>
+        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
           Apresentação do Produto
         </h2>
+      </div>
 
-        <ProductDescription html={apresentacaoCompleta} className="mt-6" />
+      <div className="rounded-2xl border border-slate-200 bg-white px-6 py-7 shadow-sm sm:px-8 sm:py-8">
+        <ProductDescription
+          html={apresentacaoCompleta}
+          className="text-[15px] sm:text-base"
+        />
       </div>
     </section>
   );

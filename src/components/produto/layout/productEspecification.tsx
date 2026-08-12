@@ -31,38 +31,57 @@ export default function ProductSpecification({ produto }: Props) {
 
   return (
     <section className="space-y-6">
-      <h2 className="text-3xl font-semibold text-slate-900">
-        Especificações
-      </h2>
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
+          Dados do produto
+        </p>
+        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
+          Especificações
+        </h2>
+      </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         {loading ? (
-          <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
-            Carregando especificações...
-          </p>
+          <div className="px-6 py-8">
+            <p className="text-sm font-medium text-slate-500">
+              Carregando especificações...
+            </p>
+          </div>
+        ) : especificacoes.length === 0 ? (
+          <div className="px-6 py-8">
+            <p className="text-sm text-slate-500">
+              Nenhuma especificação disponível.
+            </p>
+          </div>
         ) : (
-        <dl className="space-y-4">
-          {especificacoesVisiveis.map((item, index) => (
-            <div key={`${item.label}-${item.value}-${index}`} className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-              <dt className="text-sm font-medium uppercase tracking-wide text-slate-500">
-                {item.label}
-              </dt>
-              <dd className="text-sm font-semibold text-slate-800">
-                {item.value as any}
-              </dd>
-            </div>
-          ))}
-        </dl>
+          <dl className="divide-y divide-slate-100">
+            {especificacoesVisiveis.map((item, index) => (
+              <div
+                key={`${item.label}-${item.value}-${index}`}
+                className="grid grid-cols-1 gap-2 px-6 py-4 sm:grid-cols-[minmax(11rem,0.8fr)_minmax(0,1.7fr)] sm:items-start sm:gap-8"
+              >
+                <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                  {item.label}
+                </dt>
+
+                <dd className="min-w-0 break-words whitespace-normal text-sm font-medium leading-6 text-slate-800 sm:text-right">
+                  {String(item.value ?? "—")}
+                </dd>
+              </div>
+            ))}
+          </dl>
         )}
 
         {!loading && podeExpandir && (
-          <div className="mt-6 flex justify-center">
+          <div className="border-t border-slate-100 px-6 py-4 text-center">
             <button
               type="button"
               onClick={() => setMostrarTodas((old) => !old)}
               className="text-sm font-semibold text-violet-600 transition hover:text-violet-700"
             >
-              {mostrarTodas ? "Ver menos especificações" : "Ver todas as especificações"}
+              {mostrarTodas
+                ? "Ver menos especificações"
+                : "Ver todas as especificações"}
             </button>
           </div>
         )}
