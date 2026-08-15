@@ -52,12 +52,40 @@ export default function ProductPurchase({
   const [carregandoEndereco, setCarregandoEndereco] = useState(true);
   
   const estoque =
-    variacao?.variacaoSelecionada?.estoque ??
-    produto.estoque ??
-    0;
+    Number(
+      variacao?.variacaoSelecionada?.estoque ??
+      produto.estoque ??
+      0
+    );
+
+  // In dropshipping, local stock may legitimately be zero because the item
+  // is held by the supplier. A valid supplier SKU/VID is the availability
+  // signal until supplier stock synchronization says otherwise.
+  const origemProduto = String(produto.origem ?? "").trim().toLowerCase();
+  const fornecedorSku =
+    variacao?.variacaoSelecionada?.item?.fornecedor_sku ??
+    variacao?.variacaoSelecionada?.fornecedor_sku ??
+    null;
+
+  const eDropshipping =
+    origemProduto === "cj" ||
+    Boolean(fornecedorSku) ||
+    Boolean(produto.id_fornecedor);
 
   const disponivel =
-    estoque > 0;
+    eDropshipping
+      ? Boolean(
+          variacao?.variacaoSelecionada
+            ? variacao?.variacaoSelecionada?.item?.ativo !== false &&
+              (fornecedorSku || variacao?.variacaoSelecionada?.sku)
+            : produto.id_fornecedor || produto.origem
+        )
+      : estoque > 0;
+
+  const limiteQuantidade =
+    eDropshipping && estoque <= 0
+      ? 99
+      : Math.max(1, estoque);
 
   useEffect(() => {
     carregarCarrinhoAtual();
@@ -249,7 +277,7 @@ export default function ProductPurchase({
   }
 
   function aumentar() {
-    if (quantidade < estoque) {
+    if (quantidade < limiteQuantidade) {
       setQuantidade((q) => q + 1);
     }
   }
@@ -521,7 +549,9 @@ export default function ProductPurchase({
           }`}
         >
           {disponivel
-            ? `🟢 ${estoque} unidades disponíveis`
+            ? eDropshipping && estoque <= 0
+              ? "🟢 Disponível para envio"
+              : `🟢 ${estoque} unidades disponíveis`
             : "🔴 Produto indisponível"}
         </p>
 
@@ -703,7 +733,7 @@ export default function ProductPurchase({
             size="icon"
             onClick={aumentar}
             disabled={
-              quantidade >= estoque
+              quantidade >= limiteQuantidade
             }
           >
             <Plus className="h-4 w-4" />

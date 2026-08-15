@@ -101,21 +101,30 @@ export class SupabaseProductRepository implements ProductRepository {
   async saveProduct(product: Product): Promise<SaveProductResult> {
     const categoryId = await getOrCreateCategoryId(product.category.name);
     const brandId = await getOrCreateBrandId(product.brand.name);
-    const supplierId = await getOrCreateSupplierId(product.supplier.name);
+    const supplierId = await getOrCreateSupplierId({
+      name: product.supplier.name,
+      platformKey: product.platform?.key,
+    });
 
     const payload = {
       nome: product.title,
       descricao: product.shortDescription || "Descrição indisponível.",
       detalhes: product.description || "Detalhes indisponíveis.",
-      link: "",
+      link: product.externalUrl ?? "",
       rating: 0,
       reviews: 0,
       origem: product.source,
       fornecedor_produto_id: product.externalId,
+      external_product_id: product.externalId,
       id_fornecedor: supplierId,
       marca_id: brandId,
       categoria_id: categoryId,
       fornecedor: product.supplier.name,
+      markup_percent: product.markupPercent ?? 50,
+      markup_percentual: product.markupPercent ?? 50,
+      origem_pais_codigo: product.logistics?.originCountryCode ?? null,
+      origem_pais_nome: product.logistics?.originCountryName ?? null,
+      warehouse_id: product.logistics?.warehouseId ?? null,
     };
 
     const { data, error } = await supabase.from("produto").insert(payload).select("id,nome").single<ProductRow>();
@@ -139,7 +148,7 @@ export class SupabaseProductRepository implements ProductRepository {
     product: Product,
     savedImages: SavedProductImage[]
   ): Promise<number[]> {
-    return saveVariants(productId, product.variants, savedImages);
+    return saveVariants(productId, product.variants, savedImages, product.markupPercent ?? 50);
   }
 
   async saveSpecifications(productId: number, product: Product): Promise<number> {

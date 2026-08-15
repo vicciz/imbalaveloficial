@@ -1,4 +1,7 @@
 export interface CjProdutoNormalizado {
+  /** JSON original retornado pelo provedor */
+  raw?: unknown;
+  fonte?: string;
   idExterno: string;
 
   nome: string;

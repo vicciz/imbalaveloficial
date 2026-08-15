@@ -17,6 +17,7 @@ export default function ProductCard({
     <article
       className={`
         overflow-hidden
+        [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden
         rounded-xl
         border
         border-slate-200

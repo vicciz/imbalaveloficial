@@ -54,13 +54,13 @@ export default function AdminHome() {
             </Link>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">CJ Dropshipping</h2>
-            <p className="mt-2 text-sm text-zinc-600">Importe produtos diretamente do CJ Dropshipping.</p>
+            <h2 className="text-lg font-semibold">Fornecedores</h2>
+            <p className="mt-2 text-sm text-zinc-600">Gerencie seus fornecedores e importe produtos diretamente deles.</p>
             <Link
-              href="/admin/cjdropshipping"
+              href="/admin/fornecedores"
               className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline"
             >
-              Importar do CJ
+              Gerenciar Fornecedores
             </Link>
           </div>
 

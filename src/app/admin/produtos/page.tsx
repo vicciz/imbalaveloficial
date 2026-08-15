@@ -20,7 +20,7 @@ import SearchBar from "@/src/components/Admin/common/SearchBar";
 import Pagination from "@/src/components/Admin/common/Pagination";
 import TableActions from "@/src/components/Admin/table/TableActions";
 import StatusBadge from "@/src/components/Admin/table/StatusBadge";
-import ModalVariacoes from "@/src/app/admin/ModalVariacoes/ModalVariacoes";
+import ModalVariacoes from "@/src/app/admin/components/ModalVariacoes/ModalVariacoes";
 import {
   obterMenorPreco,
   formatarPreco,

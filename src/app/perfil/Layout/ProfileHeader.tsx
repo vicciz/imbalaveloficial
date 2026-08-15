@@ -14,8 +14,8 @@ export default function ProfileHeader({ roleText }: ProfileHeaderProps) {
 
         <div className="relative space-y-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-3">
-              <p className="text-sm font-semibold tracking-[0.18em] text-violet-700 uppercase">
+            <div className="">
+              <p className="text-sm font-semibold uppercase">
                 Minha Conta
               </p>
               <div>

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import HeaderResumo from "@/src/app/admin/ModalVariacoes/componentes/HeaderResumo";
-import TabelaCombinacoes from "@/src/app/admin/ModalVariacoes/componentes/TabelaCombinacoes";
+import HeaderResumo from "@/src/app/admin/components/ModalVariacoes/componentes/HeaderResumo";
+import TabelaCombinacoes from "@/src/app/admin/components/ModalVariacoes/componentes/TabelaCombinacoes";
 
-import BotaoSalvar from "@/src/app/admin/ModalVariacoes/CombinaçoesTab/componentes/BotaoSalvar";
-import BarraPesquisa from "@/src/app/admin/ModalVariacoes/CombinaçoesTab/componentes/BarraPesquisa";
+import BotaoSalvar from "@/src/app/admin/components/ModalVariacoes/CombinaçoesTab/componentes/BotaoSalvar";
+import BarraPesquisa from "@/src/app/admin/components/ModalVariacoes/CombinaçoesTab/componentes/BarraPesquisa";
 
 interface Props {
   produtoId: number;

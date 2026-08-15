@@ -16,7 +16,7 @@ import {
   TabsTrigger,
 } from "@/src/components/ui/tabs";
 
-import FooterVariacoes from "@/src/app/admin/ModalVariacoes/componentes/FooterVariacoes";
+import FooterVariacoes from "@/src/app/admin/components/ModalVariacoes/componentes/FooterVariacoes";
 
 import AtributosTab from "./AtributosTab";
 import CombinacoesTab from "./CombinacoesTab";

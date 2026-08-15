@@ -16,9 +16,12 @@ import VariantImageManagerDialog from "./VariantImageManagerDialog";
 import { CardVariacaoProps } from "./types";
 
 import { salvarItemVariacao } from "@/src/components/produto/types/variacoes";
+import { calcularPrecoVenda, normalizarMarkup } from "@/src/services/precos/markup";
 import { variantImageService } from "@/src/services/products/services/VariantImageService";
+import { supabase } from "@/supabaseClient";
 
 export default function CardVariacao({
+  produto,
   variacao,
   imagens,
   onRefresh,
@@ -40,7 +43,18 @@ export default function CardVariacao({
     [imagensPersistidas, variacao]
   );
 
-  const [preco, setPreco] = useState(item?.preco ?? 0);
+  const [custoFornecedor, setCustoFornecedor] = useState(
+    variacao?.custo_fornecedor ??
+    item?.custo_fornecedor ??
+    variacao?.preco ??
+    item?.preco ??
+    0
+  );
+  const markupPercent = normalizarMarkup(produto?.markup_percent);
+  const precoVenda = calcularPrecoVenda(
+    custoFornecedor,
+    markupPercent
+  );
   const [estoque, setEstoque] = useState(item?.estoque ?? 0);
   const [sku, setSku] = useState(item?.sku ?? "");
   const [ativo, setAtivo] = useState(item?.ativo ?? true);
@@ -49,12 +63,21 @@ export default function CardVariacao({
     if (!item) return;
 
     await salvarItemVariacao(item.id, {
-      preco,
+      preco: precoVenda,
+      custo_fornecedor: Number(custoFornecedor),
       estoque,
       sku,
       ativo,
       imagem_principal: item.imagem_principal,
     });
+
+    await supabase
+      .from("produto_variacao")
+      .update({
+        preco: precoVenda,
+        custo_fornecedor: Number(custoFornecedor),
+      })
+      .eq("id", variacao.id);
 
     await onRefresh();
   }
@@ -69,16 +92,22 @@ export default function CardVariacao({
         <div className="grid md:grid-cols-3 gap-6">
           <div>
             <label className="text-sm font-medium">
-              Preço
+              Custo do fornecedor
             </label>
 
             <Input
               type="number"
-              value={preco}
+              min="0"
+              step="0.01"
+              value={custoFornecedor}
               onChange={(e) =>
-                setPreco(Number(e.target.value))
+                setCustoFornecedor(Number(e.target.value))
               }
             />
+
+            <p className="mt-1 text-xs text-slate-500">
+              Venda: R$ {precoVenda.toFixed(2)} ({markupPercent}% de markup)
+            </p>
           </div>
 
           <div>

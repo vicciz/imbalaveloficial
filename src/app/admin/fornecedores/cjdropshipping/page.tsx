@@ -2,12 +2,13 @@
 
 import { AdminLayout } from "@/src/components/layout/Admin";
 
-import CjSearch from "@/src/app/admin/cjdropshipping/components/CjSearch";
-import CjProductGrid from "@/src/app/admin/cjdropshipping/components/CjProductGrid";
-import CjImportDialog from "@/src/app/admin/cjdropshipping/components/CjImportDialog";
+import CjSearch from "@/src/app/admin/fornecedores/cjdropshipping/components/CjSearch";
+import CjProductGrid from "@/src/app/admin/fornecedores/cjdropshipping/components/CjProductGrid";
+import CjImportDialog from "@/src/app/admin/fornecedores/cjdropshipping/components/CjImportDialog";
 
 import { useCJProducts } from "@/src/hooks/cjdropshipping/useCJProducts";
 import { useCJImport } from "@/src/hooks/cjdropshipping/useCJImport";
+import Link from "next/link";
 
 export default function CJDropshippingPage() {
   const {
@@ -34,9 +35,17 @@ export default function CJDropshippingPage() {
             Importar do CJ
           </h1>
 
-          <p className="text-slate-500">
-            Pesquise produtos no catálogo do CJ Dropshipping.
-          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <p className="text-slate-500">
+              Pesquise produtos no catálogo do CJ Dropshipping.
+            </p>
+            <Link
+              href="/admin/fornecedores/cjdropshipping/teste"
+              className="inline-flex w-fit items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-violet-300 hover:text-violet-700"
+            >
+              Diagnóstico da API
+            </Link>
+          </div>
         </div>
 
         <CjSearch

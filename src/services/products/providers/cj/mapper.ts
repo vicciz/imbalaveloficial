@@ -14,10 +14,18 @@ interface CjVariant {
   variantSku?: string;
   vid?: string;
   variantSellPrice?: number | string;
+  variantSugSellPrice?: number | string;
+  variantLength?: number | string;
+  variantWidth?: number | string;
+  variantHeight?: number | string;
+  variantWeight?: number | string;
+  variantBarCode?: string;
+  variantBarcode?: string;
   inventoryNum?: number | string;
   variantImage?: string;
   variantProperty?: string;
   variantKey?: string;
+  variantUnit?: string;
 }
 
 interface CjRawProduct {
@@ -39,8 +47,23 @@ interface CjRawProduct {
   entryCode?: string;
   entryNameEn?: string;
   productWeight?: number | string;
+  productLength?: number | string;
+  productWidth?: number | string;
+  productHeight?: number | string;
   packingWeight?: number | string;
   suggestSellPrice?: number | string;
+  productSku?: string;
+  productType?: string;
+  productKeyEn?: string;
+  productKeyEnSet?: string[];
+  productKey?: string;
+  productKeySet?: string[];
+  productUnit?: string;
+  sourceUrl?: string;
+  warehouseId?: string;
+  warehouseName?: string;
+  countryCode?: string;
+  countryName?: string;
   createrTime?: string;
   variants?: CjVariant[];
 }
@@ -66,7 +89,7 @@ function asStringArray(value: string[] | undefined, fallbackJson: string | undef
   return parseJsonArray<string>(fallbackJson);
 }
 
-function mapVariantOptions(variant: CjVariant): ProductOption[] {
+function mapVariantOptions(variant: CjVariant, product: CjRawProduct): ProductOption[] {
   const properties = parseJsonArray<CjVariantProperty>(variant.variantProperty);
 
   if (properties.length > 0) {
@@ -76,12 +99,50 @@ function mapVariantOptions(variant: CjVariant): ProductOption[] {
     }));
   }
 
-  return [
-    {
-      name: "Modelo",
-      value: variant.variantKey ?? "Padrão",
-    },
-  ];
+  const optionNames =
+    product.productKeyEnSet?.filter(Boolean) ??
+    asStringArray(undefined, product.productKeyEn);
+
+  const rawKey = (variant.variantKey ?? "Padrão").trim();
+
+  if (optionNames.length <= 1) {
+    return [
+      {
+        name: optionNames[0] ?? "Modelo",
+        value: rawKey || "Padrão",
+      },
+    ];
+  }
+
+  const parts = rawKey
+    .split("-")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length < optionNames.length) {
+    return [
+      {
+        name: optionNames.join(" / "),
+        value: rawKey || "Padrão",
+      },
+    ];
+  }
+
+  // A CJ usa hífen como separador, mas alguns valores também contêm hífen.
+  // Para o caso mais comum de 2 atributos, o último segmento é o tamanho/opção
+  // final e o restante permanece como o primeiro valor (ex.: "White 1-S").
+  const values =
+    optionNames.length === 2
+      ? [parts.slice(0, -1).join("-"), parts[parts.length - 1]]
+      : [
+          ...parts.slice(0, optionNames.length - 1),
+          parts.slice(optionNames.length - 1).join("-"),
+        ];
+
+  return optionNames.map((name, index) => ({
+    name: name.trim(),
+    value: values[index]?.trim() ?? "",
+  }));
 }
 
 function toNumber(value: number | string | undefined): number {
@@ -142,15 +203,23 @@ function mapSpecifications(product: CjRawProduct): ProductSpecification[] {
   return specifications;
 }
 
-function mapVariants(variants: CjVariant[] | undefined): ProductVariant[] {
+function mapVariants(variants: CjVariant[] | undefined, product: CjRawProduct): ProductVariant[] {
   return (variants ?? []).map((variant) => ({
     sku: variant.variantSku ?? "",
     externalId: variant.vid ?? "",
-    price: toNumber(variant.variantSellPrice),
+    externalSku: variant.variantSku ?? "",
+    supplierCost: toNumber(variant.variantSellPrice),
     stock: toNumber(variant.inventoryNum),
     active: true,
     primaryImageUrl: variant.variantImage,
-    options: mapVariantOptions(variant),
+    barcode: variant.variantBarCode ?? variant.variantBarcode,
+    unit: variant.variantUnit,
+    // A API da CJ retorna peso em gramas e dimensões em milímetros.
+    weightKg: toNumber(variant.variantWeight) / 1000 || undefined,
+    lengthCm: toNumber(variant.variantLength) / 10 || undefined,
+    widthCm: toNumber(variant.variantWidth) / 10 || undefined,
+    heightCm: toNumber(variant.variantHeight) / 10 || undefined,
+    options: mapVariantOptions(variant, product),
   }));
 }
 
@@ -169,6 +238,10 @@ export function mapCJProductToProduct(raw: unknown): Product {
   return {
     externalId: product.pid ?? "",
     source: "cj",
+    platform: {
+      key: "cj",
+      name: "CJ Dropshipping",
+    },
     supplier: {
       name: product.supplierName ?? "CJ Dropshipping",
     },
@@ -192,7 +265,19 @@ export function mapCJProductToProduct(raw: unknown): Product {
       order: index,
       isPrimary: index === 0,
     })),
-    variants: mapVariants(product.variants),
+    variants: mapVariants(product.variants, product),
     specifications: mapSpecifications(product),
+    markupPercent: 50,
+    externalUrl: product.sourceUrl,
+    logistics: {
+      originCountryCode: product.countryCode,
+      originCountryName: product.countryName,
+      warehouseId: product.warehouseId,
+      warehouseName: product.warehouseName,
+      weightKg: toNumber(product.productWeight) || undefined,
+      lengthCm: toNumber(product.productLength) || undefined,
+      widthCm: toNumber(product.productWidth) || undefined,
+      heightCm: toNumber(product.productHeight) || undefined,
+    },
   };
 }

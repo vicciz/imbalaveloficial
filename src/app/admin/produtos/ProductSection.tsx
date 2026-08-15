@@ -38,23 +38,32 @@ function scrollRight() {
   });
 }
   return (
-  <section
+<section
+  className="
+    mt-10
+    mb-14
+    rounded-3xl
+    border
+    border-zinc-200
+    bg-white
+    p-6
+    shadow-sm
+    transition-shadow
+    duration-300
+    hover:shadow-md
+  "
+>
+  <div
     className="
-      mt-10
-      mb-14
-      rounded-3xl
-      border
-      border-zinc-200
-      bg-white
-      p-6
-      shadow-md
-      transition-shadow
-      duration-300
-      hover:shadow-lg
-    "
-    >
+      mb-8
+      flex
+      items-center
+      justify-between
+  "
+></div>
     <div
-    className="
+        className="
+    
         mb-8
         flex
         items-center
@@ -100,7 +109,7 @@ function scrollRight() {
 
 </div>
 
-<div className="relative">
+<div className="relative ">
 
   <button
     onClick={scrollLeft}
@@ -121,18 +130,20 @@ function scrollRight() {
     <ChevronLeft size={22} />
   </button>
 
-  <div
-    ref={scrollRef}
-    className="
-      flex
-      gap-4
-      overflow-x-auto
-      scroll-smooth
-      px-12
-      pb-2
-      scrollbar-hide
-    "
-  >
+<div
+  ref={scrollRef}
+  className="
+    flex
+    gap-4
+    overflow-x-auto
+    scroll-smooth
+    px-12
+    pb-2
+    [scrollbar-width:none]
+    [-ms-overflow-style:none]
+    [&::-webkit-scrollbar]:hidden
+  "
+>
         {produtos.map((produto) => (
           <HomeProductCard
             key={produto.id}

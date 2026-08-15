@@ -1,0 +1,6 @@
+name: New Environment
+values:
+  - key: CJ_ACCESS_TOKEN
+    value: ''
+  - key: CJ_API_KEY
+    value: ''

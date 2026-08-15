@@ -45,7 +45,8 @@ className="
   hover:shadow-xl
 ">
      <div
-  className="
+        className="
+  
     flex
     h-56
     items-center
@@ -129,11 +130,6 @@ className="
       em até 10x sem juros
     </p>
   </div>
-          <p className="mt-1 text-xs text-zinc-500">
-
-    em até 10x sem juros
-
-</p>
         </div>
 
        <p

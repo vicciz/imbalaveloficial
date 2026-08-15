@@ -2,6 +2,7 @@
 
 import { supabase } from "../../../../supabaseClient";
 import { listarProdutosColecao } from "@/src/services/colecao/colecao";
+import { calcularPrecoVenda, normalizarMarkup } from "@/src/services/precos/markup";
 
 export interface ProdutoImagem {
   id?: number;
@@ -24,6 +25,7 @@ export interface ProdutoVariacaoItem {
 
   sku: string | null;
   fornecedor_sku?: string | null;
+  custo_fornecedor?: number | null;
   ativo: boolean;
 
   imagem_principal?: string | null;
@@ -50,6 +52,9 @@ export interface ProdutoVariacao {
 
   id_produto: number;
 
+  preco: number;
+  custo_fornecedor?: number | null;
+
   produto_variacao_item: ProdutoVariacaoItem[];
 
   produto_variacao_imagem?: ProdutoVariacaoImagem[];
@@ -61,6 +66,7 @@ export interface Produto {
   nome: string;
 
   preco: number | null;
+  markup_percent?: number | null;
 
   estoque?: number | null;
 
@@ -133,13 +139,63 @@ function normalizeProduto(produto: any): Produto {
           item.ativo
       );
 
-  const menorPreco =
-    itens.length > 0
-      ? Math.min(
-          ...itens.map((item) => Number(item.preco))
-        )
-      : (typeof produto.preco === "number" ? produto.preco : null);
+  const markup = normalizarMarkup(produto.markup_percent);
 
+  // The sale price is authoritative in the variation/item. For legacy
+  // products that do not yet have a separate supplier cost, preserve the
+  // existing sale price instead of turning it into R$ 0,00.
+  const variacoesComPrecoVenda = (produto.produto_variacao ?? []).map(
+    (variacao: any) => {
+      const itens = variacao.produto_variacao_item ?? [];
+
+      const itensComPreco = itens.map((item: any) => {
+        const custo = item.custo_fornecedor;
+        const precoExistente = Number(item.preco);
+
+        return {
+          ...item,
+          preco:
+            custo !== null &&
+            custo !== undefined &&
+            Number.isFinite(Number(custo))
+              ? calcularPrecoVenda(custo, markup)
+              : (
+                  Number.isFinite(precoExistente)
+                    ? precoExistente
+                    : Number(variacao.preco ?? 0)
+                ),
+        };
+      });
+
+      const primeiroPrecoItem = itensComPreco
+        .map((item: any) => Number(item.preco))
+        .filter((preco: number) => Number.isFinite(preco) && preco >= 0);
+
+      const precoVariacaoExistente = Number(variacao.preco);
+
+      return {
+        ...variacao,
+        preco:
+          primeiroPrecoItem.length > 0
+            ? Math.min(...primeiroPrecoItem)
+            : (
+                Number.isFinite(precoVariacaoExistente)
+                  ? precoVariacaoExistente
+                  : 0
+              ),
+        produto_variacao_item: itensComPreco,
+      };
+    }
+  );
+
+  const precosVariacoes = variacoesComPrecoVenda
+    .map((variacao: any) => Number(variacao.preco))
+    .filter((preco: number) => Number.isFinite(preco) && preco > 0);
+
+  const menorPreco =
+    precosVariacoes.length > 0
+      ? Math.min(...precosVariacoes)
+      : null;
   const estoqueTotal =
     itens.length > 0
       ? itens.reduce(
@@ -153,6 +209,7 @@ function normalizeProduto(produto: any): Produto {
     ...produto,
 
     preco: menorPreco,
+    markup_percent: markup,
 
     estoque: estoqueTotal,
 
@@ -164,6 +221,7 @@ function normalizeProduto(produto: any): Produto {
       : "",
 
     produto_imagem: imagens,
+    produto_variacao: variacoesComPrecoVenda,
   };
 }
 
@@ -213,12 +271,15 @@ export async function listarProdutos(
       produto_variacao(
         id,
         id_produto,
+        preco,
+        custo_fornecedor,
 
         produto_variacao_item(
           id,
           id_variacao,
           id_valor,
           preco,
+          custo_fornecedor,
           estoque,
           sku,
           ativo,
@@ -537,12 +598,15 @@ export async function buscarProdutosPorIds(
       produto_variacao(
         id,
         id_produto,
+        preco,
+        custo_fornecedor,
 
         produto_variacao_item(
           id,
           id_variacao,
           id_valor,
           preco,
+          custo_fornecedor,
           estoque,
           sku,
           ativo,
@@ -594,12 +658,15 @@ export async function listarProdutosCategoria(
       produto_variacao(
         id,
         id_produto,
+        preco,
+        custo_fornecedor,
 
         produto_variacao_item(
           id,
           id_variacao,
           id_valor,
           preco,
+          custo_fornecedor,
           estoque,
           sku,
           ativo,

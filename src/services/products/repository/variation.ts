@@ -1,6 +1,7 @@
 import { supabase } from "@/supabaseClient";
 import { variantImageMatcher, VariantImageMatcher } from "../images/VariantImageMatcher";
 import { variantImageService } from "../services/VariantImageService";
+import { calcularPrecoVenda, normalizarMarkup } from "@/src/services/precos/markup";
 
 import type { SavedProductImage } from "./image";
 import type { ProductOption } from "../types/ProductOption";
@@ -26,8 +27,17 @@ interface ProductVariationInsert {
   id_produto: number;
   sku: string;
   preco: number;
+  custo_fornecedor: number;
   estoque: number;
   ativo: boolean;
+  external_variant_id?: string;
+  external_sku?: string;
+  peso_kg?: number | null;
+  comprimento_cm?: number | null;
+  largura_cm?: number | null;
+  altura_cm?: number | null;
+  unidade?: string | null;
+  barcode?: string | null;
 }
 
 interface ProductVariationItemInsert {
@@ -38,6 +48,7 @@ interface ProductVariationItemInsert {
   sku: string;
   imagem_principal: string | null;
   fornecedor_sku: string;
+  custo_fornecedor: number;
 }
 
 interface ResolvedVariationOption {
@@ -197,13 +208,22 @@ async function linkVariationTypesToProduct(productId: number, typeIds: number[])
   }
 }
 
-async function createProductVariation(productId: number, variation: ProductVariant): Promise<number> {
+async function createProductVariation(productId: number, variation: ProductVariant, productMarkup: number): Promise<number> {
   const payload: ProductVariationInsert = {
     id_produto: productId,
     sku: variation.sku,
-    preco: variation.price,
+    preco: calcularPrecoVenda(variation.supplierCost, variation.markupPercent ?? productMarkup),
+    custo_fornecedor: Number(variation.supplierCost),
     estoque: variation.stock,
     ativo: variation.active,
+    external_variant_id: variation.externalId,
+    external_sku: variation.externalSku ?? variation.sku,
+    peso_kg: variation.weightKg ?? null,
+    comprimento_cm: variation.lengthCm ?? null,
+    largura_cm: variation.widthCm ?? null,
+    altura_cm: variation.heightCm ?? null,
+    unidade: variation.unit ?? null,
+    barcode: variation.barcode ?? null,
   };
 
   const { data, error } = await supabase
@@ -222,7 +242,8 @@ async function createProductVariation(productId: number, variation: ProductVaria
 export async function saveVariants(
   productId: number,
   variants: ProductVariant[],
-  savedImages: SavedProductImage[]
+  savedImages: SavedProductImage[],
+  productMarkup: number = 50
 ): Promise<number[]> {
   const typeCache = new Map<string, number>();
   const valueCache = new Map<string, number>();
@@ -247,7 +268,8 @@ export async function saveVariants(
   await linkVariationTypesToProduct(productId, Array.from(productTypeIds));
 
   for (const variant of variants) {
-    const variationId = await createProductVariation(productId, variant);
+    const effectiveMarkup = normalizarMarkup(variant.markupPercent ?? productMarkup);
+    const variationId = await createProductVariation(productId, variant, effectiveMarkup);
     createdVariationIds.push(variationId);
 
     const itemPayload: ProductVariationItemInsert[] = [];
@@ -265,11 +287,12 @@ export async function saveVariants(
       itemPayload.push({
         id_variacao: variationId,
         id_valor: valueId,
-        preco: variant.price,
+        preco: calcularPrecoVenda(variant.supplierCost, effectiveMarkup),
+        custo_fornecedor: Number(variant.supplierCost),
         estoque: variant.stock,
         sku: variant.sku,
         imagem_principal: variant.primaryImageUrl ?? null,
-        fornecedor_sku: variant.externalId,
+        fornecedor_sku: variant.externalSku ?? variant.sku,
       });
     }
 

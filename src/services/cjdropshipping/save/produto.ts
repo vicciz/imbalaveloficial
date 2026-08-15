@@ -184,5 +184,18 @@ const payload = {
 
 }
 
+	// Guarda o retorno bruto do fornecedor para permitir sincronização futura
+	const { error: erroImportacao } = await supabase
+		.from("produto_importacao")
+		.insert({
+			produto_id: data.id,
+			external_product_id: produtoCJ.idExterno,
+			raw_json: produtoCJ.raw ?? produtoCJ,
+		});
+
+	if (erroImportacao) {
+		console.warn("Não foi possível salvar produto_importacao", erroImportacao);
+	}
+
 	return data;
 }

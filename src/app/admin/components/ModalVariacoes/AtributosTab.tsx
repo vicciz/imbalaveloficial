@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import ProdutoHeader from "@/src/app/admin/ModalVariacoes/componentes/ProdutoHeader";
-import SeletorAtributo from "@/src/app/admin/ModalVariacoes/componentes/SeletorAtributo";
-import ListaValores from "@/src/app/admin/ModalVariacoes/componentes/ListaValores";
-import ListaAtributosProduto from "@/src/app/admin/ModalVariacoes/componentes/ListaAtributosProduto";
+import ProdutoHeader from "@/src/app/admin/components/ModalVariacoes/componentes/ProdutoHeader";
+import SeletorAtributo from "@/src/app/admin/components/ModalVariacoes/componentes/SeletorAtributo";
+import ListaValores from "@/src/app/admin/components/ModalVariacoes/componentes/ListaValores";
+import ListaAtributosProduto from "@/src/app/admin/components/ModalVariacoes/componentes/ListaAtributosProduto";
 
 import { Separator } from "@/src/components/ui/separator";
 

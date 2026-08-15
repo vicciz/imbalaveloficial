@@ -6,6 +6,13 @@ import type { ProductVariant } from "./ProductVariant";
 export interface ProductSupplier {
   id?: number;
   name: string;
+  externalId?: string;
+}
+
+export interface ProductPlatform {
+  id?: number;
+  key: string;
+  name: string;
 }
 
 export interface ProductBrand {
@@ -22,6 +29,7 @@ export interface Product {
   id?: number;
   externalId: string;
   source: string;
+  platform?: ProductPlatform;
   supplier: ProductSupplier;
   brand: ProductBrand;
   category: ProductCategory;
@@ -33,4 +41,19 @@ export interface Product {
   images: ProductImage[];
   variants: ProductVariant[];
   specifications: ProductSpecification[];
+  markupPercent?: number;
+  externalUrl?: string;
+  logistics?: ProductLogistics;
+}
+
+export interface ProductLogistics {
+  originCountryCode?: string;
+  originCountryName?: string;
+  warehouseId?: string;
+  warehouseName?: string;
+  weightKg?: number;
+  lengthCm?: number;
+  widthCm?: number;
+  heightCm?: number;
+  originCep?: string;
 }

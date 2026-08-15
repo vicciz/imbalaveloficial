@@ -78,7 +78,11 @@ function normalizeProduto(produto: any): Produto {
   return {
     ...produto,
 
-    preco: primeiroItem?.preco ?? produto.preco ?? 0,
+    preco:
+      primeiroItem?.preco ??
+      produto.produto_variacao?.[0]?.preco ??
+      produto.preco ??
+      0,
     estoque: primeiroItem?.estoque ?? produto.estoque ?? 0,
 
     image: imagemPrincipal

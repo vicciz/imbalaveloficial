@@ -308,6 +308,7 @@ export async function salvarItemVariacao(
   idItem: number,
   dados: {
     preco: number;
+    custo_fornecedor?: number | null;
     estoque: number;
     sku?: string;
     ativo: boolean;

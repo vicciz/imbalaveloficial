@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import {
   listarVariacoesProduto,
 } from "@/src/components/produto/types/variacoes";
+import { calcularPrecoVenda, normalizarMarkup } from "@/src/services/precos/markup";
+import { buscarProdutoPorId } from "@/src/components/produto/types/produtos";
 
 function buildSelectedAttributesFromVariation(variacao: any): Record<string, string> {
   const selecionados: Record<string, string> = {};
@@ -31,6 +33,8 @@ export function useProdutoVariacao(
 
     const [variacoes, setVariacoes] =
       useState<any[]>([]);
+    const [markupPercent, setMarkupPercent] =
+      useState(50);
 
     const [
       atributosSelecionados,
@@ -59,6 +63,9 @@ const { data, error } =
     const lista = data ?? [];
 
     setVariacoes(lista);
+
+    const { data: produto } = await buscarProdutoPorId(produtoId);
+    setMarkupPercent(normalizarMarkup(produto?.markup_percent));
 
     if (lista.length) {
       const primeira = lista[0];
@@ -134,7 +141,17 @@ const { data, error } =
 
   item: itemComercial,
 
-  preco: itemComercial?.preco ?? 0,
+  custo_fornecedor:
+    itemComercial?.custo_fornecedor ??
+    itemComercial?.preco ??
+    0,
+
+  preco: calcularPrecoVenda(
+    itemComercial?.custo_fornecedor ??
+      itemComercial?.preco ??
+      0,
+    markupPercent
+  ),
 
   estoque: itemComercial?.estoque ?? 0,
 
@@ -152,6 +169,7 @@ const { data, error } =
     }, [
       variacoes,
       atributosSelecionados,
+      markupPercent,
   ]);
 
   const atributos =

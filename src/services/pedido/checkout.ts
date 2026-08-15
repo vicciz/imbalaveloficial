@@ -109,6 +109,40 @@ function obterAtributo(variacao: VariacaoSelecionada | null | undefined, tipoNom
   );
 }
 
+function verificarDisponibilidadeCheckout(
+  produto: Produto,
+  itemVariacao: VariacaoSelecionada["produto_variacao_item"][number],
+  quantidade: number
+) {
+  const origem = String(produto.origem ?? "").trim().toLowerCase();
+  const dropshipping =
+    origem === "cj" ||
+    Boolean(itemVariacao.fornecedor_sku) ||
+    Boolean(produto.id_fornecedor);
+
+  if (itemVariacao.ativo === false) {
+    throw new Error(`A variação selecionada de ${produto.nome} está inativa.`);
+  }
+
+  if (dropshipping) {
+    if (!itemVariacao.fornecedor_sku && !itemVariacao.sku) {
+      throw new Error(`A variação de ${produto.nome} não possui identificação do fornecedor.`);
+    }
+
+    // For dropshipping, zero local stock is not a blocking condition.
+    // Supplier availability is represented by the supplier SKU/VID and
+    // can be synchronized separately.
+    return;
+  }
+
+  const estoque = Number(itemVariacao.estoque ?? 0);
+  if (estoque < quantidade) {
+    throw new Error(
+      `Estoque insuficiente para ${produto.nome}. Disponível: ${estoque}.`
+    );
+  }
+}
+
 export async function criarCheckoutCarrinho(
   userId: string,
   enderecoId: number,
@@ -171,6 +205,12 @@ export async function criarCheckoutCarrinho(
         throw new Error(`Nenhuma variação ativa encontrada para ${produto.nome}.`);
       }
 
+      verificarDisponibilidadeCheckout(
+        produto,
+        itemVariacao,
+        Math.max(1, Number(item.quantidade) || 1)
+      );
+
       const precoFinal = Number(itemVariacao.preco);
 
       const cor = obterAtributo(variacao, "cor");
@@ -230,6 +270,12 @@ export async function criarCheckoutCarrinho(
       }
 
       const quantidadeItem = Math.max(1, Number(item.quantidade) || 1);
+
+      verificarDisponibilidadeCheckout(
+        item.produto,
+        itemVariacao,
+        quantidadeItem
+      );
       const cotacoes = await calcularFreteProduto({
         product: item.produto,
         variantId: itemVariacao.fornecedor_sku ?? null,
