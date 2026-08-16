@@ -54,7 +54,7 @@ const cjOriginPromises = new Map<string, Promise<CJOrigin>>();
 
 async function getCJOrigin(vid: string, product: any): Promise<CJOrigin> {
   const persistedCode = String(product?.origem_pais_codigo ?? "").trim().toUpperCase();
-
+  console.log("CJ ORIGIN PERSISTED CODE:", persistedCode);
   if (persistedCode) {
     return {
       countryCode: persistedCode,
@@ -77,6 +77,7 @@ async function getCJOrigin(vid: string, product: any): Promise<CJOrigin> {
     const response = await cjRequest<any>(
       `/product/stock/queryByVid?vid=${encodeURIComponent(vid)}`
     );
+    console.log("CJ STOCK RESPONSE:", JSON.stringify(response, null, 2));
     const rows = Array.isArray(response?.data) ? response.data : [];
 
     const available = rows.filter(
@@ -88,7 +89,7 @@ async function getCJOrigin(vid: string, product: any): Promise<CJOrigin> {
     const selected =
       candidates.find(
         (row: any) =>
-          String(row?.countryCode ?? "").toUpperCase() === "BR"
+          Number(row?.totalInventoryNum ?? row?.storageNum ?? 0) > 0
       ) ?? candidates[0];
 
     if (!selected?.countryCode) {
@@ -159,7 +160,9 @@ async function quoteCJ(params: {
   });
 
   const data = Array.isArray(response?.data) ? response.data : [];
-
+console.log("=== CJ FREIGHT RESPONSE ===");
+console.log(JSON.stringify(response, null, 2));
+console.log("===========================");
   return data
     .filter((item: any) => {
       const price = Number(item?.totalPostageFee ?? item?.logisticPrice ?? item?.postage ?? 0);
@@ -265,17 +268,43 @@ export async function calcularFreteProduto(params: {
   const product = params.product;
   const quantity = Math.max(1, Math.floor(Number(params.quantity) || 1));
 
+  console.log("=== DEBUG FRETE ===");
+console.log("variantId recebido:", params.variantId);
+console.log("produto origem:", product?.origem);
+console.log(
+  "variacoes:",
+  product?.produto_variacao?.map((v: any) => ({
+    id: v.id,
+    cj_variant_id: v.cj_variant_id,
+    external_variant_id: v.external_variant_id,
+    sku: v.sku,
+  }))
+);
+  console.log("==================");
+  
   if (String(product?.origem ?? "").toLowerCase() === "cj") {
-    if (!params.variantId) {
-      throw new Error("A variante CJ deste produto não possui o ID necessário para calcular o frete.");
-    }
+const variant = product?.produto_variacao?.find(
+  (v: any) =>
+    String(v.id) === String(params.variantId) ||
+    String(v.external_variant_id) === String(params.variantId) ||
+    String(v.sku) === String(params.variantId)
+);
 
-    return quoteCJ({
-      vid: String(params.variantId),
-      quantity,
-      destinationCep: params.destinationCep,
-      product,
-    });
+const vid =
+  variant?.cj_variant_id ||
+  variant?.external_variant_id ||
+  params.variantId;
+
+if (!vid) {
+  throw new Error("A variante CJ deste produto não possui o ID necessário para calcular o frete.");
+}
+
+return quoteCJ({
+  vid: String(vid),
+  quantity,
+  destinationCep: params.destinationCep,
+  product,
+});
   }
 
   const originCep = await getSupplierOriginCep(product);
