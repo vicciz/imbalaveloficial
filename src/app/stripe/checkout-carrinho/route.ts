@@ -3,7 +3,8 @@ import { criarCheckoutCarrinho } from "@/src/services/pedido/checkout";
 import { supabase } from "@/supabaseClient";
 
 export async function POST(request: Request) {
-  const { userId, enderecoId, selectedItemIds } = await request.json();
+  const body = await request.json();
+  const { userId, enderecoId, selectedItemIds } = body;
 
   if (!userId) {
     return NextResponse.json(
@@ -26,13 +27,25 @@ export async function POST(request: Request) {
     );
   }
 
-  const session = await criarCheckoutCarrinho(
-    userId,
-    enderecoId,
-    selectedItemIds
-  );
+  try {
+    const session = await criarCheckoutCarrinho(
+      userId,
+      enderecoId,
+      selectedItemIds
+    );
 
-  return NextResponse.json({
-    url: session.url,
-  });
+    return NextResponse.json({
+      url: session.url,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Erro ao iniciar checkout",
+      },
+      { status: 400 }
+    );
+  }
 }

@@ -6,7 +6,7 @@ import { buscarEndereco } from "@/src/services/usuario/enderecos";
 import {
   buscarCarrinho,
   calcularTotal,
-  limparCarrinho,
+  removerItensDoCarrinho,
 } from "@/src/services/carrinho/cart";
 import {
   criarPedido,
@@ -70,6 +70,36 @@ export async function POST(
           break;
         }
 
+        const selectedItemIdsMetadata =
+          session.metadata?.selectedItemIds;
+        let selectedItemIds: number[];
+
+        try {
+          const parsedSelectedItemIds = JSON.parse(
+            selectedItemIdsMetadata ?? ""
+          );
+
+          if (
+            !Array.isArray(parsedSelectedItemIds) ||
+            !parsedSelectedItemIds.length ||
+            parsedSelectedItemIds.some(
+              (id) =>
+                typeof id !== "number" ||
+                !Number.isInteger(id) ||
+                id <= 0
+            )
+          ) {
+            throw new Error("selectedItemIds inválido");
+          }
+
+          selectedItemIds = parsedSelectedItemIds;
+        } catch {
+          console.error(
+            "selectedItemIds não encontrado ou inválido na metadata"
+          );
+          break;
+        }
+
         console.log(
           "Pagamento aprovado:",
           userId
@@ -83,7 +113,8 @@ export async function POST(
           data: itens,
           error,
         } = await buscarCarrinho(
-          userId
+          userId,
+          selectedItemIds
         );
 
         if (error) {
@@ -176,8 +207,9 @@ export async function POST(
         // LIMPAR CARRINHO
         // =====================
 
-        await limparCarrinho(
-          userId
+        await removerItensDoCarrinho(
+          userId,
+          selectedItemIds
         );
 
         console.log(

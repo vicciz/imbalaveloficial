@@ -480,15 +480,21 @@ export default function ProductPurchase({
         return;
       }
 
-     const idItemVariacao =
-       variacao?.variacaoSelecionada?.item?.id ?? null;
+      // `carrinho.id_variacao` referencia `produto_variacao.id`,
+      // e não `produto_variacao_item.id`.
+      const idVariacao =
+        variacao?.variacaoSelecionada?.id != null
+          ? Number(variacao.variacaoSelecionada.id)
+          : null;
 
-        await adicionarAoCarrinho(
-            produto.id,
-            user.id,
-            quantidade,
-            idItemVariacao
-        );
+      await adicionarAoCarrinho(
+        produto.id,
+        user.id,
+        quantidade,
+        Number.isInteger(idVariacao) && idVariacao > 0
+          ? idVariacao
+          : null
+      );
       const detalhes = [
         getAtributoSelecionado("cor"),
         getAtributoSelecionado("modelo"),
@@ -564,17 +570,6 @@ export default function ProductPurchase({
       {/* FRETE */}
 
       <div>
-        {String(produto.origem ?? "").toLowerCase() === "cj" && (
-          <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
-            <p className="text-sm font-semibold text-amber-900">
-              Envio internacional
-            </p>
-            <p className="mt-1 text-xs leading-5 text-amber-800">
-              Este produto é enviado pela logística da CJ. A origem do envio será definida conforme o warehouse disponível para a variante.
-            </p>
-          </div>
-        )}
-
         <p className="text-sm text-slate-500">
           Frete
         </p>
@@ -620,10 +615,7 @@ export default function ProductPurchase({
         ) : usuarioLogado && !carregandoEndereco ? (
           <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
             Você ainda não possui um endereço cadastrado.{" "}
-            <Link
-              href="/perfil"
-              className="font-semibold underline"
-            >
+            <Link href="/perfil" className="font-semibold underline">
               Cadastrar endereço
             </Link>
           </div>
@@ -647,15 +639,8 @@ export default function ProductPurchase({
 
         {frete ? (
           <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-            {frete.international && (
-              <p className="font-semibold text-amber-800">
-                Envio internacional
-              </p>
-            )}
-            <div className="mt-1 flex items-center justify-between gap-3">
-              <span className="text-sm text-slate-600">
-                {frete.serviceName}
-              </span>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-slate-600">Frete de entrega</span>
               <span className="font-semibold text-slate-900">
                 {Number(frete.priceBRL ?? frete.price).toLocaleString("pt-BR", {
                   style: "currency",
@@ -663,30 +648,17 @@ export default function ProductPurchase({
                 })}
               </span>
             </div>
-            {frete.international && frete.currency === "USD" && (
-              <p className="mt-1 text-xs text-slate-500">
-                {Number(frete.price).toLocaleString("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                })} convertido pela cotação atual do USD/BRL.
-              </p>
-            )}
             {frete.deliveryTime && (
               <p className="mt-1 text-xs text-slate-500">
                 Prazo estimado: {frete.deliveryTime}
-              </p>
-            )}
-            {frete.international && frete.originCountryName && (
-              <p className="mt-1 text-xs text-slate-500">
-                Origem: {frete.originCountryName}
               </p>
             )}
           </div>
         ) : (
           <p className="mt-2 text-xs text-slate-500">
             {usuarioLogado
-              ? "Selecione um endereço para consultar as opções de entrega."
-              : "Informe seu CEP para consultar as opções de entrega."}
+              ? "Selecione um endereço para consultar o frete."
+              : "Informe seu CEP para consultar o frete."}
           </p>
         )}
       </div>

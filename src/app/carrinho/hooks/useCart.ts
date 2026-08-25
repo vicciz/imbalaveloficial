@@ -308,9 +308,7 @@ export function useCart() {
 
     getPrecoUnitario,
 
-      getAtributo,
-    
-      setSelectedItemIds,
+    getAtributo,
 
   };
 

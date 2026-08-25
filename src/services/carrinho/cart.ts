@@ -131,7 +131,8 @@ export async function adicionarAoCarrinho(
 
 //buscar cart
 export async function buscarCarrinho(
-  userId: string
+  userId: string,
+  itemIds?: number[]
 ) {
   const selectCarrinhoComProduto = `
       *,
@@ -155,10 +156,16 @@ export async function buscarCarrinho(
     select: selectCarrinhoComProduto,
   });
 
-  const { data: itensBase, error: erroBase } = await supabase
+  let query = supabase
     .from("carrinho")
     .select(selectCarrinhoComProduto)
     .eq("id_user", userId);
+
+  if (itemIds?.length) {
+    query = query.in("id", itemIds);
+  }
+
+  const { data: itensBase, error: erroBase } = await query;
 
   console.log("RESULTADO BUSCAR CARRINHO #1", itensBase);
 
@@ -187,6 +194,7 @@ export async function buscarCarrinho(
 
  const selectVariacoes = `
   id,
+  external_variant_id,
 
   produto_variacao_item (
     id,
@@ -316,6 +324,24 @@ export async function limparCarrinho(userId: string) {
     .from("carrinho")
     .delete()
     .eq("id_user", userId);
+
+  if (error) {
+    console.error(error);
+    return false;
+  }
+
+  return true;
+}
+
+export async function removerItensDoCarrinho(
+  userId: string,
+  itemIds: number[]
+) {
+  const { error } = await supabase
+    .from("carrinho")
+    .delete()
+    .eq("id_user", userId)
+    .in("id", itemIds);
 
   if (error) {
     console.error(error);

@@ -4,6 +4,7 @@ import { buscarProduto } from '@/src/components/produto/types/produtos';
 import { variantImageService } from '@/src/services/products/services/VariantImageService';
 import { supabase } from '@/supabaseClient';
 import { calcularFreteProduto } from '@/src/services/frete/calcularFrete';
+import { getUsdBrlRate } from '@/src/services/cambio/usdBrl';
 
 type VariacaoSelecionada = {
   id?: number | string;
@@ -109,12 +110,52 @@ export async function POST(request: NextRequest) {
       Math.floor(Number(quantidade) || 1)
     );
 
-const preco = Number(
-  variacaoSelecionada?.item?.preco ??
-  variacaoSelecionada?.preco ??
-  produto.preco ??
-  0
-);
+    let variacaoReal: any = null;
+
+    if (variacaoSelecionada?.id) {
+      const { data: variacaoBanco, error: variacaoError } = await supabase
+        .from('produto_variacao')
+        .select(`
+          id,
+          sku,
+          preco,
+          produto_variacao_item (
+            id,
+            sku,
+            preco,
+            estoque,
+            ativo,
+            fornecedor_sku,
+            id_valor,
+            variacao_valor (
+              valor,
+              variacao_tipo (nome)
+            )
+          )
+        `)
+        .eq('id', Number(variacaoSelecionada.id))
+        .eq('id_produto', id)
+        .maybeSingle();
+
+      if (variacaoError) {
+        throw new Error('Não foi possível validar a variação selecionada.');
+      }
+
+      variacaoReal = variacaoBanco;
+    }
+
+    const itemVariacaoReal =
+      variacaoReal?.produto_variacao_item?.find((item: any) => item.ativo !== false) ??
+      variacaoSelecionada?.item ??
+      null;
+
+    const preco = Number(
+      itemVariacaoReal?.preco ??
+      variacaoReal?.preco ??
+      variacaoSelecionada?.preco ??
+      produto.preco ??
+      0
+    );
     if (Number.isNaN(preco) || preco <= 0) {
       throw new Error('Preço do produto inválido');
     }
@@ -125,16 +166,15 @@ const preco = Number(
     }
 
     const variantId =
+      itemVariacaoReal?.fornecedor_sku ??
       variacaoSelecionada?.item?.fornecedor_sku ??
-      variacaoSelecionada?.item?.cj_variant_id ??
       variacaoSelecionada?.fornecedor_sku ??
-      variacaoSelecionada?.cj_variant_id ??
       null;
 
     const cotacoesFrete = await calcularFreteProduto({
       product: produto,
       variantId: variantId ? String(variantId) : null,
-      variantSku: variacaoSelecionada?.sku ?? null,
+      variantSku: itemVariacaoReal?.sku ?? variacaoReal?.sku ?? variacaoSelecionada?.sku ?? null,
       destinationCep: cepDestinoNormalizado,
       quantity: quantidadeSelecionada,
       productPrice: preco,
@@ -190,7 +230,7 @@ const preco = Number(
       metadata: {
         produto_id: String(id ?? ''),
         variacao_id: String(variacaoSelecionada?.id ?? ''),
-        sku: String(variacaoSelecionada?.sku ?? ''),
+        sku: String(itemVariacaoReal?.sku ?? variacaoReal?.sku ?? variacaoSelecionada?.sku ?? ''),
         quantidade: String(quantidadeSelecionada),
         cor: String(cor ?? ''),
         modelo: String(modelo ?? ''),
@@ -221,12 +261,8 @@ const preco = Number(
                 currency: 'brl',
                 unit_amount: Math.round(freteBRL * 100),
                 product_data: {
-                  name: freteEscolhido.international
-                    ? `Frete internacional — ${freteEscolhido.serviceName}`
-                    : `Frete — ${freteEscolhido.serviceName}`,
-                  description: freteEscolhido.international
-                    ? `Origem: ${freteEscolhido.originCountryName ?? freteEscolhido.originCountryCode}. Prazo estimado: ${freteEscolhido.deliveryTime ?? "a consultar"}.`
-                    : `Origem: fornecedor no Brasil. Prazo estimado: ${freteEscolhido.deliveryTime ?? "a consultar"}.`,
+                  name: "Frete",
+                  description: "Frete de entrega",
                 },
               },
               quantity: 1,

@@ -10,6 +10,7 @@ import { ArticleCart } from "./componentes/ArticleCart";
 import { useCheckout } from "./hooks/useCheckout";
 import { useCartTotals } from "./hooks/useCartTotals";
 import { obterAtributos } from "@/src/components/produto/variacoes/helpers/variacao";
+import { useFreteCarrinho } from "./hooks/useFreteCarrinho";
 
 export default function Carrinho() {
   const [enderecoId, setEnderecoId] = useState<number | null>(null);
@@ -39,11 +40,16 @@ const {
   selectedItemIds,
   getPrecoUnitario
 );
-  const {
-    finalizarCompra,
-    } = useCheckout({
-      enderecoId,
+  const { finalizarCompra } = useCheckout({
+    enderecoId,
+    selectedItemIds,
+  });
+
+  const { total: freteTotal, loading: freteLoading, error: freteError } =
+    useFreteCarrinho({
+      itens: cartItems,
       selectedItemIds,
+      enderecoId,
     });
 
   if (loading) {
@@ -123,6 +129,9 @@ const {
             quantidadeSelecionados={quantidadeSelecionados}
             total={total}
             subtotalSelecionados={subtotalSelecionados}
+            frete={freteTotal}
+            freteLoading={freteLoading}
+            freteError={freteError}
             mostrarAvisoSelecao={mostrarAvisoSelecao}
             disabled={
               cartItems.length === 0 ||

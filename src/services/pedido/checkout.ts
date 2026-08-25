@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { supabase } from "../../../supabaseClient";
 import { variantImageService } from "@/src/services/products/services/VariantImageService";
-import { calcularFreteProduto } from "@/src/services/frete/calcularFrete";
+import { calcularFreteCarrinho, calcularFreteProduto } from "@/src/services/frete/calcularFrete";
 import { getUsdBrlRate } from "@/src/services/cambio/usdBrl";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -25,7 +25,10 @@ type Produto = {
   nome: string;
   preco?: number | null;
   origem?: string | null;
+  origem_pais_codigo?: string | null;
   id_fornecedor?: number | null;
+  warehouse_id?: string | null;
+  warehouse_nome?: string | null;
   origem_cep?: string | null;
   peso_kg?: number | null;
   comprimento_cm?: number | null;
@@ -36,6 +39,7 @@ type Produto = {
 
 type VariacaoSelecionada = {
   id: number;
+  external_variant_id?: string | null;
   produto_variacao_imagem?: Array<{
     id: number;
     id_variacao: number;
@@ -72,6 +76,7 @@ async function carregarVariacao(idVariacao: number): Promise<VariacaoSelecionada
     .from("produto_variacao")
     .select(`
       id,
+      external_variant_id,
       produto_variacao_item (
         id,
         sku,
@@ -92,6 +97,18 @@ async function carregarVariacao(idVariacao: number): Promise<VariacaoSelecionada
     .maybeSingle();
 
   return data as VariacaoSelecionada | null;
+}
+
+function selecionarItemVariacao(variacao: VariacaoSelecionada | null): VariacaoSelecionada["produto_variacao_item"][number] | null {
+  if (!variacao?.produto_variacao_item?.length) {
+    return null;
+  }
+
+  // Uma linha de `produto_variacao` representa a combinação selecionada.
+  // Os itens abaixo pertencem a essa combinação (Cor, Tamanho etc.).
+  // O preço/SKU da combinação é o mesmo item comercial e não deve ser
+  // escolhido arbitrariamente de outra variação.
+  return variacao.produto_variacao_item.find((item) => item.ativo !== false) ?? null;
 }
 
 function obterAtributo(variacao: VariacaoSelecionada | null | undefined, tipoNome: string) {
@@ -148,6 +165,14 @@ export async function criarCheckoutCarrinho(
   enderecoId: number,
   selectedItemIds?: number[]
 ) {
+  const selectedItemIdsMetadata = JSON.stringify(selectedItemIds ?? []);
+
+  if (selectedItemIdsMetadata.length > 500) {
+    throw new Error(
+      "A quantidade de itens selecionados excede o limite permitido para este checkout."
+    );
+  }
+
   let query = supabase
     .from("carrinho")
     .select(`
@@ -158,14 +183,10 @@ export async function criarCheckoutCarrinho(
       produto (
         id,
         nome,
-        preco,
         origem,
+        origem_pais_codigo,
         id_fornecedor,
-        origem_cep,
-        peso_kg,
-        comprimento_cm,
-        largura_cm,
-        altura_cm,
+        warehouse_id,
         produto_imagem (
           id,
           caminho,
@@ -184,8 +205,7 @@ export async function criarCheckoutCarrinho(
   const { data, error } = await query;
 
   if (error) {
-    console.error(error);
-    throw new Error("Erro ao buscar carrinho");
+    throw new Error(`Erro ao buscar carrinho: ${error.message}`);
   }
 
   const itens = (data as unknown as ItemCarrinho[]) ?? [];
@@ -199,7 +219,7 @@ export async function criarCheckoutCarrinho(
       const produto = item.produto;
       const variacao = item.id_variacao ? await carregarVariacao(item.id_variacao) : null;
 
-      const itemVariacao = variacao?.produto_variacao_item.find((variationItem) => variationItem.ativo);
+      const itemVariacao = selecionarItemVariacao(variacao);
 
       if (!itemVariacao) {
         throw new Error(`Nenhuma variação ativa encontrada para ${produto.nome}.`);
@@ -249,21 +269,35 @@ export async function criarCheckoutCarrinho(
     })
   );
 
+  const { data: usuario, error: usuarioError } = await supabase
+    .from("usuario")
+    .select("id")
+    .eq("user_id", userId)
+    .single();
+
+  if (usuarioError || !usuario?.id) {
+    throw usuarioError ?? new Error("Usuário não encontrado.");
+  }
+
   const { data: endereco, error: enderecoError } = await supabase
     .from("enderecos")
     .select("cep")
     .eq("id", enderecoId)
-    .eq("id_usuario", userId)
+    .eq("id_usuario", usuario.id)
     .single();
 
   if (enderecoError || !endereco?.cep) {
     throw new Error("O endereço selecionado não possui um CEP válido.");
   }
 
-  const fretes = await Promise.all(
+  const usdBrl = await getUsdBrlRate();
+
+  const freightItems = await Promise.all(
     itens.map(async (item) => {
-      const variacao = item.id_variacao ? await carregarVariacao(item.id_variacao) : null;
-      const itemVariacao = variacao?.produto_variacao_item.find((variationItem) => variationItem.ativo);
+      const variacao = item.id_variacao
+        ? await carregarVariacao(item.id_variacao)
+        : null;
+      const itemVariacao = selecionarItemVariacao(variacao);
 
       if (!itemVariacao) {
         throw new Error(`Nenhuma variação ativa encontrada para ${item.produto.nome}.`);
@@ -276,39 +310,30 @@ export async function criarCheckoutCarrinho(
         itemVariacao,
         quantidadeItem
       );
-      const cotacoes = await calcularFreteProduto({
+
+      return {
         product: item.produto,
-        variantId: itemVariacao.fornecedor_sku ?? null,
+        variantId: variacao?.external_variant_id ?? itemVariacao.fornecedor_sku ?? null,
         variantSku: itemVariacao.sku ?? null,
         destinationCep: String(endereco.cep),
         quantity: quantidadeItem,
         productPrice: Number(itemVariacao.preco) || 0,
-      });
-
-      if (!cotacoes.length) {
-        throw new Error(`Nenhuma modalidade de frete disponível para ${item.produto.nome}.`);
-      }
-
-      const escolhido = cotacoes[0];
-      let valorBRL = escolhido.price;
-
-      if (escolhido.currency === "USD") {
-        const usdBrlRate = await getUsdBrlRate();
-        valorBRL = Number((escolhido.price * usdBrlRate.rate).toFixed(2));
-      }
-
-      return {
+        cartItemId: item.id,
         produtoId: item.id_produto ?? item.produto.id ?? null,
-        produtoNome: item.produto.nome,
-        ...escolhido,
-        valorBRL,
       };
     })
   );
 
-  const freteTotal = Number(
-    fretes.reduce((total, frete) => total + frete.valorBRL, 0).toFixed(2)
+  // A CJ/Frenet calcula o frete por remessa. Itens que saem do mesmo
+  // warehouse/origem são cotados juntos; somente origens diferentes geram
+  // fretes separados.
+  const resultadoFrete = await calcularFreteCarrinho(
+    freightItems,
+    String(endereco.cep),
+    usdBrl.rate
   );
+
+  const freteTotal = resultadoFrete.totalBRL;
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
@@ -316,18 +341,8 @@ export async function criarCheckoutCarrinho(
     metadata: {
       userId,
       enderecoId: String(enderecoId),
+      selectedItemIds: selectedItemIdsMetadata,
       frete_total_brl: freteTotal.toFixed(2),
-      fretes: JSON.stringify(
-        fretes.map((frete) => ({
-          produtoId: frete.produtoId,
-          produto: frete.produtoNome,
-          provedor: frete.provider,
-          internacional: frete.international,
-          origem: frete.originCountryCode,
-          servico: frete.serviceName,
-          valorBRL: frete.valorBRL,
-        }))
-      ),
     },
     line_items: [
       ...line_items,
@@ -337,15 +352,8 @@ export async function criarCheckoutCarrinho(
               currency: "brl" as const,
               unit_amount: Math.round(freteTotal * 100),
               product_data: {
-                name: fretes.some((frete) => frete.international)
-                  ? "Frete — inclui envio internacional"
-                  : "Frete",
-                description: fretes
-                  .map(
-                    (frete) =>
-                      `${frete.produtoNome}: ${frete.serviceName} (${frete.international ? "internacional" : "nacional"})`
-                  )
-                  .join(" • "),
+                name: "Frete",
+                description: "Frete de entrega",
               },
             },
             quantity: 1,

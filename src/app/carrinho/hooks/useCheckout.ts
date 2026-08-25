@@ -4,13 +4,11 @@ import { supabase } from "@/supabaseClient";
 import { toast } from "sonner";
 
 type Props = {
-    userId: string;
   enderecoId: number | null;
   selectedItemIds: number[];
 };
 
 export function useCheckout({
-  userId,
   enderecoId,
   selectedItemIds,
 }: Props) {
@@ -72,8 +70,7 @@ export function useCheckout({
           }
         );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
 

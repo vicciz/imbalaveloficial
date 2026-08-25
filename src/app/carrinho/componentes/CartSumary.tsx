@@ -3,11 +3,14 @@
 import { Button } from "@/src/components/ui/button";
 import { BackButton } from "@/src/navigation";
 
-type CartSummaryProps = {
+export type CartSummaryProps = {
   totalItens: number;
   quantidadeSelecionados: number;
   total: number;
   subtotalSelecionados: number;
+  frete: number;
+  freteLoading: boolean;
+  freteError: string | null;
   mostrarAvisoSelecao: boolean;
   disabled: boolean;
   onCheckout: () => void;
@@ -24,10 +27,15 @@ export function CartSummary({
   quantidadeSelecionados,
   total,
   subtotalSelecionados,
+  frete,
+  freteLoading,
+  freteError,
   mostrarAvisoSelecao,
   disabled,
   onCheckout,
 }: CartSummaryProps) {
+  const totalComFrete = subtotalSelecionados + frete;
+
   return (
     <aside className="h-fit rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="text-lg font-semibold text-slate-900">
@@ -42,22 +50,36 @@ export function CartSummary({
 
         <div className="flex items-center justify-between">
           <span>Itens selecionados</span>
-          <span className="font-semibold">
-            {quantidadeSelecionados}
-          </span>
+          <span className="font-semibold">{quantidadeSelecionados}</span>
         </div>
 
         <div className="flex items-center justify-between">
           <span>Valor total do carrinho</span>
-          <span className="font-semibold">
-            {formatCurrency(total)}
-          </span>
+          <span className="font-semibold">{formatCurrency(total)}</span>
         </div>
 
         <div className="flex items-center justify-between">
           <span>Subtotal dos selecionados</span>
           <span className="font-semibold">
             {formatCurrency(subtotalSelecionados)}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span>Frete</span>
+          <span className="font-semibold">
+            {freteLoading
+              ? "Calculando..."
+              : freteError
+                ? "Indisponível"
+                : formatCurrency(frete)}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between pt-2 text-base">
+          <span className="font-semibold">Total</span>
+          <span className="font-bold text-violet-700">
+            {formatCurrency(totalComFrete)}
           </span>
         </div>
       </div>
@@ -72,6 +94,10 @@ export function CartSummary({
         >
           Selecione ao menos um item para finalizar a compra.
         </p>
+
+        {freteError && quantidadeSelecionados > 0 && (
+          <p className="mt-2 text-sm text-red-600">{freteError}</p>
+        )}
       </div>
 
       <div className="mt-4 grid gap-2">
@@ -80,7 +106,7 @@ export function CartSummary({
         <Button
           type="button"
           onClick={onCheckout}
-          disabled={disabled}
+          disabled={disabled || freteLoading || Boolean(freteError)}
         >
           Finalizar compra
         </Button>
