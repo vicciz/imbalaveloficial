@@ -8,6 +8,8 @@ import { supabase } from "@/supabaseClient";
 export default function Pedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [enviandoId, setEnviandoId] = useState<number | null>(null);
+  const [documentos, setDocumentos] = useState<Record<number, string>>({});
 
   useEffect(() => {
     async function carregar() {
@@ -26,7 +28,6 @@ export default function Pedido() {
           produto (
             id,
             nome,
-            preco,
             produto_imagem (
               caminho,
               principal,
@@ -68,6 +69,58 @@ export default function Pedido() {
     carregar();
   }, []);
 
+  async function enviarNovamenteParaCJ(pedido: {
+    id: number;
+    cj_order_id?: string | null;
+    documento_fiscal?: string | null;
+  }) {
+    if (pedido.cj_order_id || enviandoId === pedido.id) return;
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      alert("Sessão expirada. Faça login novamente.");
+      return;
+    }
+
+    setEnviandoId(pedido.id);
+
+    try {
+      const response = await fetch(`/api/admin/pedidos/${pedido.id}/enviar-cj/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          documento_fiscal: documentos[pedido.id] ?? pedido.documento_fiscal ?? "",
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error ?? "Não foi possível enviar o pedido para a CJ.");
+        return;
+      }
+
+      const orderId = data.orderIds?.[0] ?? null;
+      setPedidos((pedidosAtuais) =>
+        pedidosAtuais.map((item) =>
+          item.id === pedido.id
+            ? { ...item, cj_status: "sent", cj_order_id: orderId, cj_error: null }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error("Erro ao reenviar pedido para CJ:", error);
+      alert("Não foi possível enviar o pedido para a CJ.");
+    } finally {
+      setEnviandoId(null);
+    }
+  }
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -101,9 +154,45 @@ export default function Pedido() {
                   <div className="flex flex-wrap gap-3 text-sm text-slate-600">
                     <span className="rounded-full bg-slate-100 px-3 py-1">{pedido.status ?? "Sem status"}</span>
                     <span className="rounded-full bg-slate-100 px-3 py-1">Total: R$ {Number(pedido.valorTotal ?? 0).toFixed(2)}</span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1">
+                      CJ: {pedido.cj_status === "sent" ? "Enviado" : pedido.cj_status === "error" ? "Erro" : "Não enviado"}
+                      {pedido.cj_order_id ? ` (${pedido.cj_order_id})` : ""}
+                    </span>
                     <span className="rounded-full bg-slate-100 px-3 py-1">{new Date(pedido.created_at).toLocaleString("pt-BR")}</span>
                   </div>
                 </div>
+
+                {pedido.cj_error && (
+                  <p className="mt-3 text-sm text-red-600">CJ: {pedido.cj_error}</p>
+                )}
+
+                {!pedido.cj_order_id && (
+                  <div className="mt-3 flex flex-wrap items-end gap-2">
+                    <label className="text-sm text-slate-600">
+                      CPF/CNPJ
+                      <input
+                        value={documentos[pedido.id] ?? pedido.documento_fiscal ?? ""}
+                        onChange={(event) =>
+                          setDocumentos((documentosAtuais) => ({
+                            ...documentosAtuais,
+                            [pedido.id]: event.target.value.replace(/\D/g, "").slice(0, 14),
+                          }))
+                        }
+                        inputMode="numeric"
+                        placeholder="Somente números"
+                        className="ml-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => enviarNovamenteParaCJ(pedido)}
+                      disabled={enviandoId === pedido.id}
+                      className="rounded-lg bg-violet-100 px-3 py-2 text-sm font-medium text-violet-700 hover:bg-violet-200 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {enviandoId === pedido.id ? "Enviando..." : "Enviar novamente para CJ"}
+                    </button>
+                  </div>
+                )}
 
                 <div className="mt-4 space-y-3">
                   {(pedido.pedidoItem ?? []).map((item: any, index: number) => (

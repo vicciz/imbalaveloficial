@@ -13,6 +13,7 @@ import { Button } from "@/src/components/ui/button"
 
 export interface AddressFormValues {
   id?: number
+  documento_fiscal?: string
   cep: string
   logradouro: string
   numero: string
@@ -34,6 +35,7 @@ interface AddressFormDialogProps {
 type FieldErrors = Partial<Record<keyof AddressFormValues, string>>
 
 const EMPTY_VALUES: AddressFormValues = {
+  documento_fiscal: "",
   cep: "",
   logradouro: "",
   numero: "",
@@ -47,6 +49,10 @@ const EMPTY_VALUES: AddressFormValues = {
 
 function normalizeCep(value: string) {
   return value.replace(/\D/g, "").slice(0, 8)
+}
+
+function normalizeDocumento(value: string) {
+  return value.replace(/\D/g, "").slice(0, 14)
 }
 
 function formatCep(value: string) {
@@ -76,6 +82,10 @@ function buildInitialValues(values?: AddressFormValues): AddressFormValues {
 
 function validate(values: AddressFormValues): FieldErrors {
   const errors: FieldErrors = {}
+
+  if (![11, 14].includes(normalizeDocumento(values.documento_fiscal ?? "").length)) {
+    errors.documento_fiscal = "CPF/CNPJ obrigatório"
+  }
 
   if (normalizeCep(values.cep).length !== 8) {
     errors.cep = "CEP obrigatório"
@@ -222,6 +232,7 @@ function AddressFormDialogContent({
 
     const normalizedValues: AddressFormValues = {
       ...values,
+      documento_fiscal: normalizeDocumento(values.documento_fiscal ?? ""),
       cep: formatCep(values.cep),
       numero: values.numero.trim(),
       complemento: values.complemento?.trim() ?? "",
@@ -269,6 +280,19 @@ function AddressFormDialogContent({
         <Form onSubmit={handleSubmit} className="max-h-[calc(92vh-88px)] overflow-y-auto px-6 py-6 sm:px-8">
           <fieldset disabled={saving} className="space-y-6">
             <div className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="address-documento-fiscal">CPF/CNPJ *</Label>
+                <Input
+                  id="address-documento-fiscal"
+                  value={values.documento_fiscal ?? ""}
+                  onChange={(event) => updateField("documento_fiscal", normalizeDocumento(event.target.value))}
+                  placeholder="Somente números"
+                  inputMode="numeric"
+                  className="h-12 rounded-2xl border-slate-200 bg-white focus-visible:border-violet-500 focus-visible:ring-violet-500"
+                />
+                <FieldError message={errors.documento_fiscal} />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="address-cep">CEP *</Label>
                 <div className="relative">

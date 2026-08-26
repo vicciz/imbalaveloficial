@@ -343,6 +343,15 @@ export async function criarCheckoutCarrinho(
       enderecoId: String(enderecoId),
       selectedItemIds: selectedItemIdsMetadata,
       frete_total_brl: freteTotal.toFixed(2),
+      fretes: JSON.stringify(
+        resultadoFrete.grupos.map((grupo) => ({
+          key: grupo.key,
+          provedor: grupo.provider,
+          origem: grupo.originCountryCode,
+          servico: grupo.serviceName,
+          produtos: grupo.items,
+        }))
+      ),
     },
     line_items: [
       ...line_items,

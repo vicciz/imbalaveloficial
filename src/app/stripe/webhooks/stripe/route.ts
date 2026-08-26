@@ -11,8 +11,19 @@ import {
 import {
   criarPedido,
   adicionarItemPedido,
+  buscarPedidoPorStripeSession,
+  buscarItensPedido,
+  atualizarIntegracaoCJ,
 } from "@/src/services/pedido/pedido";
-import { metadata } from "@/src/app/layout";
+import { enviarPedidoParaCJ } from "@/src/services/cjdropshipping/sendOrder";
+
+async function atualizarStatusCJErro(idPedido: number, error: unknown) {
+  const mensagem = error instanceof Error ? error.message : "Erro desconhecido na CJ.";
+  await atualizarIntegracaoCJ(idPedido, {
+    cj_status: "error",
+    cj_error: mensagem.slice(0, 2000),
+  });
+}
 
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY!,
@@ -70,6 +81,33 @@ export async function POST(
           break;
         }
 
+        const { data: pedidoExistente, error: erroBuscaPedido } =
+          await buscarPedidoPorStripeSession(session.id);
+
+        if (erroBuscaPedido) {
+          console.error("Erro ao verificar pedido Stripe:", erroBuscaPedido);
+          break;
+        }
+
+        if (pedidoExistente) {
+          const { data: itensExistentes } = await buscarItensPedido(pedidoExistente.id);
+          try {
+            await enviarPedidoParaCJ({
+              pedido: pedidoExistente,
+              itens: itensExistentes ?? [],
+              endereco,
+              stripeMetadata: session.metadata ?? {},
+              freteDetalhes: pedidoExistente.frete_detalhes,
+            });
+          } catch (error) {
+            console.error("[CJ] Erro ao reenviar pedido existente", {
+              pedidoId: pedidoExistente.id,
+              error,
+            });
+          }
+          break;
+        }
+
         const selectedItemIdsMetadata =
           session.metadata?.selectedItemIds;
         let selectedItemIds: number[];
@@ -109,12 +147,9 @@ export async function POST(
         // BUSCAR CARRINHO
         // =====================
 
-        const {
-          data: itens,
-          error,
-        } = await buscarCarrinho(
-          userId,
-          selectedItemIds
+        const { data: itensTodos, error } = await buscarCarrinho(userId);
+        const itens = itensTodos?.filter((item) =>
+          selectedItemIds.includes(Number(item.id))
         );
 
         if (error) {
@@ -142,7 +177,18 @@ export async function POST(
         // =====================
 
         const valorTotal =
-          calcularTotal(itens);
+          session.amount_total != null
+            ? session.amount_total / 100
+            : calcularTotal(itens) + Number(session.metadata?.frete_total_brl ?? 0);
+
+        let fretes: unknown = null;
+        if (session.metadata?.fretes) {
+          try {
+            fretes = JSON.parse(session.metadata.fretes);
+          } catch (error) {
+            console.error("Metadata de fretes inválida:", error);
+          }
+        }
 
         console.log(
           "Valor Total:",
@@ -159,7 +205,9 @@ export async function POST(
         } = await criarPedido(
           userId,
           endereco.id,
-          valorTotal
+          valorTotal,
+          session.id,
+          fretes
         );
         console.log(
           "Pedido:",
@@ -219,6 +267,23 @@ export async function POST(
         console.log(
           "Pedido criado com sucesso"
         );
+
+        try {
+          const { data: itensPedido } = await buscarItensPedido(pedido.id);
+          await enviarPedidoParaCJ({
+            pedido,
+            itens: itensPedido ?? [],
+            endereco,
+            stripeMetadata: session.metadata ?? {},
+            freteDetalhes: fretes,
+          });
+        } catch (error) {
+          console.error("[CJ] Erro ao enviar pedido", {
+            pedidoId: pedido.id,
+            error,
+          });
+          await atualizarStatusCJErro(pedido.id, error);
+        }
 
         break;
       }

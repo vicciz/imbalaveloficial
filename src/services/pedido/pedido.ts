@@ -3,8 +3,16 @@ import { supabase } from "../../../supabaseClient";
 export async function criarPedido(
   idUsuario: string,
   idEndereco: number,
-  valorTotal: number
+  valorTotal: number,
+  stripeSessionId?: string,
+  freteDetalhes?: unknown
 ) {
+  const { data: usuario } = await supabase
+    .from("usuario")
+    .select("documento_fiscal")
+    .eq("user_id", idUsuario)
+    .maybeSingle();
+
   return await supabase
     .from("pedido")
     .insert({
@@ -12,7 +20,58 @@ export async function criarPedido(
       id_endereco: idEndereco,
       valorTotal,
       status: "paid",
+      ...(stripeSessionId ? { stripe_session_id: stripeSessionId } : {}),
+      ...(freteDetalhes ? { frete_detalhes: freteDetalhes } : {}),
+      ...(usuario?.documento_fiscal
+        ? { documento_fiscal: usuario.documento_fiscal }
+        : {}),
+      cj_status: "pending",
     })
+    .select()
+    .single();
+}
+
+export async function buscarPedidoPorStripeSession(stripeSessionId: string) {
+  return await supabase
+    .from("pedido")
+    .select("*")
+    .eq("stripe_session_id", stripeSessionId)
+    .maybeSingle();
+}
+
+export async function buscarItensPedido(idPedido: number) {
+  return await supabase
+    .from("pedidoItem")
+    .select(`
+      id,
+      id_produto,
+      id_variacao,
+      quantidade,
+      preco_unitario,
+      subtotal,
+      produto (id, nome),
+      variacao:produto_variacao (
+        id,
+        external_variant_id,
+        produto_variacao_item (
+          sku,
+          fornecedor_sku,
+          ativo,
+          variacao_valor (valor, variacao_tipo (nome))
+        )
+      )
+    `)
+    .eq("id_pedido", idPedido);
+}
+
+export async function atualizarIntegracaoCJ(
+  idPedido: number,
+  dados: Record<string, unknown>
+) {
+  return await supabase
+    .from("pedido")
+    .update(dados)
+    .eq("id", idPedido)
     .select()
     .single();
 }

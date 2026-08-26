@@ -25,6 +25,7 @@ export default function ProfileAddress() {
   const [loading, setLoading] = useState(true);
   const [selecionado, setSelecionado] = useState<number | null>(null);
   const [usuarioId, setUsuarioId] = useState<number | null>(null);
+  const [documentoFiscal, setDocumentoFiscal] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<AddressFormValues | undefined>(undefined);
 
@@ -42,7 +43,7 @@ export default function ProfileAddress() {
 
     const { data: usuario, error: usuarioError } = await supabase
       .from("usuario")
-      .select("id")
+      .select("id, documento_fiscal")
       .eq("user_id", user.id)
       .single();
 
@@ -53,6 +54,7 @@ export default function ProfileAddress() {
     }
 
     setUsuarioId(usuario.id);
+    setDocumentoFiscal(usuario.documento_fiscal ?? "");
 
     const { data: enderecos, error } = await supabase
       .from("enderecos")
@@ -133,6 +135,16 @@ export default function ProfileAddress() {
       id_usuario: usuarioId,
       principal: values.principal,
     };
+
+    const documentoFiscal = values.documento_fiscal?.replace(/\D/g, "") ?? "";
+    if (![11, 14].includes(documentoFiscal.length)) {
+      throw new Error("Informe um CPF ou CNPJ válido.");
+    }
+
+    await supabase
+      .from("usuario")
+      .update({ documento_fiscal: documentoFiscal })
+      .eq("id", usuarioId);
 
     if (values.principal) {
       await supabase
@@ -261,6 +273,7 @@ export default function ProfileAddress() {
                       event.stopPropagation();
                       setEditingAddress({
                         id: endereco.id,
+                        documento_fiscal: documentoFiscal,
                         cep: endereco.cep,
                         logradouro: endereco.logradouro,
                         numero: endereco.numero,
