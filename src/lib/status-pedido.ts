@@ -5,9 +5,13 @@ const statusLabels: Record<string, string> = {
   shipped: "Enviado",
   delivered: "Entregue",
   cancelled: "Cancelado",
+  canceled: "Cancelado",
   cancelado: "Cancelado",
   created: "Criado",
   error: "Erro",
+  in_cart: "No carrinho da CJ",
+  unpaid: "Aguardando pagamento na CJ",
+  unshipped: "Aguardando envio",
 };
 
 export function traduzirStatusPedido(status: unknown) {

@@ -1,21 +1,21 @@
 import { cjRequest } from "./client";
 
-export async function buscarTracking(
-  orderId: string
-) {
-  return cjRequest(
-    `/shopping/order/getTrackInfo?orderId=${orderId}`
-  );
-}
+/**
+ * A API atual da CJ consulta rastreamento pelo número de rastreio.
+ * O endpoint antigo /shopping/order/getTrackInfo está deprecated.
+ */
+export async function buscarTracking(trackNumber: string) {
+  const tracking = String(trackNumber ?? "").trim();
 
-export async function buscarTrackingPedido(cjOrderId: string) {
-  const orderId = cjOrderId.trim();
-
-  if (!orderId) {
-    throw new Error("cj_order_id é obrigatório.");
+  if (!tracking) {
+    return null;
   }
 
   return cjRequest(
-    `/shopping/order/getTrackInfo?orderId=${encodeURIComponent(orderId)}`
+    `/logistic/trackInfo?trackNumber=${encodeURIComponent(tracking)}`
   );
+}
+
+export async function buscarTrackingPedido(trackNumber: string) {
+  return buscarTracking(trackNumber);
 }

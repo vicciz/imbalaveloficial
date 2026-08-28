@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/supabaseClient';
-import { toast } from "sonner";
 
 interface Usuario {
   id: number;

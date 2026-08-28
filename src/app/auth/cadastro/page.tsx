@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/supabaseClient";
 import { BackButton, useNavigation } from "@/src/navigation";
-import { toast } from "sonner";
+
 export default function Cadastro() {
   const { goLogin } = useNavigation();
   const [nome, setNome] = useState("");
@@ -33,22 +33,22 @@ export default function Cadastro() {
   e.preventDefault();
 
   if (!nome.trim()) {
-     toast.error("Preencha seu nome");
+    alert("Preencha seu nome");
     return;
   }
 
   if (!normalizedEmail || !senha || !confirmarSenha) {
-     toast.error("Preencha email e senha");
+    alert("Preencha email e senha");
     return;
   }
 
   if (senha !== confirmarSenha) {
-     toast.error("As senhas não conferem");
+    alert("As senhas não conferem");
     return;
   }
 
   if (!supabase) {
-     toast.error(
+    alert(
       "Configuração do Supabase ausente. Verifique as variáveis de ambiente."
     );
     return;
@@ -103,11 +103,11 @@ if (usuarioError) {
 
   if (insertError) {
     console.error(insertError);
-     toast.error(insertError.message || "Erro ao salvar perfil");
+    alert(insertError.message || "Erro ao salvar perfil");
     return;
   }
 
-   toast.error("Cadastro realizado com sucesso! Verifique seu email.");
+  alert("Cadastro realizado com sucesso! Verifique seu email.");
   goLogin();
 }
   return (

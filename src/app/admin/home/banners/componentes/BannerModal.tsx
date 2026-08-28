@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+
 import {
   X,
   Save,
@@ -232,7 +232,7 @@ export default function BannerModal({
           } catch (error) {
             console.error(error);
 
-             toast.error(
+            alert(
               "Erro ao enviar a imagem."
             );
           } finally {

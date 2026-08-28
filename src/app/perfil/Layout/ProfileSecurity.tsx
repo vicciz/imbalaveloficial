@@ -4,8 +4,6 @@ import { useState } from "react";
 import { supabase } from "@/supabaseClient";
 import { BackButton } from "@/src/navigation";
 import { alterarSenha } from "@/src/services/usuario";
-import { toast } from "sonner";
-
 export default function ProfileSecurity() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,7 +18,7 @@ async function enviarEmail() {
   } = await supabase.auth.getUser();
 
   if (!user?.email) {
-     toast.error("Usuário não encontrado.");
+    alert("Usuário não encontrado.");
     setLoading(false);
     return;
   }
@@ -32,11 +30,11 @@ async function enviarEmail() {
   setLoading(false);
 
   if (error) {
-     toast.error(error.message);
+    alert(error.message);
     return;
   }
 
-   toast.error("Enviamos um link para o seu e-mail.");
+  alert("Enviamos um link para o seu e-mail.");
 }
   return (
   <div className="min-h-screen bg-[#F8F8FC]">

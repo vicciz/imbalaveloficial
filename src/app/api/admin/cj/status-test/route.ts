@@ -2,49 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { buscarStatusPedido } from "@/src/services/cjdropshipping/status";
 import { supabase } from "@/supabaseClient";
 
-const CJ_ORDER_ID = "IMB-10-1";
-const CJ_ENDPOINT = `/shopping/order/getOrderDetail?orderId=${encodeURIComponent(CJ_ORDER_ID)}`;
-
-function mascararEmail(email: string) {
-  const [local, dominio] = email.split("@", 2);
-  if (!local || !dominio) return "<inválido>";
-  return `${local.slice(0, 1)}***@${dominio}`;
-}
-
-function sanitizarResposta(resposta: unknown) {
-  try {
-    return JSON.parse(
-      JSON.stringify(resposta, (key, value) => {
-        if (typeof value !== "string") return value;
-        if (key.toLowerCase().includes("email")) return mascararEmail(value);
-        if (["token", "accessToken", "apiKey"].includes(key)) return "<oculto>";
-        return value;
-      })
-    );
-  } catch {
-    return "<resposta não serializável>";
-  }
-}
-
-function listarCampos(resposta: unknown, termos: string[]) {
-  const campos: string[] = [];
-
-  function visitar(valor: unknown, caminho: string) {
-    if (!valor || typeof valor !== "object") return;
-
-    for (const [chave, item] of Object.entries(valor)) {
-      const caminhoAtual = caminho ? `${caminho}.${chave}` : chave;
-      if (termos.some((termo) => chave.toLowerCase().includes(termo))) {
-        campos.push(caminhoAtual);
-      }
-      visitar(item, caminhoAtual);
-    }
-  }
-
-  visitar(resposta, "");
-  return campos;
-}
-
 export async function GET(request: NextRequest) {
   const authorization = request.headers.get("authorization");
   const accessToken = authorization?.startsWith("Bearer ")
@@ -72,31 +29,34 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
   }
 
-  try {
-    const resposta = await buscarStatusPedido(CJ_ORDER_ID);
-    const respostaSanitizada = sanitizarResposta(resposta);
+  const orderId = request.nextUrl.searchParams.get("orderId")?.trim();
 
-    return NextResponse.json({
-      cjOrderId: CJ_ORDER_ID,
-      endpoint: CJ_ENDPOINT,
-      response: respostaSanitizada,
-      statusFields: listarCampos(respostaSanitizada, ["status", "state"]),
-      trackingFields: listarCampos(respostaSanitizada, [
-        "track",
-        "logistic",
-        "shipment",
-        "waybill",
-        "carrier",
-      ]),
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Erro ao consultar a CJ.";
-
+  if (!orderId) {
     return NextResponse.json(
       {
-        cjOrderId: CJ_ORDER_ID,
-        endpoint: CJ_ENDPOINT,
-        error: message,
+        error:
+          "Informe orderId. Use o código do pedido Imbalável (ex.: IMB-13-1) ou o identificador aceito pela CJ.",
+      },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const response = await buscarStatusPedido(orderId);
+
+    return NextResponse.json({
+      cjOrderId: orderId,
+      response,
+    });
+  } catch (error) {
+    console.error("[CJ STATUS TEST] erro:", error);
+    return NextResponse.json(
+      {
+        cjOrderId: orderId,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível consultar a CJ.",
       },
       { status: 502 }
     );

@@ -9,7 +9,6 @@ import {
   listarFornecedores,
   type Fornecedor,
 } from "@/src/services/categoria/fornecedores";
-import { toast } from "sonner";
 
 export default function FornecedoresPage() {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
@@ -31,7 +30,7 @@ export default function FornecedoresPage() {
       setFornecedores(data ?? []);
     } else {
       console.error("Erro ao carregar fornecedores", error);
-       toast.error("Erro ao carregar fornecedores");
+      alert("Erro ao carregar fornecedores");
     }
 
     setCarregando(false);
@@ -65,7 +64,7 @@ export default function FornecedoresPage() {
 
   async function handleSubmit() {
     if (!form.nome.trim()) {
-       toast.error("Informe o nome do fornecedor");
+      alert("Informe o nome do fornecedor");
       return;
     }
 
@@ -83,7 +82,7 @@ export default function FornecedoresPage() {
         resetarFormulario();
       } else {
         console.error("Erro ao editar fornecedor", error);
-         toast.error("Erro ao editar fornecedor");
+        alert("Erro ao editar fornecedor");
       }
       return;
     }
@@ -94,7 +93,7 @@ export default function FornecedoresPage() {
       resetarFormulario();
     } else {
       console.error("Erro ao criar fornecedor", error);
-       toast.error("Erro ao criar fornecedor");
+      alert("Erro ao criar fornecedor");
     }
   }
 
@@ -104,10 +103,10 @@ export default function FornecedoresPage() {
     const { error } = await excluirFornecedor(id);
     if (!error) {
       await carregarFornecedores();
-       toast.success("Fornecedor excluído com sucesso");
+      alert("Fornecedor excluído com sucesso");
     } else {
       console.error("Erro ao excluir fornecedor", error);
-       toast.error("Erro ao excluir fornecedor");
+      alert("Erro ao excluir fornecedor");
     }
   }
 

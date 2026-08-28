@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AdminLayout } from "@/src/components/layout/Admin";
 import { supabase } from "@/supabaseClient";
 import { podeCancelarPedido, traduzirStatusPedido } from "@/src/lib/status-pedido";
-import { toast } from "sonner";
+
 
 export default function Pedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -88,7 +88,7 @@ export default function Pedido() {
     } = await supabase.auth.getSession();
 
     if (!session?.access_token) {
-       toast.error("Sessão expirada. Faça login novamente.");
+      alert("Sessão expirada. Faça login novamente.");
       return;
     }
 
@@ -108,7 +108,7 @@ export default function Pedido() {
       const data = await response.json();
 
       if (!response.ok) {
-         toast.error(data.error ?? "Não foi possível enviar o pedido para a CJ.");
+        alert(data.error ?? "Não foi possível enviar o pedido para a CJ.");
         return;
       }
 
@@ -122,7 +122,7 @@ export default function Pedido() {
       );
     } catch (error) {
       console.error("Erro ao reenviar pedido para CJ:", error);
-       toast.error("Não foi possível enviar o pedido para a CJ.");
+      alert("Não foi possível enviar o pedido para a CJ.");
     } finally {
       setEnviandoId(null);
     }
@@ -141,13 +141,42 @@ export default function Pedido() {
     setConsultandoStatusCJ(true);
 
     try {
-      const response = await fetch("/api/admin/cj/status-test/", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const pedidoParaDiagnostico = pedidos.find(
+        (item) => item.cj_order_code || item.cj_order_id
+      );
+
+      if (!pedidoParaDiagnostico) {
+        setDiagnosticoCJ(
+          JSON.stringify(
+            { error: "Nenhum pedido com identificador da CJ disponível para diagnóstico." },
+            null,
+            2
+          )
+        );
+        return;
+      }
+
+      const orderId =
+        pedidoParaDiagnostico.cj_order_code || pedidoParaDiagnostico.cj_order_id;
+      const response = await fetch(
+        `/api/admin/cj/status-test/?orderId=${encodeURIComponent(orderId)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
       const data = await response.json();
+
+      if (response.ok && data?.id) {
+        setPedidos((pedidosAtuais) =>
+          pedidosAtuais.map((item) =>
+            item.id === pedidoParaDiagnostico.id ? { ...item, ...data } : item
+          )
+        );
+      }
+
       setDiagnosticoCJ(JSON.stringify(data, null, 2));
     } catch (error) {
       setDiagnosticoCJ(
@@ -182,6 +211,34 @@ export default function Pedido() {
         },
       });
       const data = await response.json();
+
+      if (response.ok && data?.id) {
+        // A rota de sincronização já persistiu o retorno da CJ no banco.
+        // Atualizamos também a lista local para refletir imediatamente o
+        // status real (por exemplo, UNPAID) sem exigir F5.
+        setPedidos((pedidosAtuais) =>
+          pedidosAtuais.map((item) =>
+            item.id === pedidoId
+              ? {
+                  ...item,
+                  ...data,
+                  cj_status: data.cj_status ?? item.cj_status,
+                  cj_order_id: data.cj_order_id ?? item.cj_order_id,
+                  cj_order_code: data.cj_order_code ?? item.cj_order_code,
+                  cj_internal_order_id:
+                    data.cj_internal_order_id ?? item.cj_internal_order_id,
+                  cj_tracking_code:
+                    data.cj_tracking_code ?? item.cj_tracking_code,
+                  cj_tracking_provider:
+                    data.cj_tracking_provider ?? item.cj_tracking_provider,
+                  cj_tracking_url:
+                    data.cj_tracking_url ?? item.cj_tracking_url,
+                }
+              : item
+          )
+        );
+      }
+
       setDiagnosticoCJ(JSON.stringify(data, null, 2));
     } catch (error) {
       setDiagnosticoCJ(
@@ -204,7 +261,7 @@ export default function Pedido() {
     } = await supabase.auth.getSession();
 
     if (!session?.access_token) {
-       toast.error("Sessão expirada. Faça login novamente.");
+      alert("Sessão expirada. Faça login novamente.");
       return;
     }
 
@@ -222,7 +279,7 @@ export default function Pedido() {
       const data = await response.json();
 
       if (!response.ok) {
-         toast.error(data.error ?? "Não foi possível cancelar o pedido.");
+        alert(data.error ?? "Não foi possível cancelar o pedido.");
         return;
       }
 
@@ -236,7 +293,7 @@ export default function Pedido() {
       setPedidoParaCancelar(null);
       setMotivoCancelamento("");
     } catch (error) {
-       toast.error(error instanceof Error ? error.message : "Não foi possível cancelar o pedido.");
+      alert(error instanceof Error ? error.message : "Não foi possível cancelar o pedido.");
     } finally {
       setCancelandoPedido(false);
     }
@@ -258,7 +315,9 @@ export default function Pedido() {
             disabled={consultandoStatusCJ}
             className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-medium text-violet-700 hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {consultandoStatusCJ ? "Consultando CJ..." : "Diagnóstico CJ (IMB-10-1)"}
+            {consultandoStatusCJ
+              ? "Consultando CJ..."
+              : "Diagnóstico CJ (pedido selecionado)"}
           </button>
         </div>
 
@@ -303,7 +362,7 @@ export default function Pedido() {
                   <p className="mt-3 text-sm text-red-600">CJ: {pedido.cj_error}</p>
                 )}
 
-                {pedido.id === 10 && (
+                {pedido.cj_order_id || pedido.cj_order_code || pedido.cj_internal_order_id ? (
                   <button
                     type="button"
                     onClick={() => sincronizarPedidoCJ(pedido.id)}
@@ -312,9 +371,9 @@ export default function Pedido() {
                   >
                     {sincronizandoCJ ? "Sincronizando..." : "Sincronizar CJ"}
                   </button>
-                )}
+                ) : null}
 
-                {podeCancelarPedido(pedido.status) && (
+                {podeCancelarPedido(pedido.status, pedido.cj_status) && (
                   <button
                     type="button"
                     onClick={() => setPedidoParaCancelar(pedido)}

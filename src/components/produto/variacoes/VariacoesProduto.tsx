@@ -19,7 +19,7 @@ import {
   type VariacaoTipo,
   type VariacaoValor,
 } from "@/src/components/produto/types/variacoes";
-import { toast } from "sonner";
+
 interface VariacoesProdutoProps {
   produtoId?: number;
 }
@@ -83,7 +83,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
     const { data, error } = await criarTipoVariacao(novoTipo.trim());
 
     if (error) {
-       toast.error("Erro ao criar tipo de variação");
+      alert("Erro ao criar tipo de variação");
       return;
     }
 
@@ -96,7 +96,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
     const { error } = await excluirTipoVariacao(idTipo);
 
     if (error) {
-       toast.error("Erro ao excluir tipo de variação");
+      alert("Erro ao excluir tipo de variação");
       return;
     }
 
@@ -115,7 +115,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
     const { data, error } = await criarValorVariacao(idTipo, valor);
 
     if (error) {
-       toast.error("Erro ao criar valor de variação");
+      alert("Erro ao criar valor de variação");
       return;
     }
 
@@ -130,7 +130,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
     const { error } = await excluirValorVariacao(idValor);
 
     if (error) {
-       toast.error("Erro ao excluir valor de variação");
+      alert("Erro ao excluir valor de variação");
       return;
     }
 
@@ -156,13 +156,13 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
 
   async function salvarVariacao() {
     if (!produtoId) {
-       toast.error("Salve o produto primeiro para gerenciar variações.");
+      alert("Salve o produto primeiro para gerenciar variações.");
       return;
     }
 
     const valoresSelecionados = Object.values(selecoes).flat();
     if (!sku.trim() || !preco || !estoque || valoresSelecionados.length === 0) {
-       toast.error("Preencha SKU, preço, estoque e selecione pelo menos um valor.");
+      alert("Preencha SKU, preço, estoque e selecione pelo menos um valor.");
       return;
     }
 
@@ -176,7 +176,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
     );
 
     if (variacaoError || !variacaoData) {
-       toast.error("Erro ao criar variação do produto");
+      alert("Erro ao criar variação do produto");
       setSalvandoVariacao(false);
       return;
     }
@@ -197,7 +197,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
     const { error } = await excluirVariacaoProduto(idVariacao);
 
     if (error) {
-       toast.error("Erro ao remover variação");
+      alert("Erro ao remover variação");
       return;
     }
 

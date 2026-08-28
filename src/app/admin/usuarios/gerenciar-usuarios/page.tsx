@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AdminLayout } from "@/src/components/layout/Admin";
-import { toast } from "sonner";
+
 import {
   Usuario,
   listarUsuarios,
@@ -37,7 +37,7 @@ export default function GerenciarUsuarios() {
 
     if (error) {
       console.error(error);
-       toast.error(error.message);
+      alert(error.message);
 
       setCarregando(false);
       return;
@@ -63,7 +63,7 @@ export default function GerenciarUsuarios() {
       await excluirUsuario(id);
 
     if (error) {
-       toast.error(error.message);
+      alert(error.message);
       return;
     }
 
