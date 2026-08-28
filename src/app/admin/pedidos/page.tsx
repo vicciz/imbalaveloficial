@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AdminLayout } from "@/src/components/layout/Admin";
 import { supabase } from "@/supabaseClient";
 import { podeCancelarPedido, traduzirStatusPedido } from "@/src/lib/status-pedido";
-
+import { toast } from "sonner";
 
 export default function Pedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -88,7 +88,7 @@ export default function Pedido() {
     } = await supabase.auth.getSession();
 
     if (!session?.access_token) {
-      alert("Sessão expirada. Faça login novamente.");
+       toast.error("Sessão expirada. Faça login novamente.");
       return;
     }
 
@@ -108,7 +108,7 @@ export default function Pedido() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error ?? "Não foi possível enviar o pedido para a CJ.");
+         toast.error(data.error ?? "Não foi possível enviar o pedido para a CJ.");
         return;
       }
 
@@ -122,7 +122,7 @@ export default function Pedido() {
       );
     } catch (error) {
       console.error("Erro ao reenviar pedido para CJ:", error);
-      alert("Não foi possível enviar o pedido para a CJ.");
+       toast.error("Não foi possível enviar o pedido para a CJ.");
     } finally {
       setEnviandoId(null);
     }
@@ -204,7 +204,7 @@ export default function Pedido() {
     } = await supabase.auth.getSession();
 
     if (!session?.access_token) {
-      alert("Sessão expirada. Faça login novamente.");
+       toast.error("Sessão expirada. Faça login novamente.");
       return;
     }
 
@@ -222,7 +222,7 @@ export default function Pedido() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error ?? "Não foi possível cancelar o pedido.");
+         toast.error(data.error ?? "Não foi possível cancelar o pedido.");
         return;
       }
 
@@ -236,7 +236,7 @@ export default function Pedido() {
       setPedidoParaCancelar(null);
       setMotivoCancelamento("");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Não foi possível cancelar o pedido.");
+       toast.error(error instanceof Error ? error.message : "Não foi possível cancelar o pedido.");
     } finally {
       setCancelandoPedido(false);
     }

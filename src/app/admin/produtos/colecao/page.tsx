@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { AdminLayout } from "@/src/components/layout/Admin";
 import { createColecao, listarColecoes, adicionarProdutoColecao,listarProdutosColecao, removerProdutoColecao, delColecao } from "@/src/services/categoria/colecao";
 import { listarProdutos, Produto } from "@/src/components/produto/types/produtos";
-
+import { toast } from "sonner";
 export default function Colecao() {
   const [nome, setNome] = useState("");
 
@@ -65,7 +65,7 @@ export default function Colecao() {
     }
   }
 
-  alert("Coleção atualizada com sucesso!");
+   toast.success("Coleção atualizada com sucesso!");
 
   setModalAberto(false);
   setProdutosSelecionados([]);
@@ -93,9 +93,9 @@ export default function Colecao() {
 
     if (!error) {
       await carregarColecoes();
-      alert("Coleção excluída com sucesso");
+       toast.success("Coleção excluída com sucesso");
     } else {
-      alert("Erro ao excluir coleção");
+      toast.error("Erro ao excluir coleção");
     }
   }
 

@@ -43,6 +43,7 @@ import GaleriaImagens from "../produto/Components/galeria/GaleriaImagens";
 
 import CropperModal from "../produto/Components/galeria/CropperModal";
 import { VariacoesEditor } from "../produto/variacoes";
+import { toast } from "sonner";
 
 export default function FormProduto({
   modo,

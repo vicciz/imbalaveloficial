@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { toast } from "sonner";
 import {
 
   listarVitrines,
@@ -75,7 +75,7 @@ async function excluir(id: number) {
 
   if (error) {
 
-    alert("Erro ao excluir.");
+     toast.error("Erro ao excluir.");
 
     return;
 

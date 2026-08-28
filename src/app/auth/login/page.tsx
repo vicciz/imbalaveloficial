@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/supabaseClient";
 import { BackButton, useNavigation } from "@/src/navigation";
-
+import { toast } from "sonner";
 export default function Login() {
   const { goHome, goTo } = useNavigation();
   const [email, setEmail] = useState("");
@@ -16,7 +16,7 @@ export default function Login() {
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !senha) {
-      alert("Informe email e senha");
+       toast.error("Informe email e senha");
       return;
     }
 
@@ -25,12 +25,12 @@ export default function Login() {
       !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")
     ) {
-      alert("Configuração do Supabase ausente. Verifique as variáveis de ambiente.");
+       toast.error("Configuração do Supabase ausente. Verifique as variáveis de ambiente.");
       return;
     }
 
     if (!supabase) {
-      alert("Configuração do Supabase ausente. Verifique as variáveis de ambiente.");
+       toast.error("Configuração do Supabase ausente. Verifique as variáveis de ambiente.");
       return;
     }
 
@@ -40,11 +40,16 @@ export default function Login() {
     });
 
     if (authError || !authData?.user) {
-      alert(authError?.message || "Email ou senha inválidos");
+     toast.error("Erro ao inserir os dados", {
+        
+      });
       return;
     }
 
-    alert("Login realizado!");
+   toast.success("Login realizado com sucesso", {
+        description: [authData.user.email].join(" • "),
+        
+      });
     goHome();
   }
 

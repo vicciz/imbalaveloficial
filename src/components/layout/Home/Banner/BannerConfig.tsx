@@ -6,6 +6,7 @@ import {
   obterConfigBanner,
   atualizarConfigBanner,
 } from "@/src/services/home";
+import { toast } from "sonner";
 
 export default function BannerConfig() {
   const [loading, setLoading] =
@@ -74,7 +75,7 @@ export default function BannerConfig() {
 
     if (error) {
       console.error(error);
-      alert("Erro ao salvar.");
+      toast.error("Erro ao salvar.");
       return;
     }
 

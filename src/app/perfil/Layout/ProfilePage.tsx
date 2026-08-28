@@ -14,6 +14,7 @@ import SecurityCard from "./SecurityCard"
 import type { PerfilUserLike } from "../utils/profile-utils"
 import { getRoleLabel } from "../utils/profile-utils"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner";
 
 const EMPTY_ADDRESS: AddressFormValues = {
   cep: "",
@@ -150,7 +151,7 @@ export default function ProfilePage({ user, onLogout }: ProfilePageProps) {
       })
 
       if (error) {
-        alert(error.message || "Não foi possível atualizar o perfil.")
+         toast.error(error.message || "Não foi possível atualizar o perfil.")
         return
       }
 
@@ -187,7 +188,7 @@ export default function ProfilePage({ user, onLogout }: ProfilePageProps) {
         : await criarEndereco(payload)
 
       if (response.error) {
-        alert(response.error.message || "Não foi possível salvar o endereço.")
+         toast.error(response.error.message || "Não foi possível salvar o endereço.")
         return
       }
 

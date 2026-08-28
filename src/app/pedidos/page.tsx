@@ -6,7 +6,7 @@ import { AdminLayout } from "@/src/components/layout/Admin";
 import { supabase } from "@/supabaseClient";
 import { variantImageService } from "@/src/services/products/services/VariantImageService";
 import { podeCancelarPedido, traduzirStatusPedido } from "@/src/lib/status-pedido";
-
+import { toast } from "sonner";
 export default function Pedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -133,7 +133,7 @@ const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
     } = await supabase.auth.getSession();
 
     if (!session?.access_token) {
-      alert("Sessão expirada. Faça login novamente.");
+       toast.error("Sessão expirada. Faça login novamente.");
       return;
     }
 
@@ -151,7 +151,7 @@ const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error ?? "Não foi possível cancelar o pedido.");
+         toast.error(data.error ?? "Não foi possível cancelar o pedido.");
         return;
       }
 
@@ -163,7 +163,7 @@ const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
       setPedidoParaCancelar(null);
       setMotivoCancelamento("");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Não foi possível cancelar o pedido.");
+       toast.error(error instanceof Error ? error.message : "Não foi possível cancelar o pedido.");
     } finally {
       setCancelandoPedido(false);
     }

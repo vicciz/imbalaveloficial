@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/supabaseClient";
+import { toast } from "sonner";
 
 export default function NewsletterPopup() {
   const [open, setOpen] = useState(false);

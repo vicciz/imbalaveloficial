@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/supabaseClient";
+import { toast } from "sonner";
 
 export default function SecurityCard() {
   const [password, setPassword] = useState("");

@@ -10,7 +10,7 @@ import {
   Truck,
   RotateCcw,
 } from "lucide-react";
-
+import { toast } from "sonner";
 import { Produto } from "@/src/components/produto/types/produtos";
 import { Button } from "@/src/components/ui/button";
 import { supabase } from "@/supabaseClient";
@@ -18,7 +18,6 @@ import {
   adicionarAoCarrinho,
   buscarCarrinho,
 } from "@/src/services/carrinho/cart";
-import { toast } from "sonner";
 import ProductPayments from "./ProductPayments";
 import { useNavigation } from "@/src/navigation";
 type Props = {

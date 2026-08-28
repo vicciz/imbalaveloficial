@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { Produto } from "@/src/components/produto/types/produtos";
 import type { VitrineSecao } from "@/src/services/vitrine/types";
-
+import { toast } from "sonner";
 import {
   inserirVitrine,
   atualizarVitrine,
@@ -145,7 +145,7 @@ export default function VitrineForm({
 
       if (error) {
 
-        alert("Erro ao atualizar.");
+         toast.error("Erro ao atualizar.");
 
         return;
 
@@ -160,7 +160,7 @@ export default function VitrineForm({
 
       if (error) {
 
-        alert("Erro ao criar.");
+         toast.error("Erro ao criar.");
 
         return;
 

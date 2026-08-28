@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/supabaseClient";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function ResetPassword() {
   const router = useRouter();
