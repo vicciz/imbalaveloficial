@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/supabaseClient";
 import { BackButton, useNavigation } from "@/src/navigation";
+import { toast } from "sonner";
 
 export default function Cadastro() {
   const { goLogin } = useNavigation();
@@ -30,86 +31,68 @@ export default function Cadastro() {
   };
 
   async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!nome.trim()) {
-    alert("Preencha seu nome");
-    return;
-  }
+    if (!nome.trim()) {
+      toast.error("Preencha seu nome");
+      return;
+    }
 
-  if (!normalizedEmail || !senha || !confirmarSenha) {
-    alert("Preencha email e senha");
-    return;
-  }
+    if (!normalizedEmail || !senha || !confirmarSenha) {
+      toast.error("Preencha email e senha");
+      return;
+    }
 
-  if (senha !== confirmarSenha) {
-    alert("As senhas não conferem");
-    return;
-  }
+    if (senha !== confirmarSenha) {
+      toast.error("As senhas não conferem");
+      return;
+    }
 
-  if (!supabase) {
-    alert(
-      "Configuração do Supabase ausente. Verifique as variáveis de ambiente."
-    );
-    return;
-  }
+    if (senha.length < 8) {
+      toast.error("A senha deve ter pelo menos 8 caracteres");
+      return;
+    }
 
-  const emailRedirectTo = `${window.location.origin}/login`;
+    if (!supabase) {
+      toast.error(
+        "Configuração do Supabase ausente. Verifique as variáveis de ambiente."
+      );
+      return;
+    }
 
-  // Cria usuário no Auth
-// Cria usuário no Auth
-const { data, error } = await supabase.auth.signUp({
-  email: normalizedEmail,
-  password: senha,
-  options: {
-    emailRedirectTo,
-    data: {
-      nome: nome.trim(),
-    },
-  },
-});
+    // O Auth é a fonte de identidade. O perfil em public.usuario é criado
+    // pelo trigger do banco, e não pelo navegador. Nunca enviamos `role` aqui.
+    const emailRedirectTo = `${window.location.origin}/auth/confirmacao`;
 
-if (error) {
-  console.error(error);
-  return;
-}
-
-if (!data.user) {
-  throw new Error("Usuário não foi criado.");
-}
-
-// Cria registro na tabela usuario
-const { error: usuarioError } = await supabase
-  .from("usuario")
-  .insert({
-    user_id: data.user.id,
-    nome: nome.trim(),
-    role: "user",
-  });
-
-if (usuarioError) {
-  console.error(usuarioError);
-}
-
-  // Salva perfil na tabela usuario
-  const { error: insertError } = await supabase
-    .from("usuario")
-    .insert({
-      user_id: data.user.id,
-      nome: nome.trim(),
-      telefone: telefone.trim(),
-      role: "user",
+    const { data, error } = await supabase.auth.signUp({
+      email: normalizedEmail,
+      password: senha,
+      options: {
+        emailRedirectTo,
+        data: {
+          nome: nome.trim(),
+          telefone: telefone.trim(),
+        },
+      },
     });
 
-  if (insertError) {
-    console.error(insertError);
-    alert(insertError.message || "Erro ao salvar perfil");
-    return;
+    if (error) {
+      console.error("Erro no cadastro:", error);
+      toast.error(error.message || "Não foi possível criar a conta");
+      return;
+    }
+
+    if (!data.user) {
+      toast.error("Não foi possível criar a conta. Tente novamente.");
+      return;
+    }
+
+    // Com confirmação de email habilitada, normalmente não existe uma sessão
+    // ativa neste ponto. O usuário deve confirmar o endereço antes de entrar.
+    toast.success("Cadastro realizado. Verifique seu email para confirmar a conta.");
+    window.location.assign(`/auth/confirmacao?email=${encodeURIComponent(normalizedEmail)}`);
   }
 
-  alert("Cadastro realizado com sucesso! Verifique seu email.");
-  goLogin();
-}
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-4">
       <div className="absolute left-4 top-4 sm:left-6 sm:top-6">
