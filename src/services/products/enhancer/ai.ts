@@ -243,7 +243,7 @@ function shouldRetry(error: unknown): RetryDecision {
   if (isRetryableStatus(status)) {
     return {
       retry: true,
-      fallbackModel: status === 503 || status === 404,
+      fallbackModel: true,
       status,
       reason: `HTTP ${status}`,
     };
@@ -322,20 +322,68 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
-function uniqueModels(): string[] {
-  return [
+async function uniqueModels(client: GoogleGenAI): Promise<string[]> {
+  const configured = [
+    process.env.GEMINI_MODEL_PRIMARY,
+    process.env.GEMINI_MODEL_SECONDARY,
+    process.env.GEMINI_MODEL_TERTIARY,
     process.env.GEMINI_MODEL,
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
-    "gemini-2.0-flash",
-  ].filter((model, index, models): model is string => {
-    if (typeof model !== "string") {
-      return false;
+    "gemini-2.5-pro",
+  ]
+    .filter((model): model is string => typeof model === "string" && model.trim().length > 0)
+    .map((model) => model.trim().replace(/^models\//, ""));
+
+  try {
+    const pager = await client.models.list({ pageSize: 100 });
+    const available: string[] = [];
+
+    for await (const model of pager) {
+      const name = typeof model.name === "string"
+        ? model.name.replace(/^models\//, "").trim()
+        : "";
+
+      const actions = Array.isArray((model as any).supportedActions)
+        ? (model as any).supportedActions
+        : [];
+
+      if (name && actions.includes("generateContent")) {
+        available.push(name);
+      }
     }
 
-    const trimmed = model.trim();
-    return trimmed.length > 0 && models.indexOf(model) === index;
-  });
+    const availableSet = new Set(available);
+    const preferred = configured.filter((model, index, list) =>
+      availableSet.has(model) && list.indexOf(model) === index
+    );
+
+    const fallback = available
+      .filter((model) =>
+        /(?:flash|pro|gemma)/i.test(model) &&
+        !preferred.includes(model) &&
+        !/(?:embedding|tts|image|audio|live|robotics)/i.test(model)
+      )
+      .sort((a, b) => {
+        const rank = (name: string) => {
+          if (/flash/i.test(name)) return 0;
+          if (/pro/i.test(name)) return 1;
+          return 2;
+        };
+        return rank(a) - rank(b);
+      });
+
+    const models = [...preferred, ...fallback];
+
+    if (models.length > 0) {
+      logAIStage(`Modelos Gemini disponíveis para esta chave: ${models.join(", ")}`);
+      return models.slice(0, 5);
+    }
+  } catch (error) {
+    logAIStage("Não foi possível listar os modelos Gemini; usando fallback configurado.", extractErrorDetails(error).message);
+  }
+
+  return configured.filter((model, index, list) => list.indexOf(model) === index).slice(0, 5);
 }
 
 function mergeAIProduct(product: Product, parsed: AIResponsePayload): Partial<Product> {
@@ -412,7 +460,7 @@ export class GeminiProvider implements AIProvider {
 
   async generateProduct(product: Product): Promise<Partial<Product>> {
     const prompt = buildPrompt(product);
-    const models = uniqueModels();
+    const models = await uniqueModels(this.client);
 
     logAIStage("Provider: Gemini");
     logAIStage("Prompt enviado");
@@ -562,16 +610,53 @@ export class OpenAIProvider implements AIProvider {
   }
 }
 
+class FallbackAIProvider implements AIProvider {
+  readonly name = "Fallback AI";
+
+  constructor(private readonly providers: AIProvider[]) {}
+
+  async generateProduct(product: Product): Promise<Partial<Product>> {
+    let lastError: unknown;
+
+    for (const provider of this.providers) {
+      try {
+        logAIStage(`Provider de IA: ${provider.name}`);
+        const result = await provider.generateProduct(product);
+
+        if (Object.keys(result as JsonRecord).length > 0) {
+          return result;
+        }
+      } catch (error) {
+        lastError = error;
+        logAIStage(`Provider ${provider.name} indisponível. Tentando próximo provider.`);
+      }
+    }
+
+    if (lastError) {
+      throw lastError;
+    }
+
+    return {};
+  }
+}
+
 export function createAIProvider(): AIProvider | null {
-  const provider = (process.env.PRODUCT_AI_PROVIDER ?? "gemini").toLowerCase();
+  const configured = (process.env.PRODUCT_AI_PROVIDER ?? "auto").toLowerCase();
+  const providers: AIProvider[] = [];
 
-  if (provider === "openai") {
-    return new OpenAIProvider();
+  if (configured !== "openai" && process.env.GEMINI_API_KEY) {
+    providers.push(new GeminiProvider());
   }
 
-  if (process.env.GEMINI_API_KEY) {
-    return new GeminiProvider();
+  if (configured !== "gemini" && process.env.OPENAI_API_KEY) {
+    providers.push(new OpenAIProvider());
   }
 
-  return null;
+  if (providers.length === 0) {
+    return null;
+  }
+
+  return providers.length === 1
+    ? providers[0]
+    : new FallbackAIProvider(providers);
 }

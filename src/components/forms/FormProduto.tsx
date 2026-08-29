@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "@/supabaseClient";
 
 import {
   Produto,
@@ -38,6 +39,7 @@ import { Button } from "@/src/components/ui/button";
 import {
   Loader2,
   Save,
+  Sparkles,
 } from "lucide-react";
 import GaleriaImagens from "../produto/Components/galeria/GaleriaImagens";
 
@@ -65,6 +67,9 @@ export default function FormProduto({
     useState(false);
 
   const [salvando, setSalvando] =
+    useState(false);
+
+  const [tratandoIA, setTratandoIA] =
     useState(false);
 
   const [cropOpen, setCropOpen] =
@@ -190,6 +195,81 @@ function abrirCropper(
 
 function fecharCropper() {
   setCropOpen(false);
+}
+
+async function tratarComIA() {
+  if (modo !== "editar" || !produtoId) {
+    alert("Salve o produto antes de usar o tratamento com IA.");
+    return;
+  }
+
+  if (tratandoIA) return;
+
+  try {
+    setTratandoIA(true);
+
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
+    if (sessionError || !sessionData.session?.access_token) {
+      throw new Error("Sua sessão expirou. Entre novamente para tratar o produto.");
+    }
+
+    const response = await fetch("/api/ai/tratar-produto", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+      body: JSON.stringify({
+        produtoId,
+        produto: {
+          nome: produto.nome ?? "",
+          fornecedor: produto.fornecedor ?? "",
+          link: produto.link ?? "",
+          descricao: produto.descricao ?? "",
+          detalhes: produto.detalhes ?? "",
+          categorias: produto.categorias ?? null,
+          produto_variacao: produto.produto_variacao ?? [],
+        },
+      }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        payload?.error ??
+          payload?.message ??
+          "Não foi possível tratar o produto com IA."
+      );
+    }
+
+    const resultado = payload?.produto;
+
+    if (!resultado) {
+      throw new Error("A IA não retornou dados para o produto.");
+    }
+
+    setProduto((atual) => ({
+      ...atual,
+      nome: resultado.nome ?? atual.nome,
+      descricao: resultado.descricao ?? atual.descricao,
+      detalhes: resultado.detalhes ?? atual.detalhes,
+    }));
+
+    alert(
+      `Produto tratado com IA${payload?.model ? ` usando ${payload.model}` : ""}.\n\nRevise o resultado e clique em "Salvar Produto" para persistir as alterações.`
+    );
+  } catch (error: any) {
+    console.error("[IA] erro ao tratar produto:", error);
+    alert(
+      error?.message ??
+        "Não foi possível tratar o produto com IA."
+    );
+  } finally {
+    setTratandoIA(false);
+  }
 }
 
 async function salvarProduto() {
@@ -322,29 +402,53 @@ return (
 
       </div>
 
-      <Button
-        size="lg"
-        onClick={salvarProduto}
-        disabled={salvando}
-      >
+      <div className="flex items-center gap-3">
 
-        {
-          salvando
-            ? (
+        {modo === "editar" && (
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={tratarComIA}
+            disabled={tratandoIA || salvando}
+          >
+            {tratandoIA ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Salvando...
+                Tratando...
               </>
-            )
-            : (
+            ) : (
               <>
-                <Save className="mr-2 h-4 w-4" />
-                Salvar Produto
+                <Sparkles className="mr-2 h-4 w-4" />
+                Tratar com IA
               </>
-            )
-        }
+            )}
+          </Button>
+        )}
 
-      </Button>
+        <Button
+          size="lg"
+          onClick={salvarProduto}
+          disabled={salvando || tratandoIA}
+        >
+
+          {
+            salvando
+              ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              )
+              : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Produto
+                </>
+              )
+          }
+
+        </Button>
+      </div>
 
     </div>
 
