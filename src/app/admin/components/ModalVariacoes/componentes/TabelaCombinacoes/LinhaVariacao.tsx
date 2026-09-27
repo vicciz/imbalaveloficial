@@ -27,11 +27,14 @@ export default function LinhaVariacao({
   atributos,
   onAlterar,
 }: Props) {
+  const item = variacao.item ?? variacao.produto_variacao_item?.[0] ?? variacao;
+  const itemId = variacao.itemId ?? item.id ?? variacao.id;
+
   return (
     <TableRow className="hover:bg-muted/40">
 
       <TableCell className="font-medium">
-        {variacao.sku}
+        {item.sku ?? variacao.sku}
       </TableCell>
 
       {atributos.map((nome) => {
@@ -56,11 +59,11 @@ export default function LinhaVariacao({
 
         <Input
           type="number"
-          value={variacaoproduto.preco ?? 0}
+          value={item.preco ?? variacao.preco ?? 0}
           className="w-28 text-center"
           onChange={(e) =>
             onAlterar(
-              variacao.id,
+              itemId,
               "preco",
               Number(e.target.value)
             )
@@ -73,11 +76,11 @@ export default function LinhaVariacao({
 
         <Input
           type="number"
-          value={variacao.estoque ?? 0}
+          value={item.estoque ?? variacao.estoque ?? 0}
           className="w-20 text-center"
           onChange={(e) =>
             onAlterar(
-              variacao.id,
+              itemId,
               "estoque",
               Number(e.target.value)
             )
@@ -89,10 +92,10 @@ export default function LinhaVariacao({
       <TableCell className="text-center">
 
         <Switch
-          checked={variacao.ativo}
+          checked={item.ativo ?? variacao.ativo}
           onCheckedChange={(v) =>
             onAlterar(
-              variacao.id,
+              itemId,
               "ativo",
               v
             )

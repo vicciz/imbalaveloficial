@@ -1,5 +1,8 @@
+import "server-only";
+
 import Stripe from "stripe";
 import { supabase } from "../../../supabaseClient";
+import { getSupabaseAdminClient } from "@/src/services/products/repository/adminSupabase";
 import { variantImageService } from "@/src/services/products/services/VariantImageService";
 import { calcularFreteCarrinho, calcularFreteProduto } from "@/src/services/frete/calcularFrete";
 import { getUsdBrlRate } from "@/src/services/cambio/usdBrl";
@@ -173,7 +176,7 @@ export async function criarCheckoutCarrinho(
     );
   }
 
-  let query = supabase
+  let query = getSupabaseAdminClient()
     .from("carrinho")
     .select(`
       id,
@@ -269,7 +272,8 @@ export async function criarCheckoutCarrinho(
     })
   );
 
-  const { data: usuario, error: usuarioError } = await supabase
+  const supabaseAdmin = getSupabaseAdminClient();
+  const { data: usuario, error: usuarioError } = await supabaseAdmin
     .from("usuario")
     .select("id")
     .eq("user_id", userId)
@@ -279,7 +283,7 @@ export async function criarCheckoutCarrinho(
     throw usuarioError ?? new Error("Usuário não encontrado.");
   }
 
-  const { data: endereco, error: enderecoError } = await supabase
+  const { data: endereco, error: enderecoError } = await supabaseAdmin
     .from("enderecos")
     .select("cep")
     .eq("id", enderecoId)
@@ -353,22 +357,7 @@ export async function criarCheckoutCarrinho(
         }))
       ),
     },
-    line_items: [
-      ...line_items,
-      ...(freteTotal > 0
-        ? [{
-            price_data: {
-              currency: "brl" as const,
-              unit_amount: Math.round(freteTotal * 100),
-              product_data: {
-                name: "Frete",
-                description: "Frete de entrega",
-              },
-            },
-            quantity: 1,
-          }]
-        : []),
-    ],
+    line_items,
     success_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/sucesso`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/cancelado`,
   });

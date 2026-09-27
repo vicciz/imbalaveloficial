@@ -38,7 +38,15 @@ export default function CombinacoesTab({
   const [dados, setDados] = useState<any[]>([]);
 
   useEffect(() => {
-    setDados(variacoes);
+    setDados(
+      variacoes.flatMap((variacao: any) =>
+        (variacao.produto_variacao_item ?? []).map((item: any) => ({
+          ...variacao,
+          item,
+          itemId: item.id,
+        }))
+      )
+    );
   }, [variacoes]);
 
   const variacoesFiltradas = useMemo(() => {
@@ -47,7 +55,7 @@ export default function CombinacoesTab({
     const texto = busca.toLowerCase();
 
     return dados.filter((variacao: any) => {
-      if (variacao.sku?.toLowerCase().includes(texto)) return true;
+      if (variacao.item?.sku?.toLowerCase().includes(texto)) return true;
 
       return variacao.produto_variacao_item.some(
         (item: any) =>
@@ -65,7 +73,9 @@ export default function CombinacoesTab({
   ) {
     setDados((old) =>
       old.map((item) =>
-        item.id === id ? { ...item, [campo]: valor } : item
+        item.itemId === id
+          ? { ...item, item: { ...item.item, [campo]: valor } }
+          : item
       )
     );
   }
@@ -78,7 +88,7 @@ export default function CombinacoesTab({
     if (isNaN(valor)) return;
 
     setDados((old) =>
-      old.map((item) => ({ ...item, preco: valor }))
+      old.map((item) => ({ ...item, item: { ...item.item, preco: valor } }))
     );
   }
 
@@ -90,19 +100,19 @@ export default function CombinacoesTab({
     if (isNaN(valor)) return;
 
     setDados((old) =>
-      old.map((item) => ({ ...item, estoque: valor }))
+      old.map((item) => ({ ...item, item: { ...item.item, estoque: valor } }))
     );
   }
 
   function ativarTodas() {
     setDados((old) =>
-      old.map((item) => ({ ...item, ativo: true }))
+      old.map((item) => ({ ...item, item: { ...item.item, ativo: true } }))
     );
   }
 
   function desativarTodas() {
     setDados((old) =>
-      old.map((item) => ({ ...item, ativo: false }))
+      old.map((item) => ({ ...item, item: { ...item.item, ativo: false } }))
     );
   }
 
@@ -113,11 +123,11 @@ export default function CombinacoesTab({
       const resultado =
 await Promise.all(
         dados.map((item) =>
-          atualizarVariacao(item.id, {
-            sku: item.sku,
-            preco: item.preco.preco,
-            estoque: item.estoque,
-            ativo: item.ativo,
+          atualizarVariacao(item.itemId, {
+            sku: item.item.sku,
+            preco: item.item.preco,
+            estoque: item.item.estoque,
+            ativo: item.item.ativo,
           })
         )
       );

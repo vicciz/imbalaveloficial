@@ -34,7 +34,9 @@ export function CartSummary({
   disabled,
   onCheckout,
 }: CartSummaryProps) {
+  const freteGratis = quantidadeSelecionados > 0 && !freteLoading && !freteError;
   const totalComFrete = subtotalSelecionados + frete;
+  const totalExibido = freteGratis ? subtotalSelecionados : totalComFrete;
 
   return (
     <aside className="h-fit rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -67,19 +69,37 @@ export function CartSummary({
 
         <div className="flex items-center justify-between">
           <span>Frete</span>
-          <span className="font-semibold">
-            {freteLoading
-              ? "Calculando..."
-              : freteError
-                ? "Indisponível"
-                : formatCurrency(frete)}
+          <span className="flex flex-col items-end font-semibold">
+            {freteLoading ? (
+              "Calculando..."
+            ) : freteError ? (
+              "Indisponível"
+            ) : freteGratis ? (
+              <>
+                {frete > 0 && (
+                  <span className="text-slate-500 line-through">
+                    {formatCurrency(frete)}
+                  </span>
+                )}
+                <span className="text-emerald-600">Frete grátis</span>
+              </>
+            ) : (
+              formatCurrency(frete)
+            )}
           </span>
         </div>
 
         <div className="flex items-center justify-between pt-2 text-base">
           <span className="font-semibold">Total</span>
-          <span className="font-bold text-violet-700">
-            {formatCurrency(totalComFrete)}
+          <span className="flex flex-col items-end">
+            {freteGratis && frete > 0 && (
+              <span className="text-sm font-medium text-slate-500 line-through">
+                {formatCurrency(totalComFrete)}
+              </span>
+            )}
+            <span className="font-bold text-violet-700">
+              {formatCurrency(totalExibido)}
+            </span>
           </span>
         </div>
       </div>

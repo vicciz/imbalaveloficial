@@ -225,7 +225,7 @@ await supabase
     id_variacao: variacao.id,
     id_valor: idValor,
 
-    preco: item.preco,
+    preco: item.preco ?? 0,
     estoque: item.estoque,
 
     sku: item.sku ?? null,

@@ -1,4 +1,7 @@
-import { supabase } from "@/supabaseClient";
+import "server-only";
+
+import { getSupabaseAdminClient } from "./adminSupabase";
+import { supabaseErrorMessage } from "./supabaseError";
 
 import { getOrCreateBrandId } from "./brand";
 import { getOrCreateCategoryId } from "./category";
@@ -33,22 +36,15 @@ export interface ProductRepository {
   rollback(productId: number): Promise<void>;
 }
 
-function errorMessage(error: unknown, context: string): string {
-  if (error instanceof Error) {
-    return `${context}: ${error.message}`;
-  }
-
-  return `${context}: Erro desconhecido`;
-}
-
 async function deleteVariationItems(productId: number): Promise<void> {
-  const { data: variations, error: queryError } = await supabase
+  const supabaseAdmin = getSupabaseAdminClient();
+  const { data: variations, error: queryError } = await supabaseAdmin
     .from("produto_variacao")
     .select("id")
     .eq("id_produto", productId);
 
   if (queryError) {
-    throw new Error(errorMessage(queryError, "Falha ao buscar variacoes para rollback"));
+    throw new Error(supabaseErrorMessage(queryError, "Falha ao buscar variacoes para rollback"));
   }
 
   const variationIds = (variations ?? []).map((item) => item.id as number);
@@ -57,13 +53,13 @@ async function deleteVariationItems(productId: number): Promise<void> {
     return;
   }
 
-  const { error: deleteError } = await supabase
+  const { error: deleteError } = await supabaseAdmin
     .from("produto_variacao_item")
     .delete()
     .in("id_variacao", variationIds);
 
   if (deleteError) {
-    throw new Error(errorMessage(deleteError, "Falha ao excluir itens de variacao no rollback"));
+    throw new Error(supabaseErrorMessage(deleteError, "Falha ao excluir itens de variacao no rollback"));
   }
 }
 
@@ -94,11 +90,12 @@ export class SupabaseProductRepository implements ProductRepository {
         await this.rollback(context.productId);
       }
 
-      throw new Error(errorMessage(error, "Falha ao salvar produto"));
+      throw new Error(supabaseErrorMessage(error, "Falha ao salvar produto"));
     }
   }
 
   async saveProduct(product: Product): Promise<SaveProductResult> {
+    const supabaseAdmin = getSupabaseAdminClient();
     const categoryId = await getOrCreateCategoryId(product.category.name);
     const brandId = await getOrCreateBrandId(product.brand.name);
     const supplierId = await getOrCreateSupplierId({
@@ -120,17 +117,21 @@ export class SupabaseProductRepository implements ProductRepository {
       marca_id: brandId,
       categoria_id: categoryId,
       fornecedor: product.supplier.name,
-      markup_percent: product.markupPercent ?? 50,
-      markup_percentual: product.markupPercent ?? 50,
+      markup_percent: product.markupPercent ?? 0,
+      markup_percentual: product.markupPercent ?? 0,
       origem_pais_codigo: product.logistics?.originCountryCode ?? null,
       origem_pais_nome: product.logistics?.originCountryName ?? null,
       warehouse_id: product.logistics?.warehouseId ?? null,
     };
 
-    const { data, error } = await supabase.from("produto").insert(payload).select("id,nome").single<ProductRow>();
+    const { data, error } = await supabaseAdmin.from("produto").insert(payload).select("id,nome").single<ProductRow>();
 
-    if (error || !data) {
-      throw new Error(errorMessage(error, "Falha ao salvar produto principal"));
+    if (error) {
+      throw new Error(supabaseErrorMessage(error, "Falha ao salvar produto principal"));
+    }
+
+    if (!data) {
+      throw new Error("Falha ao salvar produto principal: Supabase não retornou o ID.");
     }
 
     return {
@@ -148,7 +149,7 @@ export class SupabaseProductRepository implements ProductRepository {
     product: Product,
     savedImages: SavedProductImage[]
   ): Promise<number[]> {
-    return saveVariants(productId, product.variants, savedImages, product.markupPercent ?? 50);
+    return saveVariants(productId, product.variants, savedImages, product.markupPercent ?? 0);
   }
 
   async saveSpecifications(productId: number, product: Product): Promise<number> {
@@ -156,48 +157,49 @@ export class SupabaseProductRepository implements ProductRepository {
   }
 
   async rollback(productId: number): Promise<void> {
+    const supabaseAdmin = getSupabaseAdminClient();
     await deleteVariationItems(productId);
 
-    const { error: variationTypeError } = await supabase
+    const { error: variationTypeError } = await supabaseAdmin
       .from("produto_variacao_tipo")
       .delete()
       .eq("id_produto", productId);
 
     if (variationTypeError) {
-      throw new Error(errorMessage(variationTypeError, "Falha ao excluir tipos de variacao"));
+      throw new Error(supabaseErrorMessage(variationTypeError, "Falha ao excluir tipos de variacao"));
     }
 
-    const { error: variationError } = await supabase
+    const { error: variationError } = await supabaseAdmin
       .from("produto_variacao")
       .delete()
       .eq("id_produto", productId);
 
     if (variationError) {
-      throw new Error(errorMessage(variationError, "Falha ao excluir variacoes"));
+      throw new Error(supabaseErrorMessage(variationError, "Falha ao excluir variacoes"));
     }
 
-    const { error: specificationError } = await supabase
+    const { error: specificationError } = await supabaseAdmin
       .from("produto_especificacao")
       .delete()
       .eq("id_produto", productId);
 
     if (specificationError) {
-      throw new Error(errorMessage(specificationError, "Falha ao excluir especificacoes"));
+      throw new Error(supabaseErrorMessage(specificationError, "Falha ao excluir especificacoes"));
     }
 
-    const { error: imageError } = await supabase
+    const { error: imageError } = await supabaseAdmin
       .from("produto_imagem")
       .delete()
       .eq("id_produto", productId);
 
     if (imageError) {
-      throw new Error(errorMessage(imageError, "Falha ao excluir imagens"));
+      throw new Error(supabaseErrorMessage(imageError, "Falha ao excluir imagens"));
     }
 
-    const { error: productError } = await supabase.from("produto").delete().eq("id", productId);
+    const { error: productError } = await supabaseAdmin.from("produto").delete().eq("id", productId);
 
     if (productError) {
-      throw new Error(errorMessage(productError, "Falha ao excluir produto"));
+      throw new Error(supabaseErrorMessage(productError, "Falha ao excluir produto"));
     }
   }
 }

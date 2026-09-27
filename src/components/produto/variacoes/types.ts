@@ -14,5 +14,7 @@ export interface CardVariacaoProps {
 
   imagens: ImagemFormulario[];
 
+  usdBrlRate?: number | null;
+
   onRefresh: () => Promise<void> | void;
 }

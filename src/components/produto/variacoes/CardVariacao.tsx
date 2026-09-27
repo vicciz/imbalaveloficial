@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Card,
@@ -11,19 +11,39 @@ import {
 import { Input } from "@/src/components/ui/input";
 import { Switch } from "@/src/components/ui/switch";
 import { Button } from "../../ui/button";
+import { toast } from "sonner";
 
 import VariantImageManagerDialog from "./VariantImageManagerDialog";
 import { CardVariacaoProps } from "./types";
 
-import { salvarItemVariacao } from "@/src/components/produto/types/variacoes";
-import { calcularPrecoVenda, normalizarMarkup } from "@/src/services/precos/markup";
+import {
+  aplicarPrecoATodasVariacoes,
+  salvarItemVariacao,
+} from "@/src/components/produto/types/variacoes";
 import { variantImageService } from "@/src/services/products/services/VariantImageService";
-import { supabase } from "@/supabaseClient";
+
+function formatarMoeda(valor: number, currency: "USD" | "BRL"): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency,
+  }).format(valor);
+}
+
+function parsePrecoVenda(value: string): number | null {
+  const normalized = value.trim().replace(",", ".");
+  if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(normalized)) {
+    return null;
+  }
+
+  const price = Number(normalized);
+  return Number.isFinite(price) && price >= 0 ? price : null;
+}
 
 export default function CardVariacao({
   produto,
   variacao,
   imagens,
+  usdBrlRate,
   onRefresh,
 }: CardVariacaoProps) {
   const [modalAberto, setModalAberto] = useState(false);
@@ -34,6 +54,10 @@ export default function CardVariacao({
 
   // Cada produto_variacao possui um item comercial
   const item = variacao.produto_variacao_item[0];
+  useEffect(() => {
+    setPrecoVenda(String(item?.preco ?? 0));
+  }, [item?.id, item?.preco]);
+
   const imagensPersistidas = useMemo(
     () => imagens.filter((image): image is typeof image & { id: number } => typeof image.id === "number"),
     [imagens]
@@ -44,43 +68,87 @@ export default function CardVariacao({
   );
 
   const [custoFornecedor, setCustoFornecedor] = useState(
-    variacao?.custo_fornecedor ??
-    item?.custo_fornecedor ??
-    variacao?.preco ??
-    item?.preco ??
-    0
+    item?.custo_fornecedor ?? 0
   );
-  const markupPercent = normalizarMarkup(produto?.markup_percent);
-  const precoVenda = calcularPrecoVenda(
-    custoFornecedor,
-    markupPercent
-  );
+  const [precoVenda, setPrecoVenda] = useState(String(item?.preco ?? 0));
   const [estoque, setEstoque] = useState(item?.estoque ?? 0);
   const [sku, setSku] = useState(item?.sku ?? "");
   const [ativo, setAtivo] = useState(item?.ativo ?? true);
+  const [salvando, setSalvando] = useState(false);
+  const [mostrarAplicarTodas, setMostrarAplicarTodas] = useState(false);
+  const isCjProduct = produto.origem?.toLowerCase() === "cj";
+  const totalItensVariacao = (produto.produto_variacao ?? []).reduce(
+    (count, productVariation) => count + (productVariation.produto_variacao_item?.length ?? 0),
+    0
+  );
 
   async function salvar() {
-    if (!item) return;
+    if (!item || salvando) return;
 
-    await salvarItemVariacao(item.id, {
-      preco: precoVenda,
-      custo_fornecedor: Number(custoFornecedor),
-      estoque,
-      sku,
-      ativo,
-      imagem_principal: item.imagem_principal,
-    });
+    const salePrice = parsePrecoVenda(precoVenda);
+    if (salePrice === null) {
+      toast.error("Informe um preço de venda válido em reais.");
+      return;
+    }
 
-    await supabase
-      .from("produto_variacao")
-      .update({
-        preco: precoVenda,
+    setSalvando(true);
+    try {
+      await salvarItemVariacao(item.id, {
+        preco: salePrice,
         custo_fornecedor: Number(custoFornecedor),
-      })
-      .eq("id", variacao.id);
+        estoque,
+        sku,
+        ativo,
+        imagem_principal: item.imagem_principal,
+      });
 
-    await onRefresh();
+      await onRefresh();
+      toast.success("Preço da variação salvo.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Falha ao salvar variação."
+      );
+    } finally {
+      setSalvando(false);
+    }
   }
+
+  async function aplicarATodasVariacoes() {
+    if (!item || salvando) return;
+
+    const salePrice = parsePrecoVenda(precoVenda);
+    if (salePrice === null) {
+      toast.error("Informe um preço de venda válido em reais.");
+      return;
+    }
+
+    const formattedPrice = formatarMoeda(salePrice, "BRL");
+    if (!window.confirm(`Aplicar ${formattedPrice} a todas as variações deste produto?`)) {
+      return;
+    }
+
+    setSalvando(true);
+    try {
+      const updatedCount = await aplicarPrecoATodasVariacoes(
+        item.id,
+        produto.id,
+        salePrice
+      );
+      await onRefresh();
+      toast.success(`Preço aplicado a ${updatedCount} variações.`);
+      setMostrarAplicarTodas(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Falha ao aplicar preço às variações."
+      );
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  const parsedSalePrice = parsePrecoVenda(precoVenda);
+  const hasUnsavedSalePrice =
+    parsedSalePrice !== null && parsedSalePrice !== Number(item?.preco ?? 0);
 
   return (
     <Card>
@@ -92,22 +160,71 @@ export default function CardVariacao({
         <div className="grid md:grid-cols-3 gap-6">
           <div>
             <label className="text-sm font-medium">
-              Custo do fornecedor
+              {isCjProduct ? "Custo do fornecedor (USD)" : "Custo do fornecedor"}
             </label>
 
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={custoFornecedor}
-              onChange={(e) =>
-                setCustoFornecedor(Number(e.target.value))
-              }
-            />
+            <div className="relative mt-1">
+              {isCjProduct && (
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                  US$
+                </span>
+              )}
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                className={isCjProduct ? "pl-12" : undefined}
+                value={custoFornecedor}
+                onChange={(e) =>
+                  setCustoFornecedor(Number(e.target.value))
+                }
+              />
+            </div>
+
+            {isCjProduct && (
+              <p className="mt-1 text-xs text-slate-600" aria-live="polite">
+                ≈ {typeof usdBrlRate === "number"
+                  ? formatarMoeda(custoFornecedor * usdBrlRate, "BRL")
+                  : "conversão indisponível"}
+              </p>
+            )}
 
             <p className="mt-1 text-xs text-slate-500">
-              Venda: R$ {precoVenda.toFixed(2)} ({markupPercent}% de markup)
+              Preço de venda
             </p>
+
+            <div className="relative mt-1">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+                R$
+              </span>
+              <Input
+                type="text"
+                inputMode="decimal"
+                className="pl-12"
+                value={precoVenda}
+                onChange={(e) => {
+                  setPrecoVenda(e.target.value);
+                  setMostrarAplicarTodas(false);
+                }}
+                onBlur={() => {
+                  if (hasUnsavedSalePrice && totalItensVariacao > 1) {
+                    setMostrarAplicarTodas(true);
+                  }
+                }}
+              />
+            </div>
+
+            {mostrarAplicarTodas && hasUnsavedSalePrice && totalItensVariacao > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-2 w-full"
+                onClick={aplicarATodasVariacoes}
+                disabled={salvando}
+              >
+                {salvando ? "Aplicando..." : "Aplicar a todas as variações"}
+              </Button>
+            )}
           </div>
 
           <div>
@@ -139,8 +256,9 @@ export default function CardVariacao({
             <Button
               className="mt-3"
               onClick={salvar}
+              disabled={salvando}
             >
-              Salvar
+              {salvando ? "Salvando..." : "Salvar"}
             </Button>
 
             <Button

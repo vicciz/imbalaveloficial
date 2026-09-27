@@ -1,4 +1,7 @@
-import { supabase } from "@/supabaseClient";
+import "server-only";
+
+import { getSupabaseAdminClient } from "./adminSupabase";
+import { supabaseErrorMessage } from "./supabaseError";
 
 import type { ProductSpecification } from "../types/ProductSpecification";
 
@@ -8,14 +11,6 @@ interface SpecificationPayload {
   nome: string;
   valor: string;
   ordem: number;
-}
-
-function errorMessage(error: unknown, context: string): string {
-  if (error instanceof Error) {
-    return `${context}: ${error.message}`;
-  }
-
-  return `${context}: Erro desconhecido`;
 }
 
 export async function saveSpecifications(
@@ -34,10 +29,10 @@ export async function saveSpecifications(
     return 0;
   }
 
-  const { error } = await supabase.from("produto_especificacao").insert(payload);
+  const { error } = await getSupabaseAdminClient().from("produto_especificacao").insert(payload);
 
   if (error) {
-    throw new Error(errorMessage(error, "Falha ao salvar especificacoes"));
+    throw new Error(supabaseErrorMessage(error, "Falha ao salvar especificacoes"));
   }
 
   return payload.length;

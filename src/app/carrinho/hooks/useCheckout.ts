@@ -18,10 +18,11 @@ export function useCheckout({
     try {
 
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (sessionError || !session?.user || !session.access_token) {
 
         toast.error(
           "Faça login para continuar."
@@ -60,10 +61,10 @@ export function useCheckout({
             headers: {
               "Content-Type":
                 "application/json",
+              Authorization: `Bearer ${session.access_token}`,
             },
 
             body: JSON.stringify({
-              userId: user.id,
               enderecoId,
               selectedItemIds,
             }),

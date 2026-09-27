@@ -24,9 +24,66 @@ export default function VariacoesEditor({
   imagens,
   onRefresh,
 }: VariacoesEditorProps) {
+  const isCjProduct = produto.origem?.toLowerCase() === "cj";
+  const [usdBrlQuote, setUsdBrlQuote] = useState<{
+    rate: number;
+    source: "awesomeapi" | "fallback";
+    updatedAt: string;
+  } | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const [atributoControle, setAtributoControle] = useState<string>("");
   const [valoresDisponiveis, setValoresDisponiveis] = useState<string[]>([]);
   const [salvandoDisponibilidade, setSalvandoDisponibilidade] = useState(false);
+
+  useEffect(() => {
+    if (!isCjProduct) {
+      setUsdBrlQuote(null);
+      return;
+    }
+
+    let active = true;
+    setQuoteLoading(true);
+
+    fetch("/api/cambio/usd-brl", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Cotação USD/BRL indisponível.");
+        }
+
+        return response.json() as Promise<{
+          rate?: number;
+          source?: "awesomeapi" | "fallback";
+          updatedAt?: string;
+        }>;
+      })
+      .then((quote) => {
+        if (!Number.isFinite(quote.rate) || !quote.rate || quote.rate <= 0) {
+          throw new Error("Cotação USD/BRL inválida.");
+        }
+
+        if (active) {
+          setUsdBrlQuote({
+            rate: quote.rate,
+            source: quote.source === "fallback" ? "fallback" : "awesomeapi",
+            updatedAt: quote.updatedAt ?? new Date().toISOString(),
+          });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setUsdBrlQuote(null);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setQuoteLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isCjProduct]);
 
   const atributos = useMemo(() => {
     const mapa = new Map<string, Set<string>>();
@@ -160,6 +217,21 @@ return (
         Cada variação possui seu próprio estoque,
         preço e imagens.
       </p>
+
+      {isCjProduct && (
+        <p className="mt-2 text-sm text-slate-600" aria-live="polite">
+          Cotação utilizada: {usdBrlQuote
+            ? `US$ 1 = ${new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 4,
+              }).format(usdBrlQuote.rate)} (${usdBrlQuote.source === "fallback" ? "configuração local" : "AwesomeAPI"}, ${new Date(usdBrlQuote.updatedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })})`
+            : quoteLoading
+              ? "carregando..."
+              : "indisponível"}
+        </p>
+      )}
     </div>
 
     {atributos.length > 0 && (
@@ -250,6 +322,7 @@ return (
         produto={produto}
         variacao={variacao}
         imagens={imagens}
+        usdBrlRate={usdBrlQuote?.rate ?? null}
         onRefresh={onRefresh}
       />
     ))}

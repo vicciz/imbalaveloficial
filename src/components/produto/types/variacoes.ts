@@ -240,9 +240,9 @@ export async function excluirVariacaoProduto(
 export async function adicionarItemVariacao(
   idVariacao: number,
   idValor: number,
-  sku: string,
-  preco: number,
-  estoque: number
+  sku: string = "",
+  preco: number = 0,
+  estoque: number = 0
 ) {
   return await supabase
     .from("produto_variacao_item")
@@ -304,6 +304,42 @@ export async function salvarValoresTipo(
     .insert(registros);
 }
 
+async function atualizarItemVariacaoPelaApi(
+  idItem: number,
+  dados: Record<string, unknown>
+): Promise<{ data?: unknown; updatedCount?: number }> {
+  const { data: sessionData, error: sessionError } =
+    await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+
+  if (sessionError || !accessToken) {
+    throw new Error("Sessão inválida. Faça login novamente.");
+  }
+
+  const response = await fetch(`/api/admin/produto-variacao-item/${idItem}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(dados),
+  });
+  const result = await response.json().catch(() => null) as {
+    data?: unknown;
+    error?: string;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(result?.error ?? "Falha ao salvar variação.");
+  }
+
+  if (!result?.data) {
+    throw new Error("O servidor não confirmou a atualização da variação.");
+  }
+
+  return result;
+}
+
 export async function salvarItemVariacao(
   idItem: number,
   dados: {
@@ -315,12 +351,26 @@ export async function salvarItemVariacao(
     imagem_principal?: string | null;
   }
 ) {
-  return await supabase
-    .from("produto_variacao_item")
-    .update(dados)
-    .eq("id", idItem)
-    .select()
-    .single();
+  const result = await atualizarItemVariacaoPelaApi(idItem, dados);
+  return result.data;
+}
+
+export async function aplicarPrecoATodasVariacoes(
+  itemId: number,
+  produtoId: number,
+  preco: number
+): Promise<number> {
+  const result = await atualizarItemVariacaoPelaApi(itemId, {
+    preco,
+    produto_id: produtoId,
+    aplicar_em_todas: true,
+  });
+
+  if (!result.updatedCount) {
+    throw new Error("O servidor não confirmou a atualização das variações.");
+  }
+
+  return result.updatedCount;
 }
 
 export async function salvarStatusVariacao(
@@ -381,6 +431,9 @@ export async function criarItensVariacao(
   const registros = idsValores.map((idValor) => ({
     id_variacao: idVariacao,
     id_valor: idValor,
+    preco: 0,
+    estoque: 0,
+    ativo: true,
   }));
 
   return await supabase

@@ -267,7 +267,7 @@ export function mapCJProductToProduct(raw: unknown): Product {
     })),
     variants: mapVariants(product.variants, product),
     specifications: mapSpecifications(product),
-    markupPercent: 50,
+    markupPercent: 0,
     externalUrl: product.sourceUrl,
     logistics: {
       originCountryCode: product.countryCode,

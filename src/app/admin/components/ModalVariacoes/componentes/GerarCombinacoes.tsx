@@ -73,9 +73,9 @@ export default function TabelaCombinacoes({
 
         <TableBody>
           {variacoes.map((variacao: any) => (
-            <TableRow key={variacao.id}>
+            <TableRow key={variacao.itemId ?? variacao.id}>
               <TableCell className="font-medium">
-                {variacao.sku}
+                {variacao.item?.sku ?? variacao.sku}
               </TableCell>
 
               {atributos.map((nome: any) => {
@@ -96,10 +96,10 @@ export default function TabelaCombinacoes({
               <TableCell>
                 <Input
                   type="number"
-                  value={variacaoproduto.preco ?? 0}
+                  value={variacao.item?.preco ?? variacao.preco ?? 0}
                   onChange={(e) =>
                     onAlterar(
-                      variacao.id,
+                      variacao.itemId ?? variacao.id,
                       "preco",
                       Number(e.target.value)
                     )
@@ -111,10 +111,10 @@ export default function TabelaCombinacoes({
               <TableCell>
                 <Input
                   type="number"
-                  value={variacao.estoque ?? 0}
+                  value={variacao.item?.estoque ?? variacao.estoque ?? 0}
                   onChange={(e) =>
                     onAlterar(
-                      variacao.id,
+                      variacao.itemId ?? variacao.id,
                       "estoque",
                       Number(e.target.value)
                     )
@@ -125,10 +125,10 @@ export default function TabelaCombinacoes({
 
               <TableCell className="text-center">
                 <Switch
-                  checked={!!variacao.ativo}
+                  checked={!!(variacao.item?.ativo ?? variacao.ativo)}
                   onCheckedChange={(v) =>
                     onAlterar(
-                      variacao.id,
+                      variacao.itemId ?? variacao.id,
                       "ativo",
                       v
                     )

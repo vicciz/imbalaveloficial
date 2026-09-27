@@ -1,4 +1,7 @@
 import { supabase } from "@/supabaseClient";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { supabaseErrorMessage } from "./supabaseError";
 
 export interface VariantImageLink {
   id: number;
@@ -15,14 +18,6 @@ interface VariantImageLinkRow {
 interface VariantImageLinkInsert {
   id_variacao: number;
   id_imagem: number;
-}
-
-function errorMessage(error: unknown, context: string): string {
-  if (error instanceof Error) {
-    return `${context}: ${error.message}`;
-  }
-
-  return `${context}: Erro desconhecido`;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -50,11 +45,9 @@ function isVariantImageTableMissing(error: unknown): boolean {
 }
 
 function logVariantImageFallback(operation: string, error: unknown): void {
-  const message = error instanceof Error ? error.message : String(error);
-
   console.warn("===== VARIANT IMAGE LINK =====");
   console.warn(`Operação ignorada: ${operation}`);
-  console.warn(message);
+  console.warn(supabaseErrorMessage(error, "Erro ao acessar imagens da variação"));
   console.warn("Continuando sem tabela produto_variacao_imagem.");
 }
 
@@ -65,8 +58,10 @@ export interface VariantImageRepository {
 }
 
 export class SupabaseVariantImageRepository implements VariantImageRepository {
+  constructor(private readonly client: SupabaseClient = supabase) {}
+
   async listByVariationId(variationId: number): Promise<VariantImageLink[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from("produto_variacao_imagem")
       .select("id,id_variacao,id_imagem")
       .eq("id_variacao", variationId);
@@ -77,7 +72,7 @@ export class SupabaseVariantImageRepository implements VariantImageRepository {
         return [];
       }
 
-      throw new Error(errorMessage(error, "Falha ao listar imagens da variação"));
+      throw new Error(supabaseErrorMessage(error, "Falha ao listar imagens da variação"));
     }
 
     return (data as VariantImageLinkRow[] | null) ?? [];
@@ -93,7 +88,7 @@ export class SupabaseVariantImageRepository implements VariantImageRepository {
       .map((link) => link.id);
 
     if (removableLinkIds.length > 0) {
-      const { error } = await supabase.from("produto_variacao_imagem").delete().in("id", removableLinkIds);
+      const { error } = await this.client.from("produto_variacao_imagem").delete().in("id", removableLinkIds);
 
       if (error) {
         if (isVariantImageTableMissing(error)) {
@@ -101,7 +96,7 @@ export class SupabaseVariantImageRepository implements VariantImageRepository {
           return [];
         }
 
-        throw new Error(errorMessage(error, "Falha ao remover vínculos de imagem da variação"));
+        throw new Error(supabaseErrorMessage(error, "Falha ao remover vínculos de imagem da variação"));
       }
     }
 
@@ -113,7 +108,7 @@ export class SupabaseVariantImageRepository implements VariantImageRepository {
       }));
 
     if (missingLinks.length > 0) {
-      const { error } = await supabase.from("produto_variacao_imagem").insert(missingLinks);
+      const { error } = await this.client.from("produto_variacao_imagem").insert(missingLinks);
 
       if (error) {
         if (isVariantImageTableMissing(error)) {
@@ -121,7 +116,7 @@ export class SupabaseVariantImageRepository implements VariantImageRepository {
           return existingLinks;
         }
 
-        throw new Error(errorMessage(error, "Falha ao criar vínculos de imagem da variação"));
+        throw new Error(supabaseErrorMessage(error, "Falha ao criar vínculos de imagem da variação"));
       }
     }
 
@@ -135,7 +130,7 @@ export class SupabaseVariantImageRepository implements VariantImageRepository {
       return;
     }
 
-    const { error } = await supabase.from("produto_variacao_imagem").insert({
+    const { error } = await this.client.from("produto_variacao_imagem").insert({
       id_variacao: variationId,
       id_imagem: imageId,
     });
@@ -146,7 +141,7 @@ export class SupabaseVariantImageRepository implements VariantImageRepository {
         return;
       }
 
-      throw new Error(errorMessage(error, "Falha ao vincular imagem à variação"));
+      throw new Error(supabaseErrorMessage(error, "Falha ao vincular imagem à variação"));
     }
   }
 }

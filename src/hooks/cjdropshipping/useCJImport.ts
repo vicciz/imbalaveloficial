@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/supabaseClient";
 
 import type {
   CJProduct,
-} from "@/src/app/admin/cjdropshipping/components/types";
+} from "@/src/app/admin/fornecedores/cjdropshipping/components/types";
 
 export function useCJImport() {
   const [
@@ -43,16 +44,22 @@ async function importarProduto() {
   try {
     setLoading(true);
 
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+
+    if (sessionError || !sessionData.session?.access_token) {
+      throw new Error("Sessão inválida. Faça login novamente.");
+    }
+
     const response = await fetch(
-      "/api/cj/import",
+      "/api/cj/import/",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionData.session.access_token}`,
         },
-       body: JSON.stringify({
-  pid: produtoSelecionado.id,
-})
+        body: JSON.stringify(body),
       }
     );
 
@@ -75,13 +82,14 @@ async function importarProduto() {
 
     return json;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
 
     console.error(error);
 
     toast.error(
-      error.message ??
-      "Erro ao importar produto."
+      error instanceof Error
+        ? error.message
+        : "Erro ao importar produto."
     );
 
   } finally {

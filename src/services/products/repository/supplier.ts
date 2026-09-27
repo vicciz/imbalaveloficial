@@ -1,4 +1,7 @@
-import { supabase } from "@/supabaseClient";
+import "server-only";
+
+import { getSupabaseAdminClient } from "./adminSupabase";
+import { supabaseErrorMessage } from "./supabaseError";
 
 interface IdRow {
   id: number;
@@ -19,33 +22,26 @@ function normalizeName(name: string, fallback: string): string {
   return trimmed.length > 0 ? trimmed : fallback;
 }
 
-function errorMessage(error: unknown, context: string): string {
-  if (error instanceof Error) {
-    return `${context}: ${error.message}`;
-  }
-
-  return `${context}: Erro desconhecido`;
-}
-
 async function getOrCreatePlatformId(input: PlatformInput): Promise<number> {
   const key = input.key.trim().toLowerCase();
   const name = normalizeName(input.name, key);
+  const supabaseAdmin = getSupabaseAdminClient();
 
-  const { data: existing, error: selectError } = await supabase
+  const { data: existing, error: selectError } = await supabaseAdmin
     .from("plataformas_fornecedor")
     .select("id")
     .ilike("nome", name)
     .maybeSingle<IdRow>();
 
   if (selectError) {
-    throw new Error(errorMessage(selectError, "Falha ao buscar plataforma do fornecedor"));
+    throw new Error(supabaseErrorMessage(selectError, "Falha ao buscar plataforma do fornecedor"));
   }
 
   if (existing) {
     return existing.id;
   }
 
-  const { data: created, error: createError } = await supabase
+  const { data: created, error: createError } = await supabaseAdmin
     .from("plataformas_fornecedor")
     .insert({
       nome: name,
@@ -57,8 +53,12 @@ async function getOrCreatePlatformId(input: PlatformInput): Promise<number> {
     .select("id")
     .single<IdRow>();
 
-  if (createError || !created) {
-    throw new Error(errorMessage(createError, "Falha ao criar plataforma do fornecedor"));
+  if (createError) {
+    throw new Error(supabaseErrorMessage(createError, "Falha ao criar plataforma do fornecedor"));
+  }
+
+  if (!created) {
+    throw new Error("Falha ao criar plataforma do fornecedor: Supabase não retornou o ID.");
   }
 
   return created.id;
@@ -72,33 +72,34 @@ export async function getOrCreateSupplierId(nameOrInput: string | SupplierInput)
     : null;
 
   const platformId = platform ? await getOrCreatePlatformId(platform) : null;
+  const supabaseAdmin = getSupabaseAdminClient();
 
-  const { data: existing, error: selectError } = await supabase
+  const { data: existing, error: selectError } = await supabaseAdmin
     .from("fornecedores")
     .select("id,plataforma_id")
     .ilike("nome", supplier)
     .maybeSingle<IdRow & { plataforma_id?: number | null }>();
 
   if (selectError) {
-    throw new Error(errorMessage(selectError, "Falha ao buscar fornecedor"));
+    throw new Error(supabaseErrorMessage(selectError, "Falha ao buscar fornecedor"));
   }
 
   if (existing) {
     if (platformId && !existing.plataforma_id) {
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseAdmin
         .from("fornecedores")
         .update({ plataforma_id: platformId })
         .eq("id", existing.id);
 
       if (updateError) {
-        throw new Error(errorMessage(updateError, "Falha ao vincular plataforma ao fornecedor"));
+        throw new Error(supabaseErrorMessage(updateError, "Falha ao vincular plataforma ao fornecedor"));
       }
     }
 
     return existing.id;
   }
 
-  const { data: created, error: createError } = await supabase
+  const { data: created, error: createError } = await supabaseAdmin
     .from("fornecedores")
     .insert({
       nome: supplier,
@@ -108,7 +109,7 @@ export async function getOrCreateSupplierId(nameOrInput: string | SupplierInput)
     .single<IdRow>();
 
   if (createError || !created) {
-    throw new Error(errorMessage(createError, "Falha ao criar fornecedor"));
+    throw new Error(supabaseErrorMessage(createError, "Falha ao criar fornecedor"));
   }
 
   return created.id;

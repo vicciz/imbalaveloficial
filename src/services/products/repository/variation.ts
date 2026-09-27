@@ -1,7 +1,10 @@
-import { supabase } from "@/supabaseClient";
+import "server-only";
+
+import { getSupabaseAdminClient } from "./adminSupabase";
+import { supabaseErrorMessage } from "./supabaseError";
 import { variantImageMatcher, VariantImageMatcher } from "../images/VariantImageMatcher";
-import { variantImageService } from "../services/VariantImageService";
-import { calcularPrecoVenda, normalizarMarkup } from "@/src/services/precos/markup";
+import { VariantImageService } from "../services/VariantImageService";
+import { SupabaseVariantImageRepository } from "./variantImage";
 
 import type { SavedProductImage } from "./image";
 import type { ProductOption } from "../types/ProductOption";
@@ -64,14 +67,6 @@ function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
 
-function errorMessage(error: unknown, context: string): string {
-  if (error instanceof Error) {
-    return `${context}: ${error.message}`;
-  }
-
-  return `${context}: Erro desconhecido`;
-}
-
 function logVariationLink(message: string, details?: unknown): void {
   console.log(message);
 
@@ -97,14 +92,14 @@ async function getOrCreateVariationTypeId(name: string, cache: Map<string, numbe
 
   const cleanedName = name.trim();
 
-  const { data: existing, error: selectError } = await supabase
+  const { data: existing, error: selectError } = await getSupabaseAdminClient()
     .from("variacao_tipo")
     .select("id")
     .ilike("nome", cleanedName)
     .maybeSingle<VariationTypeRow>();
 
   if (selectError) {
-    throw new Error(errorMessage(selectError, "Falha ao buscar tipo de variacao"));
+    throw new Error(supabaseErrorMessage(selectError, "Falha ao buscar tipo de variacao"));
   }
 
   if (existing) {
@@ -112,14 +107,18 @@ async function getOrCreateVariationTypeId(name: string, cache: Map<string, numbe
     return existing.id;
   }
 
-  const { data: created, error: createError } = await supabase
+  const { data: created, error: createError } = await getSupabaseAdminClient()
     .from("variacao_tipo")
     .insert({ nome: cleanedName })
     .select("id")
     .single<IdRow>();
 
-  if (createError || !created) {
-    throw new Error(errorMessage(createError, "Falha ao criar tipo de variacao"));
+  if (createError) {
+    throw new Error(supabaseErrorMessage(createError, "Falha ao criar tipo de variacao"));
+  }
+
+  if (!created) {
+    throw new Error("Falha ao criar tipo de variacao: Supabase não retornou o ID.");
   }
 
   cache.set(normalized, created.id);
@@ -138,7 +137,7 @@ async function getOrCreateVariationValueId(
     return cache.get(cacheKey) as number;
   }
 
-  const { data: existing, error: selectError } = await supabase
+  const { data: existing, error: selectError } = await getSupabaseAdminClient()
     .from("variacao_valor")
     .select("id")
     .eq("id_tipo", typeId)
@@ -146,7 +145,7 @@ async function getOrCreateVariationValueId(
     .maybeSingle<VariationValueRow>();
 
   if (selectError) {
-    throw new Error(errorMessage(selectError, "Falha ao buscar valor de variacao"));
+    throw new Error(supabaseErrorMessage(selectError, "Falha ao buscar valor de variacao"));
   }
 
   if (existing) {
@@ -154,7 +153,7 @@ async function getOrCreateVariationValueId(
     return existing.id;
   }
 
-  const { data: created, error: createError } = await supabase
+  const { data: created, error: createError } = await getSupabaseAdminClient()
     .from("variacao_valor")
     .insert({
       id_tipo: typeId,
@@ -163,8 +162,12 @@ async function getOrCreateVariationValueId(
     .select("id")
     .single<VariationValueRow>();
 
-  if (createError || !created) {
-    throw new Error(errorMessage(createError, "Falha ao criar valor de variacao"));
+  if (createError) {
+    throw new Error(supabaseErrorMessage(createError, "Falha ao criar valor de variacao"));
+  }
+
+  if (!created) {
+    throw new Error("Falha ao criar valor de variacao: Supabase não retornou o ID.");
   }
 
   cache.set(cacheKey, created.id);
@@ -176,14 +179,14 @@ async function linkVariationTypesToProduct(productId: number, typeIds: number[])
     return;
   }
 
-  const { data: existing, error: selectError } = await supabase
+  const { data: existing, error: selectError } = await getSupabaseAdminClient()
     .from("produto_variacao_tipo")
     .select("id_tipo")
     .eq("id_produto", productId)
     .in("id_tipo", typeIds);
 
   if (selectError) {
-    throw new Error(errorMessage(selectError, "Falha ao buscar tipos vinculados"));
+    throw new Error(supabaseErrorMessage(selectError, "Falha ao buscar tipos vinculados"));
   }
 
   const existingSet = new Set(
@@ -201,10 +204,10 @@ async function linkVariationTypesToProduct(productId: number, typeIds: number[])
     id_tipo: typeId,
   }));
 
-  const { error } = await supabase.from("produto_variacao_tipo").insert(payload);
+  const { error } = await getSupabaseAdminClient().from("produto_variacao_tipo").insert(payload);
 
   if (error) {
-    throw new Error(errorMessage(error, "Falha ao vincular tipos de variacao"));
+    throw new Error(supabaseErrorMessage(error, "Falha ao vincular tipos de variacao"));
   }
 }
 
@@ -212,7 +215,7 @@ async function createProductVariation(productId: number, variation: ProductVaria
   const payload: ProductVariationInsert = {
     id_produto: productId,
     sku: variation.sku,
-    preco: calcularPrecoVenda(variation.supplierCost, variation.markupPercent ?? productMarkup),
+    preco: 0,
     custo_fornecedor: Number(variation.supplierCost),
     estoque: variation.stock,
     ativo: variation.active,
@@ -226,14 +229,18 @@ async function createProductVariation(productId: number, variation: ProductVaria
     barcode: variation.barcode ?? null,
   };
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabaseAdminClient()
     .from("produto_variacao")
     .insert(payload)
     .select("id")
     .single<IdRow>();
 
-  if (error || !data) {
-    throw new Error(errorMessage(error, "Falha ao criar variacao"));
+  if (error) {
+    throw new Error(supabaseErrorMessage(error, "Falha ao criar variacao"));
+  }
+
+  if (!data) {
+    throw new Error("Falha ao criar variacao: Supabase não retornou o ID.");
   }
 
   return data.id;
@@ -243,7 +250,7 @@ export async function saveVariants(
   productId: number,
   variants: ProductVariant[],
   savedImages: SavedProductImage[],
-  productMarkup: number = 50
+  productMarkup: number = 0
 ): Promise<number[]> {
   const typeCache = new Map<string, number>();
   const valueCache = new Map<string, number>();
@@ -257,6 +264,9 @@ export async function saveVariants(
 
   const productTypeIds = new Set<number>();
   const createdVariationIds: number[] = [];
+  const variantImageService = new VariantImageService(
+    new SupabaseVariantImageRepository(getSupabaseAdminClient())
+  );
 
   for (const variant of variants) {
     for (const option of variant.options) {
@@ -268,8 +278,7 @@ export async function saveVariants(
   await linkVariationTypesToProduct(productId, Array.from(productTypeIds));
 
   for (const variant of variants) {
-    const effectiveMarkup = normalizarMarkup(variant.markupPercent ?? productMarkup);
-    const variationId = await createProductVariation(productId, variant, effectiveMarkup);
+    const variationId = await createProductVariation(productId, variant, productMarkup);
     createdVariationIds.push(variationId);
 
     const itemPayload: ProductVariationItemInsert[] = [];
@@ -287,7 +296,7 @@ export async function saveVariants(
       itemPayload.push({
         id_variacao: variationId,
         id_valor: valueId,
-        preco: calcularPrecoVenda(variant.supplierCost, effectiveMarkup),
+        preco: 0,
         custo_fornecedor: Number(variant.supplierCost),
         estoque: variant.stock,
         sku: variant.sku,
@@ -300,10 +309,10 @@ export async function saveVariants(
       continue;
     }
 
-    const { error } = await supabase.from("produto_variacao_item").insert(itemPayload);
+    const { error } = await getSupabaseAdminClient().from("produto_variacao_item").insert(itemPayload);
 
     if (error) {
-      throw new Error(errorMessage(error, "Falha ao salvar itens de variacao"));
+      throw new Error(supabaseErrorMessage(error, "Falha ao salvar itens de variacao"));
     }
 
     logVariationLink("===== LINK VARIAÇÕES =====");

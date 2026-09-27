@@ -122,14 +122,26 @@ export async function listarProdutos() {
   const { data, error } = await client
     .from("produto")
     .select(`
-      id,
-      nome,
+      *,
+      categorias(nome),
+      produto_imagem(
+        id,
+        id_produto,
+        id_variacao,
+        id_valor,
+        caminho,
+        ordem,
+        principal
+      ),
       produto_variacao(
         id,
+        preco,
+        estoque,
         produto_variacao_item(
           id,
           preco,
-          estoque
+          estoque,
+          ativo
         )
       )
     `);
@@ -137,9 +149,11 @@ export async function listarProdutos() {
   console.log("ERRO:", error);
   console.log("DADOS:", data);
 
-  return { data: null, error };
+  return {
+    data: data?.map(normalizeProduto) ?? null,
+    error: normalizeError(error),
+  };
 }
-
 export async function buscarProduto(
   texto: string | number
 ): Promise<{ data: Produto | null; error: any }> {

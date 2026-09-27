@@ -1,6 +1,9 @@
 import { randomUUID } from "crypto";
 
-import { supabase } from "@/supabaseClient";
+import "server-only";
+
+import { getSupabaseAdminClient } from "./adminSupabase";
+import { supabaseErrorMessage } from "./supabaseError";
 
 import type { ProductImage } from "../types/ProductImage";
 
@@ -26,14 +29,6 @@ export interface SavedProductImage {
   isPrimary: boolean;
 }
 
-function errorMessage(error: unknown, context: string): string {
-  if (error instanceof Error) {
-    return `${context}: ${error.message}`;
-  }
-
-  return `${context}: Erro desconhecido`;
-}
-
 async function uploadImageFromUrl(url: string): Promise<string> {
   const response = await fetch(url);
 
@@ -44,12 +39,12 @@ async function uploadImageFromUrl(url: string): Promise<string> {
   const buffer = await response.arrayBuffer();
   const path = `${randomUUID()}.jpg`;
 
-  const { error } = await supabase.storage.from("produtos").upload(path, buffer, {
+  const { error } = await getSupabaseAdminClient().storage.from("produtos").upload(path, buffer, {
     contentType: response.headers.get("content-type") ?? "image/jpeg",
   });
 
   if (error) {
-    throw new Error(errorMessage(error, "Falha ao enviar imagem para storage"));
+    throw new Error(supabaseErrorMessage(error, "Falha ao enviar imagem para storage"));
   }
 
   return path;
@@ -87,13 +82,17 @@ export async function saveImages(productId: number, images: ProductImage[]): Pro
     });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabaseAdminClient()
     .from("produto_imagem")
     .insert(payload)
     .select("id,caminho,principal,ordem");
 
-  if (error || !data) {
-    throw new Error(errorMessage(error, "Falha ao salvar imagens"));
+  if (error) {
+    throw new Error(supabaseErrorMessage(error, "Falha ao salvar imagens"));
+  }
+
+  if (!data) {
+    throw new Error("Falha ao salvar imagens: Supabase não retornou os registros.");
   }
 
   return (data as ImageRow[]).map((item) => {

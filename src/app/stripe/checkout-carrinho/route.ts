@@ -3,24 +3,44 @@ import { criarCheckoutCarrinho } from "@/src/services/pedido/checkout";
 import { supabase } from "@/supabaseClient";
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { userId, enderecoId, selectedItemIds } = body;
+  const authorization = request.headers.get("authorization");
+  const accessToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice(7)
+    : "";
 
-  if (!userId) {
+  if (!accessToken) {
     return NextResponse.json(
-      { error: "UserId não enviado" },
+      { error: "Não autenticado." },
+      { status: 401 }
+    );
+  }
+
+  const { data: authData, error: authError } =
+    await supabase.auth.getUser(accessToken);
+
+  if (authError || !authData.user) {
+    return NextResponse.json(
+      { error: "Sessão inválida." },
+      { status: 401 }
+    );
+  }
+
+  const body = await request.json().catch(() => null);
+  const enderecoId = body?.enderecoId;
+  const selectedItemIds = body?.selectedItemIds;
+
+  if (!Number.isInteger(enderecoId) || enderecoId <= 0) {
+    return NextResponse.json(
+      { error: "EnderecoId inválido" },
       { status: 400 }
     );
   }
 
-  if (!enderecoId) {
-    return NextResponse.json(
-      { error: "EnderecoId não enviado" },
-      { status: 400 }
-    );
-  }
-
-  if (!Array.isArray(selectedItemIds) || !selectedItemIds.length) {
+  if (
+    !Array.isArray(selectedItemIds) ||
+    selectedItemIds.length === 0 ||
+    selectedItemIds.some((id) => !Number.isInteger(id) || id <= 0)
+  ) {
     return NextResponse.json(
       { error: "Selecione ao menos um item do carrinho" },
       { status: 400 }
@@ -29,7 +49,7 @@ export async function POST(request: Request) {
 
   try {
     const session = await criarCheckoutCarrinho(
-      userId,
+      authData.user.id,
       enderecoId,
       selectedItemIds
     );

@@ -1,4 +1,4 @@
-export const MARKUP_PADRAO_PERCENTUAL = 50;
+export const MARKUP_PADRAO_PERCENTUAL = 0;
 
 export function normalizarMarkup(markup: unknown): number {
   const valor = Number(markup);

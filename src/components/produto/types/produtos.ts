@@ -2,7 +2,7 @@
 
 import { supabase } from "../../../../supabaseClient";
 import { listarProdutosColecao } from "@/src/services/colecao/colecao";
-import { calcularPrecoVenda, normalizarMarkup } from "@/src/services/precos/markup";
+import { normalizarMarkup } from "@/src/services/precos/markup";
 
 export interface ProdutoImagem {
   id?: number;
@@ -141,29 +141,18 @@ function normalizeProduto(produto: any): Produto {
 
   const markup = normalizarMarkup(produto.markup_percent);
 
-  // The sale price is authoritative in the variation/item. For legacy
-  // products that do not yet have a separate supplier cost, preserve the
-  // existing sale price instead of turning it into R$ 0,00.
   const variacoesComPrecoVenda = (produto.produto_variacao ?? []).map(
     (variacao: any) => {
       const itens = variacao.produto_variacao_item ?? [];
 
       const itensComPreco = itens.map((item: any) => {
-        const custo = item.custo_fornecedor;
         const precoExistente = Number(item.preco);
 
         return {
           ...item,
-          preco:
-            custo !== null &&
-            custo !== undefined &&
-            Number.isFinite(Number(custo))
-              ? calcularPrecoVenda(custo, markup)
-              : (
-                  Number.isFinite(precoExistente)
-                    ? precoExistente
-                    : Number(variacao.preco ?? 0)
-                ),
+          preco: Number.isFinite(precoExistente)
+            ? precoExistente
+            : 0,
         };
       });
 
@@ -178,11 +167,9 @@ function normalizeProduto(produto: any): Produto {
         preco:
           primeiroPrecoItem.length > 0
             ? Math.min(...primeiroPrecoItem)
-            : (
-                Number.isFinite(precoVariacaoExistente)
-                  ? precoVariacaoExistente
-                  : 0
-              ),
+            : Number.isFinite(precoVariacaoExistente)
+              ? precoVariacaoExistente
+              : 0,
         produto_variacao_item: itensComPreco,
       };
     }
@@ -252,41 +239,42 @@ export async function listarProdutos(
 }> {
   const client = ensureSupabase();
 
-  let query = client
-    .from("produto")
-    .select(`
-      *,
-      categorias(nome),
-
-      produto_imagem(
+  // A consulta com relacionamentos é útil para a loja, mas pode falhar
+  // enquanto as policies das tabelas filhas estiverem sendo configuradas.
+  // Mantemos uma consulta simples de produto como fallback para que a loja
+  // continue exibindo os produtos públicos.
+  const selectCompleto = `
+    *,
+    categorias(nome),
+    produto_imagem(
+      id,
+      id_produto,
+      id_variacao,
+      id_valor,
+      caminho,
+      ordem,
+      principal
+    ),
+    produto_variacao(
+      id,
+      id_produto,
+      preco,
+      custo_fornecedor,
+      produto_variacao_item(
         id,
-        id_produto,
         id_variacao,
         id_valor,
-        caminho,
-        ordem,
-        principal
-      ),
-
-      produto_variacao(
-        id,
-        id_produto,
         preco,
         custo_fornecedor,
-
-        produto_variacao_item(
-          id,
-          id_variacao,
-          id_valor,
-          preco,
-          custo_fornecedor,
-          estoque,
-          sku,
-          ativo,
-          imagem_principal
-        )
+        estoque,
+        sku,
+        ativo,
+        imagem_principal
       )
-    `);
+    )
+  `;
+
+  let query = client.from("produto").select(selectCompleto);
 
   if (categoria && categoria !== "Todos") {
     query = query.eq("categorias.nome", categoria);
@@ -298,14 +286,76 @@ export async function listarProdutos(
 
   const { data, error } = await query;
 
-  return {
-    data: data
-      ? data.map((produto: any) =>
-          normalizeProduto(produto)
-        )
-      : null,
+  if (!error) {
+    return {
+      data: data
+        ? data.map((produto: any) => normalizeProduto(produto))
+        : [],
+      error: null,
+    };
+  }
 
-    error: normalizeError(error),
+  console.warn(
+    "[listarProdutos] Falha na consulta completa; tentando consulta simples de produto.",
+    normalizeError(error)
+  );
+
+  // Fallback deliberadamente usa somente public.produto. Isso é suficiente
+  // para renderizar nome/preço/status e, principalmente, respeita o RLS:
+  // quando o chamador não puder ver produtos ocultos, somente os públicos
+  // serão retornados.
+  let fallback = client.from("produto").select("*");
+
+  if (categoria && categoria !== "Todos") {
+    fallback = fallback.eq("categoria_id", categoria);
+  }
+
+  if (!incluirOcultos) {
+    fallback = fallback.or("oculto.is.null,oculto.eq.false");
+  }
+
+  const { data: fallbackData, error: fallbackError } = await fallback;
+
+  if (!fallbackError) {
+    return {
+      data: fallbackData
+        ? fallbackData.map((produto: any) => normalizeProduto(produto))
+        : [],
+      // A consulta principal falhou, mas a consulta simples funcionou.
+      error: null,
+    };
+  }
+
+  // Se o chamador é uma tela administrativa, a policy pode ainda não estar
+  // permitindo a leitura de produtos ocultos para a sessão atual. Como a
+  // loja pública já foi validada no banco, tentamos uma última vez somente
+  // com os produtos visíveis. Assim o catálogo não fica vazio por causa de
+  // uma falha de permissão na leitura administrativa.
+  if (incluirOcultos) {
+    let publicFallback = client
+      .from("produto")
+      .select("*")
+      .or("oculto.is.null,oculto.eq.false");
+
+    if (categoria && categoria !== "Todos" && /^\d+$/.test(String(categoria))) {
+      publicFallback = publicFallback.eq("categoria_id", Number(categoria));
+    }
+
+    const { data: publicData, error: publicError } = await publicFallback;
+
+    if (!publicError) {
+      return {
+        data: publicData
+          ? publicData.map((produto: any) => normalizeProduto(produto))
+          : [],
+        error: null,
+      };
+    }
+  }
+
+  return {
+    data: null,
+    error: normalizeError(fallbackError),
   };
 }
 
