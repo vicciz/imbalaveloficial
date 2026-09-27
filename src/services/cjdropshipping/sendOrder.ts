@@ -1,4 +1,7 @@
-import { supabase } from "@/supabaseClient";
+import "server-only";
+
+import { getSupabaseAdminClient } from "@/src/services/products/repository/adminSupabase";
+import { supabaseErrorMessage } from "@/src/services/products/repository/supabaseError";
 import { criarPedido as criarPedidoCJ } from "./orders";
 import { atualizarIntegracaoCJ } from "@/src/services/pedido/pedido";
 
@@ -111,17 +114,25 @@ function parseFretes(metadataValue: string | undefined): CjFreteGroup[] {
 }
 
 async function carregarCliente(userId: string) {
-  const { data } = await supabase
+  const { data, error } = await getSupabaseAdminClient()
     .from("usuario")
     .select("nome, email, telefone, documento_fiscal")
     .eq("user_id", userId)
     .maybeSingle();
 
+  if (error) {
+    throw new Error(supabaseErrorMessage(error, "Falha ao buscar dados do cliente para CJ"));
+  }
+
+  if (!data) {
+    throw new Error("Perfil do cliente não encontrado para envio à CJ.");
+  }
+
   return {
-    nome: String(data?.nome ?? "Cliente Imbalável").trim(),
-    email: String(data?.email ?? "").trim(),
-    telefone: String(data?.telefone ?? "").trim(),
-    documentoFiscal: String(data?.documento_fiscal ?? "").replace(/\D/g, ""),
+    nome: String(data.nome ?? "Cliente Imbalável").trim(),
+    email: String(data.email ?? "").trim(),
+    telefone: String(data.telefone ?? "").trim(),
+    documentoFiscal: String(data.documento_fiscal ?? "").replace(/\D/g, ""),
   };
 }
 

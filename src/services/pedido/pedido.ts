@@ -1,4 +1,9 @@
-import { supabase } from "../../../supabaseClient";
+import "server-only";
+
+import { getSupabaseAdminClient } from "@/src/services/products/repository/adminSupabase";
+import { supabaseErrorMessage } from "@/src/services/products/repository/supabaseError";
+
+const supabase = getSupabaseAdminClient();
 
 export async function criarPedido(
   idUsuario: string,
@@ -83,7 +88,7 @@ export async function adicionarItemPedido(
   precoUnitario: number,
   idVariacao: number | null
 ) {
-  return await supabase
+  const { data, error } = await supabase
     .from("pedidoItem")
     .insert({
       id_pedido: idPedido,
@@ -92,7 +97,19 @@ export async function adicionarItemPedido(
       quantidade,
       preco_unitario: precoUnitario,
       subtotal: precoUnitario * quantidade,
-    });
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error(supabaseErrorMessage(error, "Falha ao criar item do pedido"));
+  }
+
+  if (!data) {
+    throw new Error("Falha ao criar item do pedido: Supabase não retornou o registro.");
+  }
+
+  return data;
 }
 
 export async function buscarPedidosUsuario(userId: string) {

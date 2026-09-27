@@ -5,7 +5,11 @@ import Link from "next/link";
 import { AdminLayout } from "@/src/components/layout/Admin";
 import { supabase } from "@/supabaseClient";
 import { variantImageService } from "@/src/services/products/services/VariantImageService";
-import { podeCancelarPedido, traduzirStatusPedido } from "@/src/lib/status-pedido";
+import {
+  podeCancelarPedido,
+  traduzirStatusCJ,
+  traduzirStatusPedido,
+} from "@/src/lib/status-pedido";
 
 export default function Pedido() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -251,7 +255,7 @@ const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
                       <div className="space-y-1">
                         {pedido.cj_status && (
                           <p>
-                            Status: <span className="font-medium">{traduzirStatusPedido(pedido.cj_status)}</span>
+                            Status: <span className="font-medium">{traduzirStatusCJ(pedido.cj_status)}</span>
                           </p>
                         )}
                         {pedido.codigo_rastreio && (

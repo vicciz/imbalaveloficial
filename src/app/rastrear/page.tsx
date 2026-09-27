@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/supabaseClient";
-import { traduzirStatusPedido } from "@/src/lib/status-pedido";
+import { traduzirStatusCJ, traduzirStatusPedido } from "@/src/lib/status-pedido";
 
 type PedidoRastreio = {
   id: number;
@@ -97,7 +97,9 @@ export default function RastrearPage() {
                     </p>
                   </div>
                   <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
-                    {traduzirStatusPedido(pedido.cj_status ?? pedido.status)}
+                    {pedido.cj_status
+                      ? traduzirStatusCJ(pedido.cj_status)
+                      : traduzirStatusPedido(pedido.status)}
                   </span>
                 </div>
 

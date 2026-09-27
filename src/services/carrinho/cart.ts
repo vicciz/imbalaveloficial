@@ -1,4 +1,5 @@
 import { supabase } from "../../../supabaseClient";
+import type { SupabaseClient } from "@supabase/supabase-js";
 type CarrinhoBase = {
   id: number;
   id_user: string;
@@ -132,7 +133,8 @@ export async function adicionarAoCarrinho(
 //buscar cart
 export async function buscarCarrinho(
   userId: string,
-  itemIds?: number[]
+  itemIds?: number[],
+  client: SupabaseClient = supabase
 ) {
   const selectCarrinhoComProduto = `
       *,
@@ -156,7 +158,7 @@ export async function buscarCarrinho(
     select: selectCarrinhoComProduto,
   });
 
-  let query = supabase
+  let query = client
     .from("carrinho")
     .select(selectCarrinhoComProduto)
     .eq("id_user", userId);
@@ -222,7 +224,7 @@ export async function buscarCarrinho(
     select: selectVariacoes,
   });
 
-  const { data: variacoes, error: erroVariacoes } = await supabase
+  const { data: variacoes, error: erroVariacoes } = await client
     .from("produto_variacao")
     .select(selectVariacoes)
     .in("id", idsVariacao);
@@ -335,9 +337,10 @@ export async function limparCarrinho(userId: string) {
 
 export async function removerItensDoCarrinho(
   userId: string,
-  itemIds: number[]
+  itemIds: number[],
+  client: SupabaseClient = supabase
 ) {
-  const { error } = await supabase
+  const { error } = await client
     .from("carrinho")
     .delete()
     .eq("id_user", userId)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Card,
@@ -71,16 +71,56 @@ export default function CardVariacao({
     item?.custo_fornecedor ?? 0
   );
   const [precoVenda, setPrecoVenda] = useState(String(item?.preco ?? 0));
+  const [precoAtualizadoPeloCusto, setPrecoAtualizadoPeloCusto] = useState(false);
   const [estoque, setEstoque] = useState(item?.estoque ?? 0);
   const [sku, setSku] = useState(item?.sku ?? "");
   const [ativo, setAtivo] = useState(item?.ativo ?? true);
   const [salvando, setSalvando] = useState(false);
   const [mostrarAplicarTodas, setMostrarAplicarTodas] = useState(false);
+  const custoBaseRef = useRef(Number(item?.custo_fornecedor ?? 0));
+  const precoBaseRef = useRef(Number(item?.preco ?? 0));
   const isCjProduct = produto.origem?.toLowerCase() === "cj";
   const totalItensVariacao = (produto.produto_variacao ?? []).reduce(
     (count, productVariation) => count + (productVariation.produto_variacao_item?.length ?? 0),
     0
   );
+
+  useEffect(() => {
+    const savedCost = Number(item?.custo_fornecedor ?? 0);
+    const savedPrice = Number(item?.preco ?? 0);
+
+    custoBaseRef.current = savedCost;
+    precoBaseRef.current = savedPrice;
+    setCustoFornecedor(savedCost);
+    setPrecoVenda(String(savedPrice));
+    setPrecoAtualizadoPeloCusto(false);
+  }, [item?.id, item?.custo_fornecedor, item?.preco]);
+
+  function alterarCustoFornecedor(nextCost: number) {
+    setCustoFornecedor(nextCost);
+
+    const baseCost = custoBaseRef.current;
+    const basePrice = precoBaseRef.current;
+    if (baseCost > 0 && nextCost > baseCost) {
+      setPrecoVenda((basePrice * nextCost / baseCost).toFixed(2));
+      setPrecoAtualizadoPeloCusto(true);
+      return;
+    }
+
+    setPrecoVenda(String(basePrice));
+    setPrecoAtualizadoPeloCusto(false);
+  }
+
+  function alterarPrecoVenda(value: string) {
+    setPrecoVenda(value);
+    setPrecoAtualizadoPeloCusto(false);
+
+    const salePrice = parsePrecoVenda(value);
+    if (salePrice !== null) {
+      custoBaseRef.current = Number(custoFornecedor);
+      precoBaseRef.current = salePrice;
+    }
+  }
 
   async function salvar() {
     if (!item || salvando) return;
@@ -176,7 +216,7 @@ export default function CardVariacao({
                 className={isCjProduct ? "pl-12" : undefined}
                 value={custoFornecedor}
                 onChange={(e) =>
-                  setCustoFornecedor(Number(e.target.value))
+                  alterarCustoFornecedor(Number(e.target.value))
                 }
               />
             </div>
@@ -186,6 +226,12 @@ export default function CardVariacao({
                 ≈ {typeof usdBrlRate === "number"
                   ? formatarMoeda(custoFornecedor * usdBrlRate, "BRL")
                   : "conversão indisponível"}
+              </p>
+            )}
+
+            {precoAtualizadoPeloCusto && (
+              <p className="mt-1 text-xs text-emerald-700" aria-live="polite">
+                Preço de venda ajustado proporcionalmente ao custo.
               </p>
             )}
 
@@ -203,7 +249,7 @@ export default function CardVariacao({
                 className="pl-12"
                 value={precoVenda}
                 onChange={(e) => {
-                  setPrecoVenda(e.target.value);
+                  alterarPrecoVenda(e.target.value);
                   setMostrarAplicarTodas(false);
                 }}
                 onBlur={() => {

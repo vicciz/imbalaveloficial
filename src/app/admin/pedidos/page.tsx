@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/src/components/layout/Admin";
 import { supabase } from "@/supabaseClient";
-import { podeCancelarPedido, traduzirStatusPedido } from "@/src/lib/status-pedido";
+import {
+  podeCancelarPedido,
+  traduzirStatusCJ,
+  traduzirStatusPedido,
+} from "@/src/lib/status-pedido";
 
 
 export default function Pedido() {
@@ -351,7 +355,7 @@ export default function Pedido() {
                     <span className="rounded-full bg-slate-100 px-3 py-1">{traduzirStatusPedido(pedido.status)}</span>
                     <span className="rounded-full bg-slate-100 px-3 py-1">Total: R$ {Number(pedido.valorTotal ?? 0).toFixed(2)}</span>
                     <span className="rounded-full bg-slate-100 px-3 py-1">
-                      CJ: {pedido.cj_status ? traduzirStatusPedido(pedido.cj_status) : "Não enviado"}
+                      CJ: {pedido.cj_status ? traduzirStatusCJ(pedido.cj_status) : "Não enviado"}
                       {pedido.cj_order_id ? ` (${pedido.cj_order_id})` : ""}
                     </span>
                     <span className="rounded-full bg-slate-100 px-3 py-1">{new Date(pedido.created_at).toLocaleString("pt-BR")}</span>

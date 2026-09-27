@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { buscarEndereco } from "@/src/services/usuario/enderecos";
+import { getSupabaseAdminClient } from "@/src/services/products/repository/adminSupabase";
+import { supabaseErrorMessage } from "@/src/services/products/repository/supabaseError";
 
 //Rode no terminal  stripe listen --forward-to localhost:3000/stripe/webhooks/stripe/
 import {
@@ -17,6 +18,10 @@ import {
 } from "@/src/services/pedido/pedido";
 import { enviarPedidoParaCJ } from "@/src/services/cjdropshipping/sendOrder";
 
+type WebhookUsuario = { id: number };
+type WebhookEndereco = { id: number; cep?: string | null };
+type WebhookPedido = { id: number; frete_detalhes?: unknown };
+
 async function atualizarStatusCJErro(idPedido: number, error: unknown) {
   const mensagem = error instanceof Error ? error.message : "Erro desconhecido na CJ.";
   await atualizarIntegracaoCJ(idPedido, {
@@ -32,6 +37,35 @@ const stripe = new Stripe(
   }
 );
 
+type PedidoItemLink = {
+  id_produto: number;
+  id_variacao: number | null;
+};
+
+function parseSelectedItemIds(value: string | undefined): number[] {
+  try {
+    const selectedItemIds: unknown = JSON.parse(value ?? "");
+
+    if (
+      !Array.isArray(selectedItemIds) ||
+      selectedItemIds.length === 0 ||
+      selectedItemIds.some(
+        (id) => typeof id !== "number" || !Number.isInteger(id) || id <= 0
+      )
+    ) {
+      throw new Error("selectedItemIds inválido");
+    }
+
+    return selectedItemIds;
+  } catch {
+    throw new Error("selectedItemIds não encontrado ou inválido na metadata Stripe.");
+  }
+}
+
+function pedidoItemKey(item: PedidoItemLink): string {
+  return `${item.id_produto}:${item.id_variacao ?? "null"}`;
+}
+
 export async function POST(
   req: NextRequest
 ) {
@@ -44,57 +78,142 @@ export async function POST(
       "stripe-signature"
     );
 
+  let event: Stripe.Event;
   try {
-    const event =
-      stripe.webhooks.constructEvent(
-        body,
-        signature!,
-        process.env
-          .STRIPE_WEBHOOK_SECRET!
-      );
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature!,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (error) {
+    console.error("Assinatura de webhook Stripe inválida:", error);
+    return NextResponse.json({ error: "Webhook inválido" }, { status: 400 });
+  }
 
+  try {
     switch (event.type) {
       case "checkout.session.completed": {
         const session =
           event.data
             .object as Stripe.Checkout.Session;
 
-        const userId =
-          session.metadata?.userId;
-          const enderecoId = Number(
-            session.metadata?.enderecoId
-          );
-          const {
-            data: endereco,
-            error: erroEndereco,
-          } = await buscarEndereco(enderecoId);
-
-          if (!endereco) {
-            console.error("Endereço não encontrado");
-            break;
-          }
+        const userId = session.metadata?.userId;
+        const enderecoId = Number(session.metadata?.enderecoId);
 
         if (!userId) {
-          console.error(
-            "UserId não encontrado"
-          );
-          break;
+          throw new Error("UserId não encontrado na metadata Stripe.");
         }
 
-        const { data: pedidoExistente, error: erroBuscaPedido } =
+        if (!Number.isInteger(enderecoId) || enderecoId <= 0) {
+          throw new Error("EnderecoId inválido na metadata Stripe.");
+        }
+
+        const supabaseAdmin = getSupabaseAdminClient();
+        const { data: usuarioData, error: erroUsuario } = await supabaseAdmin
+          .from("usuario")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle();
+        const usuario = usuarioData as WebhookUsuario | null;
+
+        if (erroUsuario) {
+          throw new Error(supabaseErrorMessage(erroUsuario, "Falha ao buscar usuário do pedido"));
+        }
+
+        if (!usuario) {
+          throw new Error("Usuário do pedido não encontrado.");
+        }
+
+        const { data: enderecoData, error: erroEndereco } = await supabaseAdmin
+          .from("enderecos")
+          .select("*")
+          .eq("id", enderecoId)
+          .eq("id_usuario", usuario.id)
+          .maybeSingle();
+        const endereco = enderecoData as WebhookEndereco | null;
+
+        if (erroEndereco) {
+          throw new Error(supabaseErrorMessage(erroEndereco, "Falha ao buscar endereço do pedido"));
+        }
+
+        if (!endereco) {
+          throw new Error("Endereço do pedido não encontrado para o usuário.");
+        }
+
+        const selectedItemIds = parseSelectedItemIds(session.metadata?.selectedItemIds);
+        const { data: pedidoExistenteData, error: erroBuscaPedido } =
           await buscarPedidoPorStripeSession(session.id);
+        const pedidoExistente = pedidoExistenteData as WebhookPedido | null;
 
         if (erroBuscaPedido) {
-          console.error("Erro ao verificar pedido Stripe:", erroBuscaPedido);
-          break;
+          throw new Error(supabaseErrorMessage(erroBuscaPedido, "Falha ao verificar pedido Stripe"));
         }
 
         if (pedidoExistente) {
-          const { data: itensExistentes } = await buscarItensPedido(pedidoExistente.id);
+          const { data: itensExistentesData, error: erroItensExistentes } = await buscarItensPedido(pedidoExistente.id);
+          const itensExistentes = itensExistentesData as PedidoItemLink[] | null;
+          if (erroItensExistentes) {
+            throw new Error(supabaseErrorMessage(erroItensExistentes, "Falha ao buscar itens do pedido existente"));
+          }
+
+          const chavesItensExistentes = new Set(
+            ((itensExistentes ?? []) as PedidoItemLink[]).map(pedidoItemKey)
+          );
+
+          if (chavesItensExistentes.size < selectedItemIds.length) {
+            const { data: itensCarrinho, error: erroCarrinho } = await buscarCarrinho(
+              userId,
+              selectedItemIds,
+              supabaseAdmin
+            );
+
+            if (erroCarrinho) {
+              throw new Error(supabaseErrorMessage(erroCarrinho, "Falha ao recuperar itens pendentes do carrinho"));
+            }
+
+            if (!itensCarrinho || itensCarrinho.length !== selectedItemIds.length) {
+              throw new Error("Não foi possível reconciliar todos os itens do pedido existente.");
+            }
+
+            for (const item of itensCarrinho) {
+              const key = pedidoItemKey({
+                id_produto: item.id_produto,
+                id_variacao: item.id_variacao,
+              });
+
+              if (chavesItensExistentes.has(key)) {
+                continue;
+              }
+
+              const itemVariacao = item.variacao?.produto_variacao_item?.find(
+                (variationItem: { ativo?: boolean | null }) => variationItem.ativo !== false
+              );
+
+              if (!itemVariacao) {
+                throw new Error(`Nenhuma variação ativa encontrada para ${item.produto.nome}.`);
+              }
+
+              await adicionarItemPedido(
+                pedidoExistente.id,
+                item.id_produto,
+                Number(item.quantidade),
+                Number(itemVariacao.preco ?? 0),
+                item.id_variacao
+              );
+              chavesItensExistentes.add(key);
+            }
+          }
+
+          const { data: itensPedidoExistente, error: erroItensPedidoExistente } =
+            await buscarItensPedido(pedidoExistente.id);
+          if (erroItensPedidoExistente) {
+            throw new Error(supabaseErrorMessage(erroItensPedidoExistente, "Falha ao confirmar itens do pedido existente"));
+          }
+
           try {
             await enviarPedidoParaCJ({
               pedido: pedidoExistente,
-              itens: itensExistentes ?? [],
+              itens: itensPedidoExistente ?? [],
               endereco,
               stripeMetadata: session.metadata ?? {},
               freteDetalhes: pedidoExistente.frete_detalhes,
@@ -108,36 +227,6 @@ export async function POST(
           break;
         }
 
-        const selectedItemIdsMetadata =
-          session.metadata?.selectedItemIds;
-        let selectedItemIds: number[];
-
-        try {
-          const parsedSelectedItemIds = JSON.parse(
-            selectedItemIdsMetadata ?? ""
-          );
-
-          if (
-            !Array.isArray(parsedSelectedItemIds) ||
-            !parsedSelectedItemIds.length ||
-            parsedSelectedItemIds.some(
-              (id) =>
-                typeof id !== "number" ||
-                !Number.isInteger(id) ||
-                id <= 0
-            )
-          ) {
-            throw new Error("selectedItemIds inválido");
-          }
-
-          selectedItemIds = parsedSelectedItemIds;
-        } catch {
-          console.error(
-            "selectedItemIds não encontrado ou inválido na metadata"
-          );
-          break;
-        }
-
         console.log(
           "Pagamento aprovado:",
           userId
@@ -147,24 +236,18 @@ export async function POST(
         // BUSCAR CARRINHO
         // =====================
 
-        const { data: itensTodos, error } = await buscarCarrinho(userId);
-        const itens = itensTodos?.filter((item) =>
-          selectedItemIds.includes(Number(item.id))
+        const { data: itens, error } = await buscarCarrinho(
+          userId,
+          selectedItemIds,
+          supabaseAdmin
         );
 
         if (error) {
-          console.error(
-            "Erro ao buscar carrinho:",
-            error
-          );
-          break;
+          throw new Error(supabaseErrorMessage(error, "Erro ao buscar carrinho"));
         }
 
         if (!itens?.length) {
-          console.error(
-            "Carrinho vazio"
-          );
-          break;
+          throw new Error("Carrinho vazio para os itens selecionados.");
         }
 
         console.log(
@@ -200,7 +283,7 @@ export async function POST(
         // =====================
 
         const {
-          data: pedido,
+          data: pedidoData,
           error: erroPedido,
         } = await criarPedido(
           userId,
@@ -209,21 +292,13 @@ export async function POST(
           session.id,
           fretes
         );
-        console.log(
-          "Pedido:",
-          pedido
-        );
-
-        console.log(
-          "Erro Pedido:",
-          erroPedido
-        );
+        const pedido = pedidoData as WebhookPedido | null;
+        if (erroPedido) {
+          throw new Error(supabaseErrorMessage(erroPedido, "Falha ao criar pedido"));
+        }
 
         if (!pedido) {
-          console.error(
-            "Pedido não criado"
-          );
-          break;
+          throw new Error("Supabase não retornou o pedido criado.");
         }
 
         // =====================
@@ -255,10 +330,15 @@ export async function POST(
         // LIMPAR CARRINHO
         // =====================
 
-        await removerItensDoCarrinho(
+        const carrinhoRemovido = await removerItensDoCarrinho(
           userId,
-          selectedItemIds
+          selectedItemIds,
+          supabaseAdmin
         );
+
+        if (!carrinhoRemovido) {
+          throw new Error("Pedido criado, mas não foi possível limpar os itens do carrinho.");
+        }
 
         console.log(
           "Carrinho limpo"
@@ -269,7 +349,12 @@ export async function POST(
         );
 
         try {
-          const { data: itensPedido } = await buscarItensPedido(pedido.id);
+          const { data: itensPedidoData, error: erroItensPedido } = await buscarItensPedido(pedido.id);
+          const itensPedido = itensPedidoData as Record<string, unknown>[] | null;
+          if (erroItensPedido) {
+            throw new Error(supabaseErrorMessage(erroItensPedido, "Falha ao buscar itens do pedido"));
+          }
+
           await enviarPedidoParaCJ({
             pedido,
             itens: itensPedido ?? [],
@@ -303,23 +388,21 @@ export async function POST(
       }
     }
 
-    return NextResponse.json({
-      received: true,
-    });
   } catch (err) {
     console.error(
-      "ERRO WEBHOOK:",
-      err
+      "Falha ao processar evento Stripe:",
+      { eventId: event.id, eventType: event.type, error: err }
     );
 
     return NextResponse.json(
       {
-        error:
-          "Webhook inválido",
+        error: err instanceof Error ? err.message : "Falha ao processar evento Stripe.",
       },
       {
-        status: 400,
+        status: 500,
       }
     );
   }
+
+  return NextResponse.json({ received: true });
 }
