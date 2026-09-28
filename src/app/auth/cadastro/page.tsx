@@ -122,7 +122,7 @@ export default function Cadastro() {
               onChange={e => setNome(e.target.value)}
               placeholder="Seu nome"
               className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                         focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
           {/* Telefone */}
@@ -137,7 +137,7 @@ export default function Cadastro() {
     onChange={(e) => setTelefone(e.target.value)}
     placeholder="(13) 99999-9999"
     className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 
-               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+               focus:outline-none focus:ring-2 focus:ring-red-500"
   />
 </div>
 
@@ -152,7 +152,7 @@ export default function Cadastro() {
               onChange={e => setEmail(e.target.value)}
               placeholder="seu@email.com"
               className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                         focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
 
@@ -168,7 +168,7 @@ export default function Cadastro() {
                 onChange={e => setSenha(e.target.value)}
                 placeholder="••••••••"
                 className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                           focus:outline-none focus:ring-2 focus:ring-red-500"
               />
               <button
                 type="button"
@@ -206,7 +206,7 @@ export default function Cadastro() {
                 onChange={e => setConfirmarSenha(e.target.value)}
                 placeholder="••••••••"
                 className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                           focus:outline-none focus:ring-2 focus:ring-red-500"
               />
               <button
                 type="button"
@@ -221,7 +221,7 @@ export default function Cadastro() {
           {/* Botão */}
           <button
             type="submit"
-            className="w-full py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 
+            className="w-full py-3 rounded-lg bg-red-500 hover:bg-red-600 
                        transition font-semibold text-white"
           >
             Criar conta
@@ -233,7 +233,7 @@ export default function Cadastro() {
           <button
             type="button"
             onClick={goLogin}
-            className="text-indigo-600 hover:underline"
+            className="text-red-600 hover:underline"
           >
             Entrar
           </button>

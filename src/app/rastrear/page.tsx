@@ -55,7 +55,7 @@ export default function RastrearPage() {
     <main className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-10 text-slate-900 sm:px-6">
       <div className="mx-auto w-full max-w-4xl">
         <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-indigo-600">
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-red-600">
             Entrega
           </p>
           <h1 className="mt-2 text-3xl font-bold">Rastreamento dos pedidos</h1>
@@ -120,7 +120,7 @@ export default function RastrearPage() {
                         href={pedido.cj_tracking_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex pt-2 font-medium text-indigo-600 hover:underline"
+                        className="inline-flex pt-2 font-medium text-red-600 hover:underline"
                       >
                         Acompanhar entrega
                       </Link>

@@ -128,7 +128,7 @@ export default function GerenciarUsuarios() {
           <p className="mt-2 text-sm text-slate-600">Dados completos dos usuários cadastrados no sistema.</p>
         </div>
 
-        <Link href="/admin/usuarios/cadastrar" className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-500">
+        <Link href="/admin/usuarios/cadastrar" className="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-500">
           + Novo Usuário
         </Link>
       </div>
@@ -143,7 +143,7 @@ export default function GerenciarUsuarios() {
             setPagina(1);
           }}
           placeholder="Buscar por nome, e-mail ou telefone..."
-          className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-indigo-500"
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-red-500"
         />
       </div>
 
@@ -207,7 +207,7 @@ export default function GerenciarUsuarios() {
 
                   <div className="flex items-center gap-4">
 
-                    <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700">
+                    <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center font-bold text-red-700">
 
                       {usuario.nome
                         .charAt(0)
@@ -378,7 +378,7 @@ export default function GerenciarUsuarios() {
                   }
                   className={`w-10 h-10 rounded-lg transition ${
                     pagina === numero
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-red-600 text-white"
                       : "bg-white border hover:bg-slate-100"
                   }`}
                 >

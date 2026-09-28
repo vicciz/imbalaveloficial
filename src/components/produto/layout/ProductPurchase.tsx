@@ -582,7 +582,7 @@ export default function ProductPurchase({
                 onChange={(event) =>
                   selecionarEndereco(Number(event.target.value))
                 }
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-500"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-red-500"
                 disabled={carregandoEndereco || calculandoFrete}
               >
                 {enderecos.map((endereco) => (
@@ -627,7 +627,7 @@ export default function ProductPurchase({
               inputMode="numeric"
               maxLength={9}
               placeholder="Digite seu CEP"
-              className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-500"
+              className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-red-500"
             />
             {calculandoFrete && (
               <span className="self-center whitespace-nowrap text-xs text-slate-500">
@@ -732,8 +732,9 @@ export default function ProductPurchase({
           shadow-sm
           transition-all
           hover:bg-slate-50
-          hover:border-violet-500
-          hover:text-violet-700
+          hover:border-red-500
+          hover:text-red-700
+          mt-5
         "
       >
         <ShoppingCart className="mr-2 h-5 w-5" />
@@ -751,12 +752,12 @@ export default function ProductPurchase({
           h-14
           w-full
           rounded-xl
-          bg-violet-600
+          bg-red-600
           text-lg
           font-semibold
           shadow-lg
           transition
-          hover:bg-violet-700
+          hover:bg-red-700
           disabled:cursor-not-allowed
           disabled:opacity-50
         "
@@ -795,7 +796,7 @@ export default function ProductPurchase({
 
       <Link
         href="/carrinho"
-        className="mt-3 inline-flex text-sm font-semibold text-violet-700 transition hover:text-violet-800 hover:underline"
+        className="mt-3 inline-flex text-sm font-semibold text-red-700 transition hover:text-red-800 hover:underline"
       >
         Visualizar carrinho
       </Link>
@@ -851,7 +852,7 @@ export default function ProductPurchase({
 
         <div className="flex items-center gap-3">
 
-          <Truck className="h-5 w-5 text-violet-600" />
+          <Truck className="h-5 w-5 text-red-600" />
 
           <span className="text-sm">
             Envio para todo o Brasil

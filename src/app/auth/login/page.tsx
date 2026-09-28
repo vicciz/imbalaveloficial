@@ -78,7 +78,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
-              className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
 
@@ -92,7 +92,7 @@ export default function Login() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
               {/* Botão de mostrar/ocultar */}
               <button
@@ -110,7 +110,7 @@ export default function Login() {
           <div className="text-right text-sm">
             <button
               type="button"
-              className="text-indigo-600 hover:underline"
+              className="text-red-600 hover:underline"
             >
               Esqueci minha senha
             </button>
@@ -119,7 +119,7 @@ export default function Login() {
           {/* Botão */}
           <button
             type="submit"
-            className="w-full py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 transition font-semibold text-white"
+            className="w-full py-3 rounded-lg bg-red-500 hover:bg-red-600 transition font-semibold text-white"
           >
             Entrar
           </button>
@@ -130,7 +130,7 @@ export default function Login() {
           <button
             type="button"
             onClick={() => goTo("/auth/cadastro")}
-            className="text-indigo-600 hover:underline"
+            className="text-red-600 hover:underline"
           >
             Criar conta
           </button>

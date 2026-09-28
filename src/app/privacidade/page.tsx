@@ -103,7 +103,7 @@ export default function Privacidade() {
             <p className="leading-relaxed">
               Se tiver dúvidas sobre esta Política de Privacidade, entre em contato conosco:
             </p>
-            <p className="mt-4 text-indigo-600">
+            <p className="mt-4 text-red-600">
               📧 privacidade@imbalavel.com.br<br />
               📍 São Paulo, SP - Brasil
             </p>

@@ -64,7 +64,7 @@ export default function SelectUsuarios({
                 <button
                   type="button"
                   onClick={() => onEdit(u)}
-                  className="text-indigo-600 text-sm"
+                  className="text-red-600 text-sm"
                 >
                   Editar
                 </button>

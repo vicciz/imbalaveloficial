@@ -132,7 +132,8 @@ export async function listarProdutosDaVitrine(
 
     return await listarProdutosCategoria(
       Number(vitrine.referencia),
-      vitrine.quantidade
+      vitrine.quantidade,
+      false
     );
 
   }
@@ -144,7 +145,8 @@ export async function listarProdutosDaVitrine(
   if (vitrine.tipo === "colecao") {
 
     return await listarProdutosPorColecao(
-      Number(vitrine.referencia)
+      Number(vitrine.referencia),
+      false
     );
 
   }
@@ -180,7 +182,7 @@ export async function listarProdutosDaVitrine(
     const ids =
       data.map(item => item.produto_id);
 
-    return await buscarProdutosPorIds(ids);
+    return await buscarProdutosPorIds(ids, false);
 
   }
 

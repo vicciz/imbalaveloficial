@@ -92,7 +92,7 @@ export default function Rastreio() {
           </p>
 
           {/* Input de Rastreamento */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-8 rounded-xl border border-indigo-200 mb-8">
+          <div className="bg-gradient-to-r from-red-50 to-purple-50 p-8 rounded-xl border border-red-200 mb-8">
             <label className="block text-sm font-semibold mb-3">Código de Rastreamento</label>
             <div className="flex gap-3">
               <input
@@ -101,11 +101,11 @@ export default function Rastreio() {
                 onChange={(e) => setTrackingCode(e.target.value.toUpperCase())}
                 onKeyPress={(e) => e.key === 'Enter' && handleTrack()}
                 placeholder="Ex: IM123456789BR"
-                className="flex-1 px-4 py-3 bg-white border border-black/10 rounded-lg text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-indigo-500"
+                className="flex-1 px-4 py-3 bg-white border border-black/10 rounded-lg text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-red-500"
               />
               <button
                 onClick={handleTrack}
-                className="px-8 py-3 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold transition"
+                className="px-8 py-3 bg-red-500 hover:bg-red-600 rounded-lg font-semibold transition"
               >
                 Rastrear
               </button>
@@ -133,7 +133,7 @@ export default function Rastreio() {
                   <div key={index} className="flex gap-4">
                     <div className="flex flex-col items-center">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        index === 0 ? 'bg-indigo-500' : 'bg-zinc-200'
+                        index === 0 ? 'bg-red-500' : 'bg-zinc-200'
                       } text-white`}>
                         {step.icon}
                       </div>
@@ -181,12 +181,12 @@ export default function Rastreio() {
                 href={carrier.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group bg-white border border-black/10 hover:border-indigo-500 p-6 rounded-xl transition hover:shadow-lg hover:shadow-indigo-500/20"
+                className="group bg-white border border-black/10 hover:border-red-500 p-6 rounded-xl transition hover:shadow-lg hover:shadow-red-500/20"
               >
                 <div className="text-5xl mb-4 group-hover:scale-110 transition">{carrier.logo}</div>
                 <h3 className="text-2xl font-bold mb-2">{carrier.name}</h3>
                 <p className="text-zinc-600 text-sm mb-4">{carrier.description}</p>
-                <div className="text-indigo-400 text-sm font-semibold group-hover:translate-x-1 transition">
+                <div className="text-red-400 text-sm font-semibold group-hover:translate-x-1 transition">
                   Acessar →
                 </div>
               </Link>
@@ -207,15 +207,15 @@ export default function Rastreio() {
               <ul className="space-y-3 text-zinc-600 text-sm">
                 <li className="flex justify-between">
                   <span>São Paulo - SP</span>
-                  <span className="text-indigo-400 font-semibold">2-3 dias úteis</span>
+                  <span className="text-red-400 font-semibold">2-3 dias úteis</span>
                 </li>
                 <li className="flex justify-between">
                   <span>RJ, ES, MG</span>
-                  <span className="text-indigo-400 font-semibold">4-5 dias úteis</span>
+                  <span className="text-red-400 font-semibold">4-5 dias úteis</span>
                 </li>
                 <li className="flex justify-between">
                   <span>Outras regiões</span>
-                  <span className="text-indigo-400 font-semibold">5-10 dias úteis</span>
+                  <span className="text-red-400 font-semibold">5-10 dias úteis</span>
                 </li>
               </ul>
             </div>
@@ -256,7 +256,7 @@ export default function Rastreio() {
               </p>
               <Link
                 href="/login"
-                className="text-indigo-600 hover:text-indigo-500 font-semibold text-sm"
+                className="text-red-600 hover:text-red-500 font-semibold text-sm"
               >
                 Acessar minha conta →
               </Link>
@@ -272,7 +272,7 @@ export default function Rastreio() {
             <details className="bg-white p-6 rounded-xl border border-black/10 cursor-pointer group">
               <summary className="flex items-center justify-between font-semibold">
                 <span>Quanto tempo leva para receber meu pedido?</span>
-                <span className="group-open:rotate-180 transition text-indigo-400">▼</span>
+                <span className="group-open:rotate-180 transition text-red-400">▼</span>
               </summary>
               <p className="text-zinc-600 text-sm mt-4">
                 O prazo depende da sua localidade. Geralmente levamos 2 a 10 dias úteis. 
@@ -283,7 +283,7 @@ export default function Rastreio() {
             <details className="bg-white p-6 rounded-xl border border-black/10 cursor-pointer group">
               <summary className="flex items-center justify-between font-semibold">
                 <span>Como encontro meu código de rastreamento?</span>
-                <span className="group-open:rotate-180 transition text-indigo-400">▼</span>
+                <span className="group-open:rotate-180 transition text-red-400">▼</span>
               </summary>
               <p className="text-zinc-600 text-sm mt-4">
                 O código é enviado para o seu e-mail cadastrado logo após a confirmação do pedido. 
@@ -294,7 +294,7 @@ export default function Rastreio() {
             <details className="bg-white p-6 rounded-xl border border-black/10 cursor-pointer group">
               <summary className="flex items-center justify-between font-semibold">
                 <span>Meu pedido está parado. O que fazer?</span>
-                <span className="group-open:rotate-180 transition text-indigo-400">▼</span>
+                <span className="group-open:rotate-180 transition text-red-400">▼</span>
               </summary>
               <p className="text-zinc-600 text-sm mt-4">
                 Se seu pedido estiver parado por mais de 5 dias sem atualizações, entre em contato conosco 
@@ -305,7 +305,7 @@ export default function Rastreio() {
             <details className="bg-white p-6 rounded-xl border border-black/10 cursor-pointer group">
               <summary className="flex items-center justify-between font-semibold">
                 <span>Posso mudar o endereço de entrega?</span>
-                <span className="group-open:rotate-180 transition text-indigo-400">▼</span>
+                <span className="group-open:rotate-180 transition text-red-400">▼</span>
               </summary>
               <p className="text-zinc-600 text-sm mt-4">
                 Isso depende do status do seu pedido. Se ainda não saiu do nosso centro de distribuição, 

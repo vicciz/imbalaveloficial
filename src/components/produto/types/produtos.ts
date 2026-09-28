@@ -565,7 +565,8 @@ export async function listarProdutosOrdenados(
 }
 
 export async function buscarProdutoPorId(
-  id: number
+  id: number,
+  incluirOcultos = true
 ): Promise<{
   data: Produto | null;
   error: any;
@@ -573,7 +574,7 @@ export async function buscarProdutoPorId(
 
   const client = ensureSupabase();
 
-const { data, error } = await client
+let query = client
   .from("produto")
   .select(`
     *,
@@ -601,8 +602,13 @@ const { data, error } = await client
       )
     )
   `)
-  .eq("id", id)
-  .single();
+  .eq("id", id);
+
+  if (!incluirOcultos) {
+    query = query.or("oculto.is.null,oculto.eq.false");
+  }
+
+const { data, error } = await query.maybeSingle();
   console.log(data);
   
   return {
@@ -615,7 +621,8 @@ const { data, error } = await client
 }
 
 export async function buscarProdutosPorIds(
-  ids: number[]
+  ids: number[],
+  incluirOcultos = true
 ): Promise<{
   data: Produto[] | null;
   error: any;
@@ -629,7 +636,7 @@ export async function buscarProdutosPorIds(
 
   const client = ensureSupabase();
 
-  const { data, error } = await client
+  let query = client
     .from("produto")
     .select(`
       *,
@@ -666,6 +673,12 @@ export async function buscarProdutosPorIds(
     `)
     .in("id", ids);
 
+  if (!incluirOcultos) {
+    query = query.or("oculto.is.null,oculto.eq.false");
+  }
+
+  const { data, error } = await query;
+
   return {
     data: data
       ? ids
@@ -682,14 +695,15 @@ export async function buscarProdutosPorIds(
 }
 export async function listarProdutosCategoria(
   categoriaId: number,
-  limite = 6
+  limite = 6,
+  incluirOcultos = true
 ): Promise<{
   data: Produto[] | null;
   error: any;
 }> {
   const client = ensureSupabase();
 
-  const { data, error } = await client
+  let query = client
     .from("produto")
     .select(`
       *,
@@ -724,8 +738,13 @@ export async function listarProdutosCategoria(
         )
       )
     `)
-    .eq("categoria_id", categoriaId)
-    .limit(limite);
+    .eq("categoria_id", categoriaId);
+
+  if (!incluirOcultos) {
+    query = query.or("oculto.is.null,oculto.eq.false");
+  }
+
+  const { data, error } = await query.limit(limite);
 
   return {
     data: data
@@ -739,7 +758,8 @@ export async function listarProdutosCategoria(
 }
 
 export async function listarProdutosPorColecao(
-  colecaoId: number
+  colecaoId: number,
+  incluirOcultos = true
 ): Promise<{
   data: Produto[] | null;
   error: any;
@@ -769,6 +789,6 @@ export async function listarProdutosPorColecao(
       produto => produto.produto_id
     ) ?? [];
 
-  return await buscarProdutosPorIds(ids);
+  return await buscarProdutosPorIds(ids, incluirOcultos);
 
 }

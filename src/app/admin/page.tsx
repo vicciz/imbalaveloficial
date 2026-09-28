@@ -16,7 +16,7 @@ export default function AdminHome() {
         <h1 className="text-2xl mb-4">Acesso negado</h1>
         <p>Você não tem permissão para acessar esta área.</p>
 
-        <Link href="/" className="text-indigo-400">
+        <Link href="/" className="text-red-400">
           Voltar para o site
         </Link>
       </div>
@@ -40,7 +40,7 @@ export default function AdminHome() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold">Produtos</h2>
             <p className="mt-2 text-sm text-zinc-600"></p>
-            <Link href="/admin/produtos" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
+            <Link href="/admin/produtos" className="mt-4 inline-flex text-sm font-medium text-red-600 hover:underline">
               Acessar produtos
             </Link>
           </div>
@@ -49,7 +49,7 @@ export default function AdminHome() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold">Categorias</h2>
             <p className="mt-2 text-sm text-zinc-600">Organize produtos por grupos e categorias da loja.</p>
-            <Link href="/admin/produtos/categoria" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
+            <Link href="/admin/produtos/categoria" className="mt-4 inline-flex text-sm font-medium text-red-600 hover:underline">
               Gerenciar categorias
             </Link>
           </div>
@@ -58,7 +58,7 @@ export default function AdminHome() {
             <p className="mt-2 text-sm text-zinc-600">Gerencie seus fornecedores e importe produtos diretamente deles.</p>
             <Link
               href="/admin/fornecedores"
-              className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline"
+              className="mt-4 inline-flex text-sm font-medium text-red-600 hover:underline"
             >
               Gerenciar Fornecedores
             </Link>
@@ -81,7 +81,7 @@ export default function AdminHome() {
 
           <Link
             href="/admin/home"
-            className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline"
+            className="mt-4 inline-flex text-sm font-medium text-red-600 hover:underline"
           >
             Configurar Home
             </Link>
@@ -90,7 +90,7 @@ export default function AdminHome() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold">Coleções</h2>
             <p className="mt-2 text-sm text-zinc-600">Organize grupos e destaque produtos em campanhas.</p>
-            <Link href="/admin/produtos/colecao" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
+            <Link href="/admin/produtos/colecao" className="mt-4 inline-flex text-sm font-medium text-red-600 hover:underline">
               Ver coleções
             </Link>
           </div>
@@ -98,7 +98,7 @@ export default function AdminHome() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-semibold">Usuários</h2>
             <p className="mt-2 text-sm text-zinc-600">Gerencie acessos e permissões da equipe.</p>
-            <Link href="/admin/usuarios/gerenciar-usuarios" className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline">
+            <Link href="/admin/usuarios/gerenciar-usuarios" className="mt-4 inline-flex text-sm font-medium text-red-600 hover:underline">
               Gerenciar usuários
             </Link>
           </div>
@@ -113,7 +113,7 @@ export default function AdminHome() {
 
             <Link
               href="/admin/home/vitrines"
-              className="mt-4 inline-flex text-sm font-medium text-indigo-600 hover:underline"
+              className="mt-4 inline-flex text-sm font-medium text-red-600 hover:underline"
             >
               Gerenciar vitrines
             </Link>

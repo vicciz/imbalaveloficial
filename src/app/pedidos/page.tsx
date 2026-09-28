@@ -240,7 +240,7 @@ const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
                       {...(pedido.cj_tracking_url
                         ? { target: "_blank", rel: "noopener noreferrer" }
                         : {})}
-                      className="inline-flex rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                      className="inline-flex rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
                     >
                       Rastrear pedido
                     </Link>

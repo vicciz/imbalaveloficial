@@ -63,14 +63,14 @@ export default function ConfirmacaoEmail() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="seu@email.com"
             autoComplete="email"
-            className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-3 rounded-lg bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-red-500"
           />
 
           <button
             type="button"
             onClick={reenviarEmail}
             disabled={enviando}
-            className="w-full py-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 disabled:opacity-60 transition font-semibold text-white"
+            className="w-full py-3 rounded-lg bg-red-500 hover:bg-red-600 disabled:opacity-60 transition font-semibold text-white"
           >
             {enviando ? "Enviando..." : "Reenviar email de confirmação"}
           </button>
@@ -82,7 +82,7 @@ export default function ConfirmacaoEmail() {
           <button
             type="button"
             onClick={goLogin}
-            className="w-full text-indigo-600 hover:underline text-sm"
+            className="w-full text-red-600 hover:underline text-sm"
           >
             Ir para o login
           </button>

@@ -57,7 +57,7 @@ const [lastScroll, setLastScroll] = useState(0);
     ${showHeader ? "translate-y-0" : "-translate-y-full"}
   `}
   style={{
-    background: "linear-gradient(90deg, #3C1B8B 0%, #60469C 58%, #3C1B8B 100%)",
+    background: "linear-gradient(90deg, #39393d 0%, #1e1d1f 58%, #171618  100%)",
   }}
 >
       {/* Linha principal */}
@@ -68,7 +68,9 @@ const [lastScroll, setLastScroll] = useState(0);
           <Image
             src={logoIcon}
             alt=""
-            width={80}
+            width={140}
+           
+            
         />
             
         </Link>

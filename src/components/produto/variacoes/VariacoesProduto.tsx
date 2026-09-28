@@ -218,12 +218,12 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
           <input
             value={novoTipo}
             onChange={(e) => setNovoTipo(e.target.value)}
-            className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-500"
+            className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-red-500"
             placeholder="Ex.: Cor, Tamanho"
           />
           <button
             onClick={criarTipo}
-            className="rounded-xl bg-indigo-600 px-4 py-3 font-medium text-white hover:bg-indigo-500"
+            className="rounded-xl bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-500"
           >
             <span className="flex items-center gap-2">
               <Plus size={16} /> Criar tipo
@@ -251,7 +251,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
                     onChange={(e) =>
                       setValoresEmEdicao((prev) => ({ ...prev, [tipo.id]: e.target.value }))
                     }
-                    className="flex-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-indigo-500"
+                    className="flex-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-red-500"
                     placeholder={`Adicionar valor para ${tipo.nome}`}
                   />
                   <button
@@ -295,7 +295,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
             <input
               value={sku}
               onChange={(e) => setSku(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-500"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-red-500"
               placeholder="SKU"
             />
           </div>
@@ -307,7 +307,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
               step="0.01"
               value={preco}
               onChange={(e) => setPreco(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-500"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-red-500"
               placeholder="0.00"
             />
           </div>
@@ -318,7 +318,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
               min="0"
               value={estoque}
               onChange={(e) => setEstoque(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-500"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-red-500"
               placeholder="0"
             />
           </div>
@@ -350,7 +350,7 @@ export default function VariacoesProduto({ produtoId }: VariacoesProdutoProps) {
           <button
             onClick={salvarVariacao}
             disabled={salvandoVariacao}
-            className="rounded-xl bg-indigo-600 px-4 py-3 font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {salvandoVariacao ? "Salvando..." : "Adicionar variação"}
           </button>

@@ -8,8 +8,7 @@ export default function HeaderLogo() {
       <Image
         src={logo}
         alt="Imbalável"
-        width={80}
-        height={80}
+       
       />
     </Link>
   );

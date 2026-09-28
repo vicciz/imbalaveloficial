@@ -73,7 +73,7 @@ export default function NewsletterPopup() {
             type="email"
             required
             placeholder="Digite seu melhor e-mail"
-            className="w-full p-3 rounded-lg bg-zinc-50 border border-black/10 outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full p-3 rounded-lg bg-zinc-50 border border-black/10 outline-none focus:ring-2 focus:ring-red-500"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

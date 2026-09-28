@@ -120,7 +120,7 @@ export default function FornecedoresPage() {
           </div>
           <button
             onClick={() => abrirModalEdicao()}
-            className="rounded-xl bg-indigo-600 px-4 py-3 font-medium text-white hover:bg-indigo-500"
+            className="rounded-xl bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-500"
           >
             Novo fornecedor
           </button>
@@ -201,7 +201,7 @@ export default function FornecedoresPage() {
                   type="text"
                   value={form.nome}
                   onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-indigo-500"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-red-500"
                   placeholder="Nome do fornecedor"
                 />
               </div>
@@ -213,7 +213,7 @@ export default function FornecedoresPage() {
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-indigo-500"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-red-500"
                     placeholder="email@empresa.com"
                   />
                 </div>
@@ -223,7 +223,7 @@ export default function FornecedoresPage() {
                     type="text"
                     value={form.telefone}
                     onChange={(e) => setForm({ ...form, telefone: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-indigo-500"
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-red-500"
                     placeholder="(11) 99999-9999"
                   />
                 </div>
@@ -235,7 +235,7 @@ export default function FornecedoresPage() {
                   type="text"
                   value={form.site}
                   onChange={(e) => setForm({ ...form, site: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-indigo-500"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-red-500"
                   placeholder="https://empresa.com"
                 />
               </div>
@@ -244,7 +244,7 @@ export default function FornecedoresPage() {
             <div className="mt-6 flex justify-end">
               <button
                 onClick={handleSubmit}
-                className="rounded-xl bg-indigo-600 px-4 py-3 font-medium text-white hover:bg-indigo-500"
+                className="rounded-xl bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-500"
               >
                 {editandoId ? "Salvar alterações" : "Cadastrar fornecedor"}
               </button>

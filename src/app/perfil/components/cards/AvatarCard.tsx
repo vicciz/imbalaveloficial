@@ -20,15 +20,15 @@ export default function AvatarCard({ user }: AvatarCardProps) {
   return (
     <Card className="overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
       <CardContent className="space-y-5 p-0">
-        <div className="h-24 bg-linear-to-r from-[#6D28D9] via-[#7C3AED] to-[#8B5CF6]" />
+        <div className="h-24 bg-linear-to-r from-black via-[#171717] to-[#262626]" />
 
         <div className="space-y-5 px-6 pb-6">
           <div className="-mt-12 flex items-start gap-4">
-            <Avatar className="size-24 border-4 border-white ring-4 ring-violet-50">
+            <Avatar className="size-24 border-4 border-white ring-4 ring-black-50">
               {user.image ? (
                 <AvatarImage src={user.image} alt={user.nome} />
               ) : null}
-              <AvatarFallback className="bg-linear-to-br from-[#6D28D9] to-[#8B5CF6] text-2xl font-semibold text-white">
+              <AvatarFallback className="bg-linear-to-r from-black via-[#171717] to-[#262626] text-2xl font-semibold text-white">
                 {getInitials(user.nome)}
               </AvatarFallback>
             </Avatar>
@@ -57,12 +57,6 @@ export default function AvatarCard({ user }: AvatarCardProps) {
             <p>{formatMemberSince(user)}</p>
           </div>
 
-          <Button
-            type="button"
-            className="w-full rounded-2xl bg-linear-to-r from-[#6D28D9] to-[#8B5CF6] text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-          >
-            Editar foto
-          </Button>
         </div>
       </CardContent>
     </Card>

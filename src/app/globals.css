@@ -9,7 +9,7 @@
   --muted: oklch(0.97 0 0);             /* slate-600 */
   --surface: #ffffff;
   --border: oklch(0.922 0 0);            /* slate-200 */
-  --primary: oklch(0.205 0 0);           /* indigo-600 */
+  --primary: oklch(0.205 0 0);           /* red-600 */
   --secondary: oklch(0.97 0 0);         /* rose-600 */
   --accent-gold: #f59e0b;       /* amber-500 */
   --accent-soft: #fcd34d;       /* amber-300 */

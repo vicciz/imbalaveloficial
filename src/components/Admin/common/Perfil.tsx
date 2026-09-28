@@ -50,7 +50,7 @@ export default function Perfil() {
 
             <button
               onClick={salvar}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-lg font-semibold transition"
+              className="w-full bg-red-600 hover:bg-red-500 py-3 rounded-lg font-semibold transition"
             >
               Salvar
             </button>
@@ -67,7 +67,7 @@ export default function Perfil() {
 
             <button
               onClick={() => setEditando(true)}
-              className="mt-8 w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-lg font-semibold transition"
+              className="mt-8 w-full bg-red-600 hover:bg-red-500 py-3 rounded-lg font-semibold transition"
             >
               Editar Perfil
             </button>

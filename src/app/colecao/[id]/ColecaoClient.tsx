@@ -81,7 +81,7 @@ export default function ColecaoClient() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">{nome || 'Coleção'}</h1>
-          <Link href="/" className="text-indigo-600">Voltar</Link>
+          <Link href="/" className="text-red-600">Voltar</Link>
         </div>
 
         {carregando ? (

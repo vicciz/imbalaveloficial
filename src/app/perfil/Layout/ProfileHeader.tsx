@@ -10,16 +10,16 @@ export default function ProfileHeader({ roleText }: ProfileHeaderProps) {
   return (
     <Card className="overflow-hidden rounded-[28px] border-slate-200 bg-white shadow-sm">
       <CardContent className="relative px-6 py-6 sm:px-8 sm:py-8">
-        <div className="absolute inset-x-0 top-0 h-24 bg-linear-to-r from-[#6D28D9] via-[#7C3AED] to-[#8B5CF6] opacity-95" />
+        <div className="absolute inset-x-0 top-0 h-24 bg-linear-to-r from-black via-[#171717] to-[#262626] opacity-95" />
 
         <div className="relative space-y-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="">
-              <p className="text-sm font-semibold uppercase">
+              <p className="text-sm font-semibold uppercase text-white">
                 Minha Conta
               </p>
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl text-white">
                   Perfil do Usuário
                 </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base">
@@ -30,7 +30,7 @@ export default function ProfileHeader({ roleText }: ProfileHeaderProps) {
 
             <div className="flex flex-wrap gap-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-700 shadow-sm">
-                <BadgeCheck className="size-4" />
+                <BadgeCheck className="size-4 " />
                 {roleText}
               </div>
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 shadow-sm">

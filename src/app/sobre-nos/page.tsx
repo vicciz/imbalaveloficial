@@ -36,31 +36,31 @@ export default function SobreNos() {
             <h2 className="text-2xl font-bold text-zinc-900 mb-4">Nossos Valores</h2>
             <ul className="space-y-3">
               <li className="flex gap-3">
-                <span className="text-indigo-600">✓</span>
+                <span className="text-red-600">✓</span>
                 <div>
                   <strong className="text-zinc-900">Autenticidade:</strong> Apenas produtos originais e certificados
                 </div>
               </li>
               <li className="flex gap-3">
-                <span className="text-indigo-600">✓</span>
+                <span className="text-red-600">✓</span>
                 <div>
                   <strong className="text-zinc-900">Qualidade:</strong> Curadoria rigorosa de cada produto
                 </div>
               </li>
               <li className="flex gap-3">
-                <span className="text-indigo-600">✓</span>
+                <span className="text-red-600">✓</span>
                 <div>
                   <strong className="text-zinc-900">Transparência:</strong> Informações claras e honestas sobre nossos produtos
                 </div>
               </li>
               <li className="flex gap-3">
-                <span className="text-indigo-600">✓</span>
+                <span className="text-red-600">✓</span>
                 <div>
                   <strong className="text-zinc-900">Excelência:</strong> Atendimento ao cliente de primeira classe
                 </div>
               </li>
               <li className="flex gap-3">
-                <span className="text-indigo-600">✓</span>
+                <span className="text-red-600">✓</span>
                 <div>
                   <strong className="text-zinc-900">Confiabilidade:</strong> Compromisso com prazos e qualidade
                 </div>
@@ -72,19 +72,19 @@ export default function SobreNos() {
             <h2 className="text-2xl font-bold text-zinc-900 mb-4">Por Que Escolher IMBALÁVEL?</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-lg border border-black/10">
-                <h3 className="text-indigo-600 font-bold mb-2">Produtos Originais</h3>
+                <h3 className="text-red-600 font-bold mb-2">Produtos Originais</h3>
                 <p className="text-sm">Garantia 100% de autenticidade em todos os nossos produtos</p>
               </div>
               <div className="bg-white p-6 rounded-lg border border-black/10">
-                <h3 className="text-indigo-600 font-bold mb-2">Curadoria Expert</h3>
+                <h3 className="text-red-600 font-bold mb-2">Curadoria Expert</h3>
                 <p className="text-sm">Seleção especial feita por especialistas em fragrâncias</p>
               </div>
               <div className="bg-white p-6 rounded-lg border border-black/10">
-                <h3 className="text-indigo-600 font-bold mb-2">Preços Competitivos</h3>
+                <h3 className="text-red-600 font-bold mb-2">Preços Competitivos</h3>
                 <p className="text-sm">Os melhores preços do mercado com parcelamento disponível</p>
               </div>
               <div className="bg-white p-6 rounded-lg border border-black/10">
-                <h3 className="text-indigo-600 font-bold mb-2">Entrega Rápida</h3>
+                <h3 className="text-red-600 font-bold mb-2">Entrega Rápida</h3>
                 <p className="text-sm">Rastreamento completo e entrega em todo o Brasil</p>
               </div>
             </div>
@@ -95,7 +95,7 @@ export default function SobreNos() {
             <p className="leading-relaxed">
               Tem dúvidas ou sugestões? Adoraríamos ouvir você!
             </p>
-            <p className="mt-4 text-indigo-600">
+            <p className="mt-4 text-red-600">
               📧 contato@imbalavel.com.br<br />
               📱 (11) 98765-4321<br />
               📍 São Paulo, SP - Brasil

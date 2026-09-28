@@ -99,7 +99,7 @@ export default function DropArea({
 
         ${
           isDragActive
-            ? "border-indigo-600 bg-indigo-50"
+            ? "border-red-600 bg-red-50"
             : "border-slate-300"
         }
       `}

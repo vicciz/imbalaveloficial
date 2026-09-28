@@ -63,9 +63,9 @@ export default function SearchBar({
             text-sm
             outline-none
             transition
-            focus:border-indigo-500
+            focus:border-red-500
             focus:ring-2
-            focus:ring-indigo-200
+            focus:ring-red-200
           "
         />
       </div>

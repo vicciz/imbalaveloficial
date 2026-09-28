@@ -40,7 +40,7 @@ export default function Sidebar() {
           text-2xl
           font-bold
           tracking-wide
-          text-indigo-600
+          text-red-600
           "
         >
           IMBALÁVEL

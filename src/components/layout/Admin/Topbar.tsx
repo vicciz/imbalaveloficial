@@ -72,7 +72,7 @@ export default function Topbar() {
             items-center
             justify-center
             rounded-full
-            bg-indigo-600
+            bg-red-600
             font-semibold
             text-white
             "
