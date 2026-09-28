@@ -1,4 +1,5 @@
 import { supabase } from "../../../supabaseClient"
+import { obterMenorPrecoVenda } from "@/src/services/precos/precoVenda"
 
 import type {
   SearchProduct,
@@ -18,7 +19,6 @@ const DEFAULT_SUGGESTIONS = [
 const SEARCH_PRODUCTS_SELECT = `
   id,
   nome,
-  preco,
   descricao,
   detalhes,
   fornecedor,
@@ -30,6 +30,13 @@ const SEARCH_PRODUCTS_SELECT = `
     caminho,
     ordem,
     principal
+  ),
+  produto_variacao(
+    preco,
+    produto_variacao_item(
+      preco,
+      ativo
+    )
   )
 `
 
@@ -44,10 +51,19 @@ interface SearchCategoriaRow {
   nome: string
 }
 
+interface SearchProdutoVariacaoItemRow {
+  preco: number | string | null
+  ativo: boolean | null
+}
+
+interface SearchProdutoVariacaoRow {
+  preco: number | string | null
+  produto_variacao_item: SearchProdutoVariacaoItemRow[] | null
+}
+
 interface SearchProdutoRow {
   id: number
   nome: string
-  preco: number | string | null
   descricao: string | null
   detalhes: string | null
   fornecedor: string | null
@@ -55,6 +71,7 @@ interface SearchProdutoRow {
   categoria_id: number | null
   categorias: SearchCategoriaRow | SearchCategoriaRow[] | null
   produto_imagem: SearchProdutoImagemRow[] | null
+  produto_variacao: SearchProdutoVariacaoRow[] | null
 }
 
 interface SearchCategoriaMatchRow {
@@ -72,12 +89,6 @@ function sanitizeSearchTerm(term: string) {
     .replace(/[,%()]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
-}
-
-function normalizePrice(value: number | string | null) {
-  const parsed = Number(value ?? 0)
-
-  return Number.isFinite(parsed) ? parsed : 0
 }
 
 function getCategoryName(
@@ -111,7 +122,7 @@ function normalizeProduct(product: SearchProdutoRow): SearchProduct {
   return {
     id: product.id,
     nome: product.nome,
-    preco: normalizePrice(product),
+    preco: obterMenorPrecoVenda(product.produto_variacao),
     image: getProductImage(product.produto_imagem),
     marca: product.fornecedor?.trim() || null,
     categoria,

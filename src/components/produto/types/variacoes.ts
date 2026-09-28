@@ -133,6 +133,7 @@ export async function listarVariacoesProduto(
     .select(`
       id,
       id_produto,
+      preco,
 
       produto_variacao_item(
         id,

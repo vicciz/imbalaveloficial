@@ -307,7 +307,6 @@ export default function ProductPurchase({
           quantidade,
           cepDestino: cepLimpo,
           preco: Number(
-            variacao?.variacaoSelecionada?.item?.preco ??
             variacao?.variacaoSelecionada?.preco ??
             produto.preco ??
             0
@@ -378,81 +377,6 @@ export default function ProductPurchase({
     setFrete(null);
   }
 
-  async function comprarAgora() {
-    try {
-      const temVariacoes =
-        Array.isArray((variacao as any)?.variacoes) &&
-        (variacao as any).variacoes.length > 0;
-
-      if (
-        temVariacoes &&
-        !variacao?.variacaoSelecionada
-      ) {
-        alert(
-          "Selecione uma variação antes de continuar."
-        );
-        return;
-      }
-
-      if (!produto?.id) {
-        alert("Produto inválido para checkout.");
-        return;
-      }
-
-      setComprando(true);
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      console.log("VARIAÇÃO SELECIONADA:");
-      console.log(variacao?.variacaoSelecionada);
-
-      console.log("ITEM:");
-      console.log(variacao?.variacaoSelecionada?.item);
-
-      console.log("PREÇO:");
-      console.log(variacao?.variacaoSelecionada?.item?.preco);
-      
-      const response = await fetch(
-        "/stripe/checkout",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            id: produto.id,
-            quantidade,
-            userId: user?.id ?? "",
-            cepDestino: cepFrete,
-            variacaoSelecionada:
-              variacao?.variacaoSelecionada ??
-              null,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data?.url) {
-        alert(
-          data?.error ||
-            "Erro ao iniciar checkout"
-        );
-        setComprando(false);
-        return;
-      }
-
-      window.location.href = data.url;
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao iniciar checkout");
-      setComprando(false);
-    }
-  }
-
   async function adicionarCarrinho() {
     try {
       const {
@@ -516,6 +440,92 @@ export default function ProductPurchase({
     }
   }
 
+async function comprarAgora() {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const temVariacoes =
+      Array.isArray((variacao as any)?.variacoes) &&
+      (variacao as any).variacoes.length > 0;
+
+    if (!user) {
+      toast.error("Não foi possível realizar a compra.", {
+        description: "Faça login para continuar.",
+      });
+      return;
+    }
+
+    if (
+      temVariacoes &&
+      !variacao?.variacaoSelecionada
+    ) {
+      alert("Selecione uma variação antes de continuar.");
+      return;
+    }
+
+    if (!produto?.id) {
+      alert("Produto inválido para checkout.");
+      return;
+    }
+
+    // Impede o checkout sem endereço cadastrado
+    if (!carregandoEndereco && enderecos.length === 0) {
+      toast.error("Cadastre um endereço antes de comprar.", {
+        description:
+          "Você precisa cadastrar um endereço de entrega para continuar.",
+        action: {
+          label: "Cadastrar endereço",
+          onClick: () => {
+            window.location.href = "/perfil";
+          },
+        },
+      });
+      return;
+    }
+
+    setComprando(true);
+
+    console.log("VARIAÇÃO SELECIONADA:");
+    console.log(variacao?.variacaoSelecionada);
+
+    console.log("ITEM:");
+    console.log(variacao?.variacaoSelecionada?.item);
+
+    console.log("PREÇO:");
+    console.log(variacao?.variacaoSelecionada?.item?.preco);
+
+    const response = await fetch("/stripe/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: produto.id,
+        quantidade,
+        userId: user.id,
+        cepDestino: cepFrete,
+        variacaoSelecionada:
+          variacao?.variacaoSelecionada ?? null,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data?.url) {
+      alert(data?.error || "Erro ao iniciar checkout");
+      setComprando(false);
+      return;
+    }
+
+    window.location.href = data.url;
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao iniciar checkout");
+    setComprando(false);
+  }
+}
   const quantidadeTotalItens = itensCarrinho.reduce(
     (acc, item) => acc + Number(item?.quantidade ?? 0),
     0
@@ -640,13 +650,17 @@ export default function ProductPurchase({
         {frete ? (
           <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-slate-600">Frete de entrega</span>
-              <span className="font-semibold text-slate-900">
-                {Number(frete.priceBRL ?? frete.price).toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                })}
-              </span>
+              
+              <span className="font-semibold text-slate-900 line-through">
+                  {Number(frete.priceBRL ?? frete.price).toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </span>
+
+                <span className="text-sm font-semibold text-green-600">
+                  Frete grátis
+                </span>
             </div>
             {frete.deliveryTime && (
               <p className="mt-1 text-xs text-slate-500">

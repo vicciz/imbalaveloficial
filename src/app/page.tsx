@@ -5,8 +5,10 @@ import Footer from "@/src/components/layout/Home/Footer/Footer";
 import Banner from "../components/layout/Home/Banner";
 import HomeVitrines from "@/src/app/admin/home/vitrines/componentes/HomeVitrines";
 
-export default function Page() {
+console.log("[diag] home page module loaded");
 
+export default function Page() {
+  console.log("[diag] home page render");
 
   return (
 <main
@@ -23,12 +25,8 @@ export default function Page() {
           w-full
         "
       >
-
         <Banner />
-
       </section>
-
-
 
       {/* ==========================
           VITRINES

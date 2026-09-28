@@ -333,9 +333,7 @@ const MENU_ITEMS = [
                 />
               </SectionCard>
 
-              <SectionCard id="security">
-                <SecurityCard />
-              </SectionCard>
+              
             </div>
           </main>
         </div>

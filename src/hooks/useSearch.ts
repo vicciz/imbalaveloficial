@@ -18,12 +18,8 @@ import type {
 
 const SEARCH_HISTORY_KEY = "imbalavel:search-history"
 const DEFAULT_SUGGESTIONS = [
-  "Perfume Masculino",
-  "Perfume Feminino",
-  "Cosméticos",
-  "Cabelos",
-  "Skincare",
-  "Presentes",
+  "",
+
 ] as const
 
 interface UseSearchOptions {

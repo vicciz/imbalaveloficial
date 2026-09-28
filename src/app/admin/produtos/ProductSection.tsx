@@ -142,6 +142,7 @@ function scrollRight() {
     [scrollbar-width:none]
     [-ms-overflow-style:none]
     [&::-webkit-scrollbar]:hidden
+    
   "
 >
         {produtos.map((produto) => (

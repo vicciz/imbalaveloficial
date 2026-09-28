@@ -13,6 +13,8 @@ import { cn } from "@/src/lib/utils";
 import { Toaster } from "sonner";
 import NavigationTracker from "@/src/navigation/NavigationTracker";
 
+console.log("[diag] root layout module loaded");
+
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
@@ -50,6 +52,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  console.log("[diag] root layout render");
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const PIXEL_ID = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '';
   const jsonLd = {

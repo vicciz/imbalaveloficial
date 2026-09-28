@@ -5,6 +5,7 @@ import { variantImageService } from '@/src/services/products/services/VariantIma
 import { supabase } from '@/supabaseClient';
 import { calcularFreteProduto } from '@/src/services/frete/calcularFrete';
 import { getUsdBrlRate } from '@/src/services/cambio/usdBrl';
+import { obterPrecoVendaCheckout } from '@/src/services/precos/precoVenda';
 
 type VariacaoSelecionada = {
   id?: number | string;
@@ -149,13 +150,12 @@ export async function POST(request: NextRequest) {
       variacaoSelecionada?.item ??
       null;
 
-    const preco = Number(
-      itemVariacaoReal?.preco ??
-      variacaoReal?.preco ??
-      variacaoSelecionada?.preco ??
-      produto.preco ??
-      0
-    );
+    const preco = obterPrecoVendaCheckout({
+      itemVariacao: itemVariacaoReal,
+      variacao: variacaoReal,
+      variacaoSelecionada,
+      produto,
+    });
     if (Number.isNaN(preco) || preco <= 0) {
       throw new Error('Preço do produto inválido');
     }
@@ -255,19 +255,6 @@ export async function POST(request: NextRequest) {
           },
           quantity: quantidadeSelecionada,
         },
-        ...(freteBRL > 0
-          ? [{
-              price_data: {
-                currency: 'brl',
-                unit_amount: Math.round(freteBRL * 100),
-                product_data: {
-                  name: "Frete",
-                  description: "Frete de entrega",
-                },
-              },
-              quantity: 1,
-            }]
-          : []),
       ],
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.imbalavel.com.br'}/sucesso`,

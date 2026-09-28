@@ -5,6 +5,18 @@ import { useEffect, useMemo, useState } from "react";
 import {
   listarVariacoesProduto,
 } from "@/src/components/produto/types/variacoes";
+import {
+  obterPrecoVendaVariacao,
+  type ItemComPrecoVenda,
+} from "@/src/services/precos/precoVenda";
+
+type ItemVariacaoComercial = ItemComPrecoVenda & {
+  custo_fornecedor?: number | null;
+  estoque?: number | null;
+  sku?: string | null;
+  fornecedor_sku?: string | null;
+  imagem_principal?: string | null;
+};
 
 function buildSelectedAttributesFromVariation(variacao: any): Record<string, string> {
   const selecionados: Record<string, string> = {};
@@ -123,10 +135,13 @@ const { data, error } =
     return null;
   }
 
+  const itensVariacao =
+    (variacao.produto_variacao_item ?? []) as ItemVariacaoComercial[];
   const itemComercial =
-  variacao.produto_variacao_item.find(
-    (item: any) => item.preco !== undefined
-  );
+    itensVariacao.find((item) => item.ativo !== false) ??
+    itensVariacao.find((item) => item.preco !== undefined);
+
+  const preco = obterPrecoVendaVariacao(variacao) ?? 0;
 
     return {
   ...variacao,
@@ -136,7 +151,7 @@ const { data, error } =
   custo_fornecedor:
     itemComercial?.custo_fornecedor ?? 0,
 
-  preco: itemComercial?.preco ?? 0,
+  preco,
 
   estoque: itemComercial?.estoque ?? 0,
 

@@ -30,8 +30,7 @@ export default function ProductInfo({
 }: Props) {
 
 const preco = variacao
-  ? variacao.variacaoSelecionada?.item?.preco ??
-    variacao.variacaoSelecionada?.preco ??
+  ? variacao.variacaoSelecionada?.preco ??
     0
   : produto.preco ?? 0;
 const sku =

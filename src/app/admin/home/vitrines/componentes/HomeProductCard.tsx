@@ -43,6 +43,7 @@ className="
   hover:-translate-y-1
   hover:border-violet-200
   hover:shadow-xl
+  p-5
 ">
      <div
         className="
@@ -54,7 +55,7 @@ className="
     border-b
     border-zinc-100
     bg-white
-    p-5
+    
   "
 >
         <Image
@@ -161,7 +162,7 @@ className="
     className="
       w-full
       rounded-lg
-      bg-violet-600
+      bg-red-600
       py-2
       text-sm
       font-semibold
