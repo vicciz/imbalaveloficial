@@ -9,8 +9,12 @@ import CjImportDialog from "@/src/app/admin/fornecedores/cjdropshipping/componen
 import { useCJProducts } from "@/src/hooks/cjdropshipping/useCJProducts";
 import { useCJImport } from "@/src/hooks/cjdropshipping/useCJImport";
 import Link from "next/link";
+import {useState} from "react";
 
 export default function CJDropshippingPage() {
+  const [cepDestino, setCepDestino] =
+    useState("");
+  
   const {
     busca,
     setBusca,
@@ -48,6 +52,25 @@ export default function CJDropshippingPage() {
           </div>
         </div>
 
+        <div className="flex items-end gap-3">
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            CEP de destino
+          </label>
+
+          <input
+            value={cepDestino}
+            onChange={(e) =>
+              setCepDestino(e.target.value)
+            }
+            placeholder="00000-000"
+            maxLength={9}
+            className="h-10 w-40 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-violet-500"
+          />
+        </div>
+
+      </div>
         <CjSearch
           value={busca}
           loading={loading}
@@ -58,6 +81,7 @@ export default function CJDropshippingPage() {
 
         <CjProductGrid
           produtos={produtos}
+          cepDestino={cepDestino}
           onImport={abrirImportacao}
         />
 

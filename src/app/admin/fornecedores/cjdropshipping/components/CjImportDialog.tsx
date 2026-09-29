@@ -41,9 +41,18 @@ export default function CjImportDialog({
           className="mt-4 h-60 w-full rounded-lg object-cover"
         />
 
-        <p className="mt-4 text-lg font-semibold">
-          US$ {produto.sellPrice}
-        </p>
+<p className="mt-4 text-lg font-semibold">
+  US$ {Number(produto.sellPrice).toFixed(2)}
+</p>
+
+{produto.sellPriceBRL !== undefined && (
+  <p className="mt-1 text-lg font-semibold text-slate-700">
+    R$ {produto.sellPriceBRL.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </p>
+)}
 
         <div className="mt-6 flex justify-end gap-3">
 

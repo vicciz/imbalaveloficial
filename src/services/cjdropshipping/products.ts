@@ -7,6 +7,7 @@ export interface CjApiResponse<TData> {
 }
 
 export async function buscarProdutos(
+
   keyWord: string,
   page = 1,
   size = 5
@@ -23,5 +24,13 @@ export async function buscarProdutoPorPid(
 ): Promise<CjApiResponse<unknown>> {
   return cjRequest(
     `/product/query?pid=${pid}`
+  );
+}
+
+export async function buscarDetalhesProdutoCJ(
+  pid: string
+): Promise<CjApiResponse<any>> {
+  return cjRequest(
+    `/product/query?pid=${encodeURIComponent(pid)}`
   );
 }

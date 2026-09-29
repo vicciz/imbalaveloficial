@@ -77,7 +77,8 @@ function StatusBadge({ status }: { status: FornecedorStatus }) {
 
 export default function FornecedoresPage() {
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState("cj");
-
+  const [cepDestino, setCepDestino] =
+    useState("");
   function selecionarFornecedor(fornecedor: Fornecedor) {
     if (fornecedor.status !== "disponivel") {
       return;

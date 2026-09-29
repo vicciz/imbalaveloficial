@@ -1,15 +1,11 @@
 "use client";
 
-import { CJProduct } from "./types";
-
 import CjProductCard from "./CjProductCard";
+import type { CJProduct } from "./types";
 
 type Props = {
   produtos: CJProduct[];
-
-  onImport: (
-    produto: CJProduct
-  ) => void;
+  onImport: (produto: CJProduct) => void;
 };
 
 export default function CjProductGrid({
@@ -17,18 +13,14 @@ export default function CjProductGrid({
   onImport,
 }: Props) {
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {produtos.map((produto) => (
-
         <CjProductCard
           key={produto.id}
           produto={produto}
           onImport={onImport}
         />
-
       ))}
-
     </div>
   );
 }

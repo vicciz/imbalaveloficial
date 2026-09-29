@@ -49,7 +49,7 @@ className="
         className="
   
     flex
-    h-56
+    h-50
     items-center
     justify-center
     border-b
