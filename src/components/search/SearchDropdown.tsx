@@ -60,12 +60,7 @@ export default function SearchDropdown({
           onClear={onClearHistory}
         />
 
-        <SearchSuggestions
-          items={suggestions}
-          activeOffset={suggestionsOffset}
-          activeIndex={activeIndex}
-          onSelect={onSelectLabel}
-        />
+
 
         {loading ? (
           <div className="flex items-center gap-3 px-4 py-5 text-sm text-slate-500">

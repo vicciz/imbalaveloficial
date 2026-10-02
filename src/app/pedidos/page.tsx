@@ -3,6 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AdminLayout } from "@/src/components/layout/Admin";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/src/components/ui/dialog";
+import { Button } from "@/src/components/ui/button";
 import { supabase } from "@/supabaseClient";
 import { variantImageService } from "@/src/services/products/services/VariantImageService";
 import {
@@ -310,9 +319,7 @@ const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
                                 </p>
 </div>
 
-                            <p className="text-sm text-slate-600">
-                              Quantidade: {item.quantidade}
-                            </p>
+                       
                           </div>
                         </div>
 
@@ -332,47 +339,57 @@ const pedidosNormalizados = (data ?? []).map((pedido: any) => ({
         )}
       </div>
 
-      {pedidoParaCancelar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-slate-900">Cancelar compra</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              Tem certeza que deseja cancelar este pedido?
-            </p>
-            <label className="mt-4 block text-sm font-medium text-slate-700">
-              Motivo do cancelamento (obrigatório)
-              <textarea
-                value={motivoCancelamento}
-                onChange={(event) => setMotivoCancelamento(event.target.value)}
-                rows={4}
-                required
-                className="mt-2 w-full rounded-lg border border-slate-200 p-3 text-sm text-slate-900"
-              />
-            </label>
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setPedidoParaCancelar(null);
-                  setMotivoCancelamento("");
-                }}
-                disabled={cancelandoPedido}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700"
-              >
-                Voltar
-              </button>
-              <button
-                type="button"
-                onClick={confirmarCancelamento}
-                disabled={cancelandoPedido || !motivoCancelamento.trim()}
-                className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {cancelandoPedido ? "Cancelando..." : "Confirmar cancelamento"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Dialog
+        open={Boolean(pedidoParaCancelar)}
+        onOpenChange={(open) => {
+          if (!open && !cancelandoPedido) {
+            setPedidoParaCancelar(null);
+            setMotivoCancelamento("");
+          }
+        }}
+      >
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md p-6" showCloseButton={!cancelandoPedido}>
+          <DialogHeader className="pr-8">
+            <DialogTitle className="text-lg font-semibold text-slate-900">
+              Cancelar pedido #{pedidoParaCancelar?.id}
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja cancelar esta compra? O pedido será cancelado e o estorno será solicitado quando houver pagamento confirmado.
+            </DialogDescription>
+          </DialogHeader>
+          <label className="block text-sm font-medium text-slate-700">
+            Motivo do cancelamento (obrigatório)
+            <textarea
+              value={motivoCancelamento}
+              onChange={(event) => setMotivoCancelamento(event.target.value)}
+              rows={4}
+              required
+              className="mt-2 w-full rounded-lg border border-slate-200 p-3 text-sm text-slate-900"
+            />
+          </label>
+          <DialogFooter className="mx-0 mb-0 flex-col-reverse rounded-none border-0 bg-transparent p-0 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setPedidoParaCancelar(null);
+                setMotivoCancelamento("");
+              }}
+              disabled={cancelandoPedido}
+            >
+              Voltar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={confirmarCancelamento}
+              disabled={cancelandoPedido || !motivoCancelamento.trim()}
+            >
+              {cancelandoPedido ? "Cancelando..." : "Confirmar cancelamento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

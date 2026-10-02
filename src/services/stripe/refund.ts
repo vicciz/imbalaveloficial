@@ -16,9 +16,9 @@ export async function estornarPagamentoPedido(pedido: {
   stripe_session_id?: string | null;
   stripe_refund_id?: string | null;
 }) {
-  const status = String(pedido.status ?? "").trim().toUpperCase();
-  if (status !== "CANCELLED") {
-    throw new Error("O pedido precisa estar CANCELLED para gerar o refund.");
+  const status = String(pedido.status ?? "").trim().toLowerCase();
+  if (status !== "cancelled") {
+    throw new Error("O pedido precisa estar cancelled para gerar o refund.");
   }
 
   if (pedido.stripe_refund_id?.trim()) {
@@ -36,6 +36,14 @@ export async function estornarPagamentoPedido(pedido: {
 
   const stripe = obterStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (session.payment_status !== "paid") {
+    return {
+      refundId: null,
+      status: "not_applicable",
+      amount: 0,
+    };
+  }
+
   const paymentIntent = session.payment_intent;
   const paymentIntentId =
     typeof paymentIntent === "string" ? paymentIntent : paymentIntent?.id;

@@ -48,19 +48,17 @@ export function traduzirStatusCJ(status: unknown) {
 export function podeCancelarPedido(statusPedido: unknown, statusCJ?: unknown) {
   const statusNormalizado = String(statusPedido ?? "").trim().toLowerCase();
   const statusCJNormalizado = String(statusCJ ?? "").trim().toLowerCase();
-  const statusCJBloqueado = [
-    "shipped",
-    "delivered",
-    "cancelled",
-    "canceled",
-  ].some((status) => statusCJNormalizado.includes(status));
-  const transporteIniciado = ["transit", "dispatch", "shipping", "delivery"].some(
-    (status) => statusCJNormalizado.includes(status)
-  );
+  const statusCancelado = ["cancelled", "canceled", "cancelado"].includes(
+    statusNormalizado
+  ) || ["cancelled", "canceled", "cancelado"].includes(statusCJNormalizado);
+  const transporteIniciado =
+    /(?:^|[^a-z])(?:partially[\s_-]+shipped|shipped|delivered|in[\s_-]+transit|transit|shipping|delivery|dispatch|dispatched|out[\s_-]+for[\s_-]+delivery)(?:$|[^a-z])/.test(
+      statusCJNormalizado
+    );
 
   return (
     ["paid", "created", "processing"].includes(statusNormalizado) &&
-    !statusCJBloqueado &&
+    !statusCancelado &&
     !transporteIniciado
   );
 }

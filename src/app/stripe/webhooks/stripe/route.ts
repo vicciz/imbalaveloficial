@@ -17,6 +17,7 @@ import {
   atualizarIntegracaoCJ,
 } from "@/src/services/pedido/pedido";
 import { enviarPedidoParaCJ } from "@/src/services/cjdropshipping/sendOrder";
+import { enviarResumoPedidoPorEmail } from "@/src/services/email/pedidoEmail";
 
 type WebhookUsuario = { id: number };
 type WebhookEndereco = { id: number; cep?: string | null };
@@ -28,6 +29,22 @@ async function atualizarStatusCJErro(idPedido: number, error: unknown) {
     cj_status: "error",
     cj_error: mensagem.slice(0, 2000),
   });
+}
+
+async function obterEmailUsuario(userId: string) {
+  const supabaseAdmin = getSupabaseAdminClient();
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+  if (error) {
+    throw new Error(supabaseErrorMessage(error, "Falha ao buscar e-mail do cliente"));
+  }
+
+  const email = data.user?.email?.trim();
+  if (!email) {
+    throw new Error("O cliente do pedido não possui e-mail cadastrado.");
+  }
+
+  return email;
 }
 
 const stripe = new Stripe(
@@ -224,6 +241,27 @@ export async function POST(
               error,
             });
           }
+
+          try {
+            const email = await obterEmailUsuario(userId);
+            const totalExistente = Number((pedidoExistente as any).valor_total ?? 0);
+            const freteExistente = Number((pedidoExistente as any).frete_total ?? 0);
+
+            await enviarResumoPedidoPorEmail({
+              to: email,
+              pedidoId: pedidoExistente.id,
+              total: totalExistente,
+              frete: freteExistente,
+              itens: itensPedidoExistente ?? [],
+              endereco: endereco as Record<string, any>,
+            });
+          } catch (error) {
+            console.error("[EMAIL] Erro ao enviar resumo do pedido existente", {
+              pedidoId: pedidoExistente.id,
+              error,
+            });
+          }
+
           break;
         }
 
@@ -348,13 +386,19 @@ export async function POST(
           "Pedido criado com sucesso"
         );
 
-        try {
-          const { data: itensPedidoData, error: erroItensPedido } = await buscarItensPedido(pedido.id);
-          const itensPedido = itensPedidoData as Record<string, unknown>[] | null;
-          if (erroItensPedido) {
-            throw new Error(supabaseErrorMessage(erroItensPedido, "Falha ao buscar itens do pedido"));
-          }
+        const { data: itensPedidoData, error: erroItensPedido } = await buscarItensPedido(pedido.id);
+        const itensPedido = itensPedidoData as Record<string, unknown>[] | null;
 
+        if (erroItensPedido) {
+          throw new Error(
+            supabaseErrorMessage(
+              erroItensPedido,
+              "Falha ao buscar itens do pedido"
+            )
+          );
+        }
+
+        try {
           await enviarPedidoParaCJ({
             pedido,
             itens: itensPedido ?? [],
@@ -368,6 +412,31 @@ export async function POST(
             error,
           });
           await atualizarStatusCJErro(pedido.id, error);
+        }
+
+        try {
+          const email = await obterEmailUsuario(userId);
+          const freteTotal = Number(session.metadata?.frete_total_brl ?? 0);
+
+          await enviarResumoPedidoPorEmail({
+            to: email,
+            pedidoId: pedido.id,
+            total: valorTotal,
+            frete: freteTotal,
+            itens: itensPedido ?? [],
+            endereco: endereco as Record<string, any>,
+          });
+
+          console.log("[EMAIL] Resumo do pedido enviado", {
+            pedidoId: pedido.id,
+            email,
+          });
+        } catch (error) {
+          // O envio do e-mail não pode invalidar o pedido já pago.
+          console.error("[EMAIL] Erro ao enviar resumo do pedido", {
+            pedidoId: pedido.id,
+            error,
+          });
         }
 
         break;

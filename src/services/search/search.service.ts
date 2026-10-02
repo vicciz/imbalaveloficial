@@ -8,12 +8,7 @@ import type {
 } from "@/src/types/search"
 
 const DEFAULT_SUGGESTIONS = [
-  "Perfume Masculino",
-  "Perfume Feminino",
-  "Cosméticos",
-  "Cabelos",
-  "Skincare",
-  "Presentes",
+
 ] as const
 
 const SEARCH_PRODUCTS_SELECT = `

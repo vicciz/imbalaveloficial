@@ -466,11 +466,10 @@ async function comprarAgora() {
     }
 
     if (!produto?.id) {
-      alert("Produto inválido para checkout.");
+      alert("Produto inválido.");
       return;
     }
 
-    // Impede o checkout sem endereço cadastrado
     if (!carregandoEndereco && enderecos.length === 0) {
       toast.error("Cadastre um endereço antes de comprar.", {
         description:
@@ -487,42 +486,12 @@ async function comprarAgora() {
 
     setComprando(true);
 
-    console.log("VARIAÇÃO SELECIONADA:");
-    console.log(variacao?.variacaoSelecionada);
+    // Abre diretamente o carrinho
+    window.location.href = "/carrinho";
 
-    console.log("ITEM:");
-    console.log(variacao?.variacaoSelecionada?.item);
-
-    console.log("PREÇO:");
-    console.log(variacao?.variacaoSelecionada?.item?.preco);
-
-    const response = await fetch("/stripe/checkout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: produto.id,
-        quantidade,
-        userId: user.id,
-        cepDestino: cepFrete,
-        variacaoSelecionada:
-          variacao?.variacaoSelecionada ?? null,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data?.url) {
-      alert(data?.error || "Erro ao iniciar checkout");
-      setComprando(false);
-      return;
-    }
-
-    window.location.href = data.url;
   } catch (error) {
     console.error(error);
-    alert("Erro ao iniciar checkout");
+    alert("Erro ao abrir o carrinho.");
     setComprando(false);
   }
 }
@@ -779,7 +748,7 @@ async function comprarAgora() {
         {comprando
           ? "Redirecionando..."
           : disponivel
-          ? "Comprar Agora"
+          ? "Ver carrinho"
           : "Produto indisponível"}
       </Button>
 
