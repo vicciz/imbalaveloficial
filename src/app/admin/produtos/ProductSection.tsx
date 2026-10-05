@@ -93,17 +93,6 @@ function scrollRight() {
 
     </div>
 
-    <Link
-        href={href}
-        className="
-            font-medium
-            text-violet-600
-            transition
-            hover:underline
-        "
-    >
-        Ver todos →
-    </Link>
 
 </div>
 

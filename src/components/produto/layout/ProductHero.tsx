@@ -20,6 +20,7 @@ export default function ProductHero({ produto }: Props) {
   const variacao = useProdutoVariacao(produto.id);
 
   return (
+
     <div className="mx-auto w-full max-w-[100rem] px-4 py-8 sm:px-6 lg:px-8">
       <section className="grid grid-cols-1 items-start gap-12 lg:grid-cols-12">
         <div className="col-span-full min-w-0 space-y-16 lg:col-span-8">
@@ -52,8 +53,9 @@ export default function ProductHero({ produto }: Props) {
           />
         </div>
       </section>
-
-      <Footer />
+  <Footer  />
     </div>
+
+
   );
 }
