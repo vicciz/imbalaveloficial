@@ -1,0 +1,20 @@
+name: Sincronizar pedidos CJ
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-cj:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar sincronizacao CJ
+        run: >-
+          curl --fail --show-error --silent --location
+          --connect-timeout 10 --max-time 60 --retry 2 --retry-all-errors
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          https://www.imbalavel.com.br/api/cron/sync-cj/
