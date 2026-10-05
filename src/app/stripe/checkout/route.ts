@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.imbalavel.com.br'}/sucesso`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.imbalavel.com.br'}/sucesso?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.imbalavel.com.br'}/cancelado`,
     });
 

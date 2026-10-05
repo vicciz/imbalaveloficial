@@ -2,6 +2,7 @@
 
 import { Button } from "@/src/components/ui/button";
 import { BackButton } from "@/src/navigation";
+import { LoadingSpinner } from "@/src/components/ui/loading-spinner";
 
 export type CartSummaryProps = {
   totalItens: number;
@@ -12,6 +13,7 @@ export type CartSummaryProps = {
   freteLoading: boolean;
   freteError: string | null;
   mostrarAvisoSelecao: boolean;
+  checkoutLoading: boolean;
   disabled: boolean;
   onCheckout: () => void;
 };
@@ -31,6 +33,7 @@ export function CartSummary({
   freteLoading,
   freteError,
   mostrarAvisoSelecao,
+  checkoutLoading,
   disabled,
   onCheckout,
 }: CartSummaryProps) {
@@ -126,9 +129,22 @@ export function CartSummary({
         <Button
           type="button"
           onClick={onCheckout}
-          disabled={disabled || freteLoading || Boolean(freteError)}
+          disabled={
+            disabled ||
+            freteLoading ||
+            Boolean(freteError) ||
+            checkoutLoading
+          }
+          aria-busy={checkoutLoading}
         >
-          Finalizar compra
+          {checkoutLoading ? (
+            <>
+              <LoadingSpinner />
+              Preparando checkout...
+            </>
+          ) : (
+            "Finalizar compra"
+          )}
         </Button>
       </div>
     </aside>

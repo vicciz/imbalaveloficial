@@ -40,7 +40,7 @@ const {
   selectedItemIds,
   getPrecoUnitario
 );
-  const { finalizarCompra } = useCheckout({
+  const { finalizarCompra, loading: checkoutLoading } = useCheckout({
     enderecoId,
     selectedItemIds,
   });
@@ -133,6 +133,7 @@ const {
             freteLoading={freteLoading}
             freteError={freteError}
             mostrarAvisoSelecao={mostrarAvisoSelecao}
+            checkoutLoading={checkoutLoading}
             disabled={
               cartItems.length === 0 ||
               quantidadeSelecionados === 0 ||

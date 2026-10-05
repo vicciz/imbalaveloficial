@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { supabase } from "@/supabaseClient";
 import { toast } from "sonner";
 
@@ -12,8 +13,15 @@ export function useCheckout({
   enderecoId,
   selectedItemIds,
 }: Props) {
+  const [loading, setLoading] = useState(false);
+  const checkoutPending = useRef(false);
 
   async function finalizarCompra() {
+    if (checkoutPending.current) return;
+
+    checkoutPending.current = true;
+    setLoading(true);
+    let checkoutIniciado = false;
 
     try {
 
@@ -86,6 +94,7 @@ export function useCheckout({
 
       window.location.href =
         data.url;
+      checkoutIniciado = true;
 
     } catch (error) {
 
@@ -95,12 +104,18 @@ export function useCheckout({
         "Erro ao iniciar checkout."
       );
 
+    } finally {
+      if (!checkoutIniciado) {
+        checkoutPending.current = false;
+        setLoading(false);
+      }
     }
 
   }
 
   return {
     finalizarCompra,
+    loading,
   };
 
 }

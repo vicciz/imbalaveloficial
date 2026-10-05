@@ -1,118 +1,75 @@
 "use client";
 
+import Link from "next/link";
+import { CircleX, Mail, ShoppingCart, Truck } from "lucide-react";
 import { motion } from "framer-motion";
-import { useNavigation } from "@/src/navigation";
-import { BackButton } from "@/src/navigation";
 
 export default function CanceladoPage() {
-  const { goHome } = useNavigation();
-
   return (
-    <div className="w-full h-screen bg-[#8b7bbd] overflow-hidden flex items-center justify-center relative">
-      <div className="absolute left-4 top-4 sm:left-6 sm:top-6">
-        <BackButton
-          label="Voltar ao carrinho"
-          destination="/carrinho"
-        />
-      </div>
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-white to-violet-50 px-4 py-12">
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-violet-950/5 sm:p-10"
+      >
+        <div className="mx-auto flex max-w-xl flex-col items-center text-center">
+          <div className="mb-5 flex size-20 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+            <CircleX aria-hidden="true" className="size-11" />
+          </div>
 
-      {/* LINHAS ANIMADAS */}
-      {[0, 1, 2, 3].map((item) => (
-        <motion.div
-          key={item}
-          initial={{
-            x: -1200,
-            opacity: 0,
-          }}
-          animate={{
-            x: 1200,
-            opacity: [0, 1, 1, 0],
-          }}
-          transition={{
-            duration: 1,
-            delay: item * 0.12,
-            ease: "easeOut",
-          }}
-          className="absolute bg-white rounded-full rotate-[-32deg]"
-          style={{
-            width: item % 2 === 0 ? 700 : 500,
-            height: item % 2 === 0 ? 5 : 3,
-            top: `${35 + item * 7}%`,
-          }}
-        />
-      ))}
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-violet-700">
+            Imbalável
+          </p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Compra não finalizada
+          </h1>
+          <p className="mt-3 max-w-lg text-slate-600">
+            O pagamento foi cancelado ou não foi concluído. Por isso, seu pedido
+            não foi criado e você não receberá um e-mail de confirmação desta
+            tentativa.
+          </p>
 
-      {/* CONTEÚDO */}
-      <div className="relative flex flex-col items-center justify-center">
-        {/* CÍRCULO */}
-        <motion.div
-          initial={{
-            scale: 0,
-            opacity: 0,
-          }}
-          animate={{
-            scale: 1,
-            opacity: 1,
-          }}
-          transition={{
-            duration: 0.6,
-            type: "spring",
-            stiffness: 120,
-          }}
-          className="w-[300px] h-[300px] bg-[#ff5f5f] rounded-full flex items-center justify-center shadow-2xl border-[6px] border-white"
-        >
-          {/* X */}
-          <motion.svg
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{
-              delay: 0.5,
-              duration: 0.7,
-            }}
-            width="180"
-            height="180"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <motion.path d="M18 6L6 18" />
-            <motion.path d="M6 6L18 18" />
-          </motion.svg>
-        </motion.div>
+          <div className="mt-8 grid w-full gap-3 text-left sm:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="flex items-center gap-2 font-semibold text-slate-900">
+                <Mail aria-hidden="true" className="size-5 text-violet-700" />
+                E-mail de confirmação
+              </div>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                A confirmação será enviada somente quando uma compra for
+                concluída e o pedido criado.
+              </p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="flex items-center gap-2 font-semibold text-slate-900">
+                <Truck aria-hidden="true" className="size-5 text-violet-700" />
+                Entrega e rastreamento
+              </div>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Em uma compra concluída, o prazo estimado é de 15 a 45 dias. O
+                link de rastreio fica disponível após o despacho.
+              </p>
+            </div>
+          </div>
 
-        {/* TEXTO */}
-        <motion.h1
-          initial={{
-            opacity: 0,
-            y: 30,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            delay: 1,
-            duration: 0.6,
-          }}
-          className="text-white text-5xl font-light mt-14 tracking-wide"
-        >
-          Pagamento Realizado
-        </motion.h1>
-        <motion.button
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 1.3, duration: 0.5 }}
-  whileHover={{ scale: 1.05 }}
-  whileTap={{ scale: 0.95 }}
-  onClick={goHome}
-  className="mt-10 px-8 py-4 bg-white text-[#8b7bbd] text-xl font-semibold rounded-2xl shadow-2xl transition-all"
->
-  Fazer Nova Compra
-</motion.button>
-      </div>
-    </div>
+          <div className="mt-8 flex w-full flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href="/carrinho"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-violet-700 px-6 py-3 font-semibold text-white transition hover:bg-violet-800"
+            >
+              <ShoppingCart aria-hidden="true" className="size-5" />
+              Voltar ao carrinho
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Continuar comprando
+            </Link>
+          </div>
+        </div>
+      </motion.section>
+    </main>
   );
 }
