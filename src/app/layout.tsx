@@ -20,18 +20,18 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: {
-    default: "Imbalável | Perfumes e Cosméticos Premium",
+    default: "Imbalável",
     template: "%s | Imbalável",
   },
   description:
-    "Curadoria premium de perfumes masculinos, cosméticos e fragrâncias marcantes. Ofertas exclusivas e seleção com alta performance.",
+    "Tênis irados para esporte, treino e alta performance. Ofertas exclusivas e seleção com alta performance. Ofertas exclusivas e seleção com alta performance.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Imbalável | Perfumes e Cosméticos Premium",
+    title: "Imbalável",
     description:
-      "Curadoria premium de perfumes masculinos, cosméticos e fragrâncias marcantes.",
+      "Tênis irados para esporte, treino e alta performance. Ofertas exclusivas e seleção com alta performance.",
     url: "/",
     siteName: "Imbalável",
     locale: "pt_BR",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Imbalável | Perfumes e Cosméticos Premium",
     description:
-      "Curadoria premium de perfumes masculinos, cosméticos e fragrâncias marcantes.",
+      "Tênis irados para esporte, treino e alta performance. Ofertas exclusivas e seleção com alta performance.",
   },
   icons: {
     icon: logoTexto.src,
