@@ -5,7 +5,7 @@ const cards = [
    image:"/imagens/Banners/card1.jpg"
  },
  {
-   image:"/imagens/Banners/card2.png"
+   image:"/imagens/Banners/card2.jpg"
  },
  {
    image:"/imagens/Banners/card3.jpg"
@@ -28,13 +28,13 @@ return (
 
 
 <h2 className="mb-3 text-sm font-semibold">
-Benefícios em entretenimento
+Benefícios da Imbalavel
 </h2>
 
 <div
  className="
  flex
- gap-3
+ gap-6
  overflow-hidden
  "
 >
