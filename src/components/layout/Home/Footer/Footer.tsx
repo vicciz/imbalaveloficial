@@ -18,8 +18,7 @@ export default function Footer() {
           </h2>
 
           <p className="mt-4 text-sm leading-relaxed text-white/70">
-            Curadoria premium dos melhores perfumes masculinos, fragrâncias
-            marcantes e cosméticos selecionados para homens que se impõem.
+            Imbalavel — produtos selecionados, qualidade e ótimas ofertas. Encontre novidades e compre online com segurança e praticidade.
           </p>
 
           <p className="mt-6 text-xs text-white/40">
@@ -71,7 +70,7 @@ export default function Footer() {
 
           <p className="text-sm mb-4 text-white/70">
             Acompanhe novidades, lançamentos e recomendações exclusivas de
-            perfumes masculinos.
+            produtos.
           </p>
 
           <div className="flex gap-4 text-sm text-white/70">
@@ -108,7 +107,7 @@ export default function Footer() {
 
       {/* BOTTOM BAR */}
       <div className="border-t border-white/10 py-4 text-center text-xs text-white/40">
-        Perfumes masculinos • Fragrâncias premium • Curadoria IMBALÁVEL
+         Curadoria IMBALÁVEL
       </div>
     </footer>
   );
