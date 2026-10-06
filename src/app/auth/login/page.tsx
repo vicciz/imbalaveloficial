@@ -93,7 +93,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-4 m-5">
       <div className="absolute left-4 top-4 sm:left-6 sm:top-6">
         <BackButton label="Voltar" />
       </div>

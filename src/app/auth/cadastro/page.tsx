@@ -14,8 +14,34 @@ export default function Cadastro() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const normalizedEmail = email.trim().toLowerCase();
+
+  async function handleGoogleSignUp() {
+    if (googleLoading) return;
+
+    setGoogleLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        console.error("Erro ao iniciar cadastro com Google:", error);
+        toast.error("Não foi possível iniciar o cadastro com Google. Tente novamente.");
+        setGoogleLoading(false);
+      }
+    } catch (error) {
+      console.error("Erro ao iniciar cadastro com Google:", error);
+      toast.error("Não foi possível iniciar o cadastro com Google. Tente novamente.");
+      setGoogleLoading(false);
+    }
+  }
 
   const getPasswordStrength = (value: string) => {
     let score = 0;
@@ -94,7 +120,7 @@ export default function Cadastro() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-4 m-20">
       <div className="absolute left-4 top-4 sm:left-6 sm:top-6">
         <BackButton label="Voltar" />
       </div>
@@ -227,6 +253,23 @@ export default function Cadastro() {
             Criar conta
           </button>
         </form>
+
+        <div className="my-6 flex items-center gap-4 text-sm text-zinc-500">
+          <div className="h-px flex-1 bg-black/10" />
+          <span>ou</span>
+          <div className="h-px flex-1 bg-black/10" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleSignUp}
+          disabled={googleLoading}
+          aria-busy={googleLoading}
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-black/10 bg-white py-3 font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <span aria-hidden="true" className="text-lg font-bold text-blue-600">G</span>
+          {googleLoading ? "Conectando ao Google..." : "Criar conta com Google"}
+        </button>
 
         <p className="text-center text-sm text-zinc-600 mt-6">
           Já tem uma conta?{" "}

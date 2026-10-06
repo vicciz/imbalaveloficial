@@ -64,7 +64,7 @@ export default function SearchDropdown({
 
         {loading ? (
           <div className="flex items-center gap-3 px-4 py-5 text-sm text-slate-500">
-            <Loader2 className="size-4 animate-spin text-[#7C5CFC]" />
+            <Loader2 className="size-4 animate-spin text-[#eb3a12]" />
             <span>Buscando produtos...</span>
           </div>
         ) : null}
