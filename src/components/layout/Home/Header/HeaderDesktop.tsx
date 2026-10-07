@@ -54,6 +54,7 @@ const [lastScroll, setLastScroll] = useState(0);
     transition-transform
     duration-300
     
+    
     ${showHeader ? "translate-y-0" : "-translate-y-full"}
   `}
   style={{

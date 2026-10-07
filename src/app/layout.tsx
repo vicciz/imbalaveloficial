@@ -12,6 +12,7 @@ import { Inter, Geist } from "next/font/google";
 import { cn } from "@/src/lib/utils";
 import { Toaster } from "sonner";
 import NavigationTracker from "@/src/navigation/NavigationTracker";
+import { Footer } from "../components/layout/Home";
 
 console.log("[diag] root layout module loaded");
 
@@ -105,6 +106,7 @@ fbq('track', 'PageView');`}
         <main>
           <SitePageLayout>{children}</SitePageLayout>
         </main>
+          <Footer />
         <Toaster position="bottom-right" duration={4000} richColors />
       </body>
     </html>

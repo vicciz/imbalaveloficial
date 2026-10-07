@@ -53,7 +53,6 @@ export default function ProductHero({ produto }: Props) {
           />
         </div>
       </section>
-  <Footer  />
     </div>
 
 

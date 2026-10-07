@@ -47,7 +47,7 @@ export default function Page() {
 
       </section>
 
-      <Footer />
+ 
 
 
     </main>
