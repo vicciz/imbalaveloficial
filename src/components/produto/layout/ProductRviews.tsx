@@ -124,9 +124,7 @@ export default function ProductReviews({
 
         </div>
 
-        <button className="rounded-xl bg-violet-600 px-10 py-4 text-lg font-semibold text-white transition hover:bg-violet-700">
-          Comprar Agora
-        </button>
+
 
       </div>
 

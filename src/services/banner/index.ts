@@ -1,13 +1,20 @@
-import { supabase } from "@/supabaseClient";
+import { supabase, supabasePublic } from "@/supabaseClient";
 import type { Banner } from "./types";
 
 const TABLE = "banners";
 
-export async function listarBanners() {
-  const { data, error } = await supabase
+export async function listarBanners(publicOnly = false) {
+  const client = publicOnly ? supabasePublic : supabase;
+  let query = client
     .from(TABLE)
     .select("*")
     .order("ordem", { ascending: true });
+
+  if (publicOnly) {
+    query = query.eq("ativo", true);
+  }
+
+  const { data, error } = await query;
 
   return { data, error };
 }
@@ -80,4 +87,3 @@ export async function alterarOrdem(
 
   return { error };
 }
-

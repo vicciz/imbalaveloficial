@@ -76,7 +76,7 @@ const sku =
       {/* Preço */}
       <div className="mt-5">
 
-        <h2 className="text-5xl font-medium text-red-600">
+        <h2 className="text-5xl font-medium text-orange-600">
           {Number(preco).toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL",

@@ -1,4 +1,4 @@
-import { supabase } from "@/supabaseClient";
+import { supabase, supabasePublic } from "@/supabaseClient";
 import type { VitrineSecao } from "./types";
 import {
   buscarProdutosPorIds,
@@ -10,9 +10,11 @@ import {
    LISTAR
 ============================ */
 
-export async function listarVitrines() {
+export async function listarVitrines(publicOnly = false) {
 
-  return await supabase
+  const client = publicOnly ? supabasePublic : supabase;
+
+  return await client
 
     .from("vitrine_secao")
 
@@ -121,7 +123,8 @@ export async function alterarStatusVitrine(
 }
 
 export async function listarProdutosDaVitrine(
-  vitrine: VitrineSecao
+  vitrine: VitrineSecao,
+  publicOnly = false
 ) {
 
   /* ==========================
@@ -157,7 +160,8 @@ export async function listarProdutosDaVitrine(
 
   if (vitrine.tipo === "produtos") {
 
-    const { data, error } = await supabase
+    const client = publicOnly ? supabasePublic : supabase;
+    const { data, error } = await client
 
       .from("vitrine_secao_produto")
 

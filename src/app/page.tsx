@@ -12,7 +12,7 @@ export default function Page() {
 
   return (
 <main
-  className="min-h-screen bg-[#ebebeb] text-zinc-900"
+  className="min-h-screen bg-white text-zinc-900"
   style={{ paddingTop: "96px" }}
 >
 

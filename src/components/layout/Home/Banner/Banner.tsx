@@ -39,7 +39,68 @@ export default function Banner() {
     });
 
   useEffect(() => {
-    carregar();
+    let active = true;
+
+    async function carregarBanners() {
+      try {
+        const { data, error } = await listarBanners(true);
+
+        if (error) {
+          console.error(
+            "Não foi possível carregar os banners da Home.",
+            error
+          );
+          return;
+        }
+
+        const lista = (data ?? [])
+          .filter((item) => item.ativo)
+          .sort((a, b) => a.ordem - b.ordem);
+
+        if (active) {
+          setBanners(lista);
+        }
+      } catch (error) {
+        console.error(
+          "Não foi possível carregar os banners da Home.",
+          error
+        );
+      }
+    }
+
+    async function carregarConfig() {
+      try {
+        const { data, error } = await obterConfigBanner(true);
+
+        if (error) {
+          console.error(
+            "Não foi possível carregar a configuração do banner.",
+            error
+          );
+          return;
+        }
+
+        if (active && data) {
+          setConfig({
+            banner_duracao: data.banner_duracao,
+            banner_transicao: data.banner_transicao,
+            banner_autoplay: data.banner_autoplay,
+            banner_loop: data.banner_loop,
+          });
+        }
+      } catch (error) {
+        console.error(
+          "Não foi possível carregar a configuração do banner.",
+          error
+        );
+      }
+    }
+
+    void Promise.all([carregarBanners(), carregarConfig()]);
+
+    return () => {
+      active = false;
+    };
   }, []);
 
 useEffect(() => {
@@ -61,57 +122,6 @@ useEffect(() => {
   config.banner_duracao,
   config.banner_autoplay,
 ]);
-  async function carregar() {
-
-    const {
-      data,
-      error,
-    } = await listarBanners();
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    const lista =
-      (data ?? [])
-        .filter(
-          (item) => item.ativo
-        )
-        .sort(
-          (a, b) =>
-            a.ordem - b.ordem
-        );
-
-    setBanners(lista);
-
-    const {
-      data: cfg,
-      error: erroConfig,
-    } =
-      await obterConfigBanner();
-
-    if (erroConfig) {
-      console.error(
-        erroConfig
-      );
-      return;
-    }
-
-    if (cfg) {
-      setConfig({
-        banner_duracao:
-          cfg.banner_duracao,
-        banner_transicao:
-          cfg.banner_transicao,
-        banner_autoplay:
-          cfg.banner_autoplay,
-        banner_loop:
-          cfg.banner_loop,
-      });
-    }
-
-  }
     function trocarBanner() {
 
     if (animando) return;

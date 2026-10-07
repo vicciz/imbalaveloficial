@@ -42,26 +42,11 @@ function scrollRight() {
   className="
     mb-1
     rounded-3xl
-    border
-    border-zinc-200
-    bg-white
-    p-8
-    shadow-sm
-    transition-shadow
-    duration-300
-    hover:shadow-md
+    p-6
   "
 >
-  <div
-    className="
-      flex
-      items-center
-      justify-between
-  "
-></div>
     <div
         className="
-    
         mb-2
         flex
         items-center

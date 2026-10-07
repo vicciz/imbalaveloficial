@@ -1,6 +1,6 @@
 // services/produto/produtos.ts
 
-import { supabase } from "../../../../supabaseClient";
+import { supabase, supabasePublic } from "../../../../supabaseClient";
 import { listarProdutosColecao } from "@/src/services/colecao/colecao";
 import { normalizarMarkup } from "@/src/services/precos/markup";
 
@@ -237,7 +237,7 @@ export async function listarProdutos(
   data: Produto[] | null;
   error: any;
 }> {
-  const client = ensureSupabase();
+  const client = incluirOcultos ? ensureSupabase() : supabasePublic;
 
   // A consulta com relacionamentos é útil para a loja, mas pode falhar
   // enquanto as policies das tabelas filhas estiverem sendo configuradas.
@@ -634,7 +634,7 @@ export async function buscarProdutosPorIds(
     };
   }
 
-  const client = ensureSupabase();
+  const client = incluirOcultos ? ensureSupabase() : supabasePublic;
 
   let query = client
     .from("produto")
@@ -701,7 +701,7 @@ export async function listarProdutosCategoria(
   data: Produto[] | null;
   error: any;
 }> {
-  const client = ensureSupabase();
+  const client = incluirOcultos ? ensureSupabase() : supabasePublic;
 
   let query = client
     .from("produto")
@@ -769,7 +769,8 @@ export async function listarProdutosPorColecao(
     data,
     error,
   } = await listarProdutosColecao(
-    colecaoId
+    colecaoId,
+    !incluirOcultos
   );
 
   if (error) {

@@ -30,63 +30,91 @@ export default function HomeVitrines() {
 
     useState<VitrineComProdutos[]>([]);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
+    let active = true;
 
     async function carregar() {
+      try {
+        const { data, error } = await listarVitrines(true);
 
-      const { data } =
-        await listarVitrines();
+        if (error) {
+          console.error(
+            "Não foi possível carregar as vitrines da Home.",
+            error
+          );
+          return;
+        }
 
-      if (!data) return;
+        if (!data) return;
 
-      const lista =
-        await Promise.all(
-
+        const lista = await Promise.all(
           data
             .filter(v => v.ativo)
             .map(async vitrine => {
+              try {
+                const { data: produtos, error: produtosError } =
+                  await listarProdutosDaVitrine(vitrine, true);
 
-              const {
-                data: produtos,
-              } =
-                await listarProdutosDaVitrine(
-                  vitrine
+                if (produtosError) {
+                  console.error(
+                    `Não foi possível carregar os produtos da vitrine ${vitrine.id}.`,
+                    produtosError
+                  );
+                  return null;
+                }
+
+                return {
+                  vitrine,
+                  produtos: produtos?.slice(0, vitrine.quantidade) ?? [],
+                };
+              } catch (error) {
+                console.error(
+                  `Não foi possível carregar os produtos da vitrine ${vitrine.id}.`,
+                  error
                 );
-
-              return {
-
-                vitrine,
-
-                produtos:
-                  produtos?.slice(
-                    0,
-                    vitrine.quantidade
-                  ) ?? [],
-
-              };
-
+                return null;
+              }
             })
-
         );
 
-      setVitrines(lista);
+        if (active) {
+          setVitrines(
+            lista.filter(
+              (item): item is VitrineComProdutos => item !== null
+            )
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Não foi possível carregar os dados das vitrines da Home.",
+          error
+        );
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
 
     }
 
-    carregar();
+    void carregar();
 
+    return () => {
+      active = false;
+    };
   }, []);
 
-  if (!vitrines.length) {
+  if (loading) {
   return (
-    <div className="space-y-10">
+    <div className="mx-auto max-w-7xl space-y-12 px-4">
       {[...Array(3)].map((_, index) => (
         <div
           key={index}
           className="
             rounded-3xl
             bg-white
-            p-6
             shadow-sm
           "
         >
@@ -111,6 +139,8 @@ export default function HomeVitrines() {
     </div>
   );
 }
+
+  if (!vitrines.length) return null;
 
   return (
 
@@ -153,5 +183,4 @@ export default function HomeVitrines() {
   );
 
 }
-
 

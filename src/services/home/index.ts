@@ -1,8 +1,10 @@
-import { supabase } from "@/supabaseClient";
+import { supabase, supabasePublic } from "@/supabaseClient";
 import type { HomeConfig } from "./types";
 
-export async function obterConfigBanner() {
-  return supabase
+export async function obterConfigBanner(publicOnly = false) {
+  const client = publicOnly ? supabasePublic : supabase;
+
+  return client
     .from("home_secoes")
     .select("*")
     .eq("tipo", "banner")

@@ -735,12 +735,12 @@ async function comprarAgora() {
           h-14
           w-full
           rounded-xl
-          bg-red-600
+          bg-orange-600
           text-lg
           font-semibold
           shadow-lg
           transition
-          hover:bg-red-700
+          hover:bg-orange-700
           disabled:cursor-not-allowed
           disabled:opacity-50
         "

@@ -35,9 +35,7 @@ className="
   flex-shrink-0
   overflow-hidden
   rounded-xl
-  border
-  border-zinc-200
-  bg-white
+ 
   transition-all
   duration-300
   hover:-translate-y-1
@@ -116,8 +114,7 @@ className="
         tracking-tight
         transition-colors
         duration-300
-        group-hover:text-violet-700
-      "
+        group-hover:text-orange-600"
     >
      {menorPreco !== null
   ? menorPreco.toLocaleString("pt-BR", {
@@ -162,13 +159,13 @@ className="
     className="
       w-full
       rounded-lg
-      bg-red-600
       py-2
       text-sm
       font-semibold
       text-white
       transition
-      hover:bg-violet-700
+      bg-orange-600
+      hover:bg-orange-700
     "
   >
     Ver produto

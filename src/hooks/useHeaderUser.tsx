@@ -34,85 +34,98 @@ export function useHeaderUser() {
         setLoading(true);
       }
 
-      // Busca os dados do usuário
-      const { data: profile, error: profileError } = await supabase
-        .from("usuario")
-        .select(`
-          id,
-          user_id,
-          nome,
-          telefone,
-          role
-        `)
-        .eq("user_id", authUser.id)
-        .single();
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from("usuario")
+          .select(`
+            id,
+            user_id,
+            nome,
+            telefone,
+            role
+          `)
+          .eq("user_id", authUser.id)
+          .single();
 
-      if (!active) return;
+        if (!active) return;
 
-      if (profileError || !profile) {
+        if (profileError || !profile) {
+          console.error(
+            "Não foi possível carregar o perfil do Header.",
+            profileError
+          );
+
+          setUser(null);
+          return;
+        }
+
+        const { data: address, error: addressError } = await supabase
+          .from("enderecos")
+          .select(`
+            logradouro,
+            numero,
+            cidade,
+            estado
+          `)
+          .eq("id_usuario", profile.id)
+          .eq("principal", true)
+          .maybeSingle();
+
+        if (!active) return;
+
+        if (addressError) {
+          console.error(
+            "Não foi possível carregar o endereço do Header.",
+            addressError
+          );
+        }
+
+        const endereco = address
+          ? [
+              address.logradouro,
+              address.numero,
+              address.cidade,
+              address.estado,
+            ]
+              .filter(Boolean)
+              .join(", ")
+          : undefined;
+
+        setUser({
+          id: profile.id,
+          user_id: profile.user_id,
+          nome: profile.nome,
+          telefone: profile.telefone,
+          role: profile.role,
+          email: authUser.email,
+          endereco,
+        });
+      } catch (error) {
         console.error(
-          "Não foi possível carregar o perfil do Header.",
-          profileError
+          "Não foi possível carregar os dados do Header.",
+          error
         );
 
-        setUser(null);
-        setLoading(false);
-        return;
+        if (active) {
+          setUser(null);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
-
-      // Busca o endereço principal
-      const { data: address } = await supabase
-        .from("enderecos")
-        .select(`
-          logradouro,
-          numero,
-          cidade,
-          estado
-        `)
-        .eq("id_usuario", profile.id)
-        .eq("principal", true)
-        .maybeSingle();
-
-      if (!active) return;
-
-      const endereco = address
-        ? [
-            address.logradouro,
-            address.numero,
-            address.cidade,
-            address.estado,
-          ]
-            .filter(Boolean)
-            .join(", ")
-        : undefined;
-
-      setUser({
-        id: profile.id,
-        user_id: profile.user_id,
-        nome: profile.nome,
-        telefone: profile.telefone,
-        role: profile.role,
-        email: authUser.email,
-        endereco,
-      });
-
-      setLoading(false);
     }
-
-    async function initialize() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      await loadUser(user);
-    }
-
-    initialize();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      await loadUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const authUser = session?.user ?? null;
+
+      setTimeout(() => {
+        if (active) {
+          void loadUser(authUser);
+        }
+      }, 0);
     });
 
     return () => {

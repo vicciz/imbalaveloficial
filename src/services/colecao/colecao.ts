@@ -1,4 +1,4 @@
-import { supabase } from "@/supabaseClient";
+import { supabase, supabasePublic } from "@/supabaseClient";
 export interface colecao{
     id:number;
     nome:string;
@@ -49,8 +49,12 @@ export async function listarColecoes(){
 }
 
 //listar coleção por id
-export async function listarProdutosColecao(idColecao: number) {
-  const { data, error } = await supabase
+export async function listarProdutosColecao(
+  idColecao: number,
+  publicOnly = false
+) {
+  const client = publicOnly ? supabasePublic : supabase;
+  const { data, error } = await client
     .from("colecao_produto")
     .select("produto_id")
     .eq("colecao_id", idColecao);
